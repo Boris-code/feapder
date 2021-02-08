@@ -22,28 +22,25 @@ from feapder.utils.log import log
 class AirSpider(BaseParse, Thread):
     __custom_setting__ = {}
 
-    def __init__(self, thread_count=1, *parser_args, **parser_kwargs):
+    def __init__(self, thread_count=1):
         """
         基于内存队列的爬虫，不支持分布式
         :param thread_count: 线程数
-        :param parser_args:
-        :param parser_kwargs:
         """
         super(AirSpider, self).__init__()
 
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
 
-        self._thread_count = setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
-
-        self._parser_args = parser_args
-        self._parser_kwargs = parser_kwargs
+        self._thread_count = (
+            setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
+        )
 
         self._memory_db = MemoryDB()
         self._parser_controls = []
 
     def distribute_task(self):
-        for request in self.start_requests(*self._parser_args, **self._parser_kwargs):
+        for request in self.start_requests():
             if not isinstance(request, Request):
                 raise ValueError("仅支持 yield Request")
 

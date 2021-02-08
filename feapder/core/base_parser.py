@@ -16,12 +16,10 @@ from feapder.utils.log import log
 
 
 class BaseParse(object):
-    def start_requests(self, *args, **kwargs):
+    def start_requests(self):
         """
         @summary: 添加初始url
         ---------
-        @param *args:
-        @param **kwargs:
         ---------
         @result: yield Request()
         """

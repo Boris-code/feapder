@@ -11,7 +11,7 @@ import feapder
 
 
 class ${spider_name}(feapder.AirSpider):
-    def start_requests(self, *args, **kws):
+    def start_requests(self):
         yield feapder.Request("https://www.baidu.com")
 
     def parser(self, request, response):

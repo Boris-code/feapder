@@ -53,8 +53,6 @@ class BatchSpider(BatchParser, Scheduler):
         process_num=None,
         auto_stop_when_spider_done=None,
         send_run_time=False,
-        *parser_args,
-        **parser_kwargs
     ):
         """
         @summary: 批次爬虫
@@ -108,10 +106,6 @@ class BatchSpider(BatchParser, Scheduler):
             若相关连的爬虫为普通爬虫，无批次表，可以以related_redis_key配置
         @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，及where后的条件语句
         @param task_order_by: 取任务时的排序条件 如 id desc
-
-
-        @param *parser_args: 传给parser下start_requests的参数, tuple()
-        @param **parser_kwargs: 传给parser下start_requests的参数, dict()
         ---------
         @result:
         """
@@ -127,8 +121,6 @@ class BatchSpider(BatchParser, Scheduler):
             auto_start_requests=False,
             send_run_time=send_run_time,
             batch_interval=batch_interval,
-            *parser_args,
-            **parser_kwargs
         )
 
         self._redisdb = RedisDB()

@@ -46,8 +46,6 @@ class Scheduler(threading.Thread):
         send_run_time=True,
         batch_interval=0,
         wait_lock=True,
-        *parser_args,
-        **parser_kwargs
     ):
         """
         @summary: 调度器
@@ -63,9 +61,6 @@ class Scheduler(threading.Thread):
         @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
-
-        @param *parser_args: 传给parser下start_requests的参数, tuple()
-        @param **parser_kwargs: 传给parser下start_requests的参数, dict()
         ---------
         @result:
         """
@@ -93,8 +88,6 @@ class Scheduler(threading.Thread):
         self._parser_controls = []
         self._parser_control_obj = PaserControl
 
-        self._parser_args = parser_args
-        self._parser_kwargs = parser_kwargs
         self._auto_stop_when_spider_done = (
             auto_stop_when_spider_done
             if auto_stop_when_spider_done is not None
@@ -119,17 +112,15 @@ class Scheduler(threading.Thread):
             else lambda: log.info("\n********** feapder end **********")
         )
 
-        self._thread_count = setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
+        self._thread_count = (
+            setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
+        )
 
         self._spider_name = redis_key
         self._project_name = redis_key.split(":")[0]
 
-        self._tab_spider_time = setting.TAB_SPIDER_TIME.format(
-            redis_key=redis_key
-        )
-        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(
-            redis_key=redis_key
-        )
+        self._tab_spider_time = setting.TAB_SPIDER_TIME.format(redis_key=redis_key)
+        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
         self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_failed_requests = setting.TAB_FAILED_REQUSETS.format(
             redis_key=redis_key
@@ -207,9 +198,7 @@ class Scheduler(threading.Thread):
             log.info("检查到有待做任务 %s 条，不重下发新任务。将接着上回异常终止处继续抓取" % todo_task_count)
         else:
             for parser in self._parsers:
-                results = parser.start_requests(
-                    *self._parser_args, **self._parser_kwargs
-                )
+                results = parser.start_requests()
                 # 添加request到请求队列，由请求队列统一入库
                 if results and not isinstance(results, Iterable):
                     raise Exception("%s.%s返回值必须可迭代" % (parser.name, "start_requests"))

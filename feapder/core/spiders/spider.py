@@ -44,9 +44,7 @@ class Spider(
         auto_start_requests=None,
         send_run_time=False,
         batch_interval=0,
-        wait_lock=True,
-        *parser_args,
-        **parser_kwargs
+        wait_lock=True
     ):
         """
         @summary: 爬虫
@@ -64,9 +62,6 @@ class Spider(
         @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
-
-        @param *parser_args: 传给parser下start_requests的参数, tuple()
-        @param **parser_kwargs: 传给parser下start_requests的参数, dict()
         ---------
         @result:
         """
@@ -82,8 +77,6 @@ class Spider(
             send_run_time=send_run_time,
             batch_interval=batch_interval,
             wait_lock=wait_lock,
-            *parser_args,
-            **parser_kwargs
         )
 
         self._min_task_count = min_task_count
@@ -299,21 +292,20 @@ class DebugSpider(Spider):
                 log.info("正在删除表 %s" % table)
                 redis.clear(table)
 
-    def __start_requests(self, *args, **kws):
+    def __start_requests(self):
         yield self._request
 
-    def distribute_task(self, *args, **kws):
+    def distribute_task(self):
         """
         @summary: 分发任务 并将返回的request入库
         ---------
-        @param tasks:
         ---------
         @result:
         """
         self._is_distributed_task = False
 
         for parser in self._parsers:
-            requests = parser.__start_requests(*args, **kws)
+            requests = parser.__start_requests()
             if requests and not isinstance(requests, Iterable):
                 raise Exception("%s.%s返回值必须可迭代" % (parser.name, "start_requests"))
 
@@ -378,7 +370,7 @@ class DebugSpider(Spider):
         self.spider_begin()  # 不自动结束的爬虫此处只能执行一遍
 
         for parser in self._parsers:
-            results = parser.__start_requests(*self._parser_args, **self._parser_kwargs)
+            results = parser.__start_requests()
             # 添加request到请求队列，由请求队列统一入库
             if results and not isinstance(results, Iterable):
                 raise Exception("%s.%s返回值必须可迭代" % (parser.name, "start_requests"))

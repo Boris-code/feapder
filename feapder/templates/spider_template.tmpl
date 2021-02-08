@@ -16,7 +16,7 @@ class ${spider_name}(feapder.Spider):
         REDISDB_IP_PORTS="localhost:6379", REDISDB_USER_PASS="", REDISDB_DB=0
     )
 
-    def start_requests(self, *args, **kws):
+    def start_requests(self):
         yield feapder.Request("https://www.baidu.com")
 
     def parser(self, request, response):
