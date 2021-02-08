@@ -4,7 +4,7 @@
 
 **feapder**是一款使用Python语言编写的爬虫框架，于多年的爬虫业务中不断磨合而诞生，相比于scrapy，该框架更易上手，且又满足复杂的需求，支持分布式及批次采集。
 
-官方文档：https://spider-doc.readthedocs.io
+官方文档：http://boris.org.cn/feapder/
 
 爬虫开发的一些经验分享：https://mp.weixin.qq.com/s/cIUNatRCUtlAi0HAkbmcwA
 
@@ -121,18 +121,12 @@ From Git:
     百度一下
     Thread-2|2020-05-19 18:23:41,727|parser_control.py|run|line:415|INFO| parser 等待任务 ...
     FirstSpider|2020-05-19 18:23:44,735|air_spider.py|run|line:83|DEBUG| 无任务，爬虫结束
-    
 
-## 福利
-
-框架内的utils/tools.py模块下积累了作者多年的工具类函数，种类达到100+，且之后还会不定期更新，具有搬砖价值! 
     
 ## 学习交流
 
-想了解更多框架使用详情，可访问官方文档：https://spider-doc.readthedocs.io
-
 如学习中遇到问题，可加下面的QQ群
-`
+
 群号:750614606
 
 ![WechatIMG188](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/04/08/wechatimg188.jpeg)
