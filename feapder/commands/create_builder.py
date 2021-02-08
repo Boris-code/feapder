@@ -76,8 +76,10 @@ def main():
         spider_name, *spider_type = args.spider
         if not spider_type:
             spider_type = 1
+        else:
+            spider_type = spider_type[0]
         try:
-            spider_type = int(spider_type[0])
+            spider_type = int(spider_type)
         except:
             raise ValueError("spider_type error, support 1, 2, 3")
         CreateSpider().create(spider_name, spider_type)

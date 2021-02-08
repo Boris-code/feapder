@@ -22,6 +22,7 @@ def deal_file_info(file):
 
     return file
 
+
 class CreateItem:
     def __init__(self):
         self._db = MysqlDB()
@@ -77,9 +78,14 @@ class CreateItem:
 
         return item_template
 
-    def create_item(self, item_template, columns, table_name_hump_format, support_dict):
+    def create_item(self, item_template, columns, table_name, support_dict):
+        table_name_hump_format = self.convert_table_name_to_hump(table_name)
         # 组装 类名
-        item_template = item_template.replace("${table_name}", table_name_hump_format)
+        item_template = item_template.replace("${item_name}", table_name_hump_format)
+        if support_dict:
+            item_template = item_template.replace("${table_name}", table_name + " 1")
+        else:
+            item_template = item_template.replace("${table_name}", table_name)
 
         # 组装 属性
         propertys = ""
@@ -189,11 +195,10 @@ class CreateItem:
 
         for table_name in tables_name:
             table_name = table_name[0]
-            table_name_hump_format = self.convert_table_name_to_hump(table_name)
 
             columns = self.select_columns(table_name)
             item_template = self.get_item_template()
             item_template = self.create_item(
-                item_template, columns, table_name_hump_format, support_dict
+                item_template, columns, table_name, support_dict
             )
             self.save_template_to_file(item_template, table_name)
