@@ -65,9 +65,9 @@ class CreateTable:
         data = ""
         while True:
             line = sys.stdin.readline().strip()
-            data += line
-            if line == "}":
+            if not line:
                 break
+            data += line
 
         return tools.get_json(data)
 

@@ -21,6 +21,7 @@ class CreateJson:
         ---------
         @result:
         """
+        print("请输入需要转换的内容： （xxx:xxx格式，支持多行）")
         data = []
         while True:
             line = sys.stdin.readline().strip().replace("\t", " " * 4)
