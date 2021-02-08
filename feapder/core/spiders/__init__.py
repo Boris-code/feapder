@@ -8,8 +8,8 @@ Created on 2020/4/22 12:08 AM
 @email: boris@bzkj.tech
 """
 
-__all__ = ["SingleSpider", "Spider", "BatchSpider"]
+__all__ = ["AirSpider", "Spider", "BatchSpider"]
 
-from feapder.core.spiders.single_spider import SingleSpider
+from feapder.core.spiders.air_spider import AirSpider
 from feapder.core.spiders.spider import Spider
 from feapder.core.spiders.batch_spider import BatchSpider

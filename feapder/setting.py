@@ -4,15 +4,15 @@ import os
 
 # redis 表名
 # 任务表模版
-TAB_REQUSETS = "{table_folder}:z_requsets"
+TAB_REQUSETS = "{redis_key}:z_requsets"
 # 任务失败模板
-TAB_FAILED_REQUSETS = "{table_folder}:z_failed_requsets"
+TAB_FAILED_REQUSETS = "{redis_key}:z_failed_requsets"
 # 爬虫状态表模版
-TAB_SPIDER_STATUS = "{table_folder}:z_spider_status"
+TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
 # item 表模版
-TAB_ITEM = "{table_folder}:s_{item_name}"
+TAB_ITEM = "{redis_key}:s_{item_name}"
 # 爬虫时间记录表
-TAB_SPIDER_TIME = "{table_folder}:h_spider_time"
+TAB_SPIDER_TIME = "{redis_key}:h_spider_time"
 
 # MYSQL
 MYSQL_IP = os.getenv("MYSQL_IP")
@@ -59,7 +59,7 @@ WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报�
 
 # 爬虫初始化工作
 # redis 存放item与request的根目录
-TABLE_FOLDER = ""
+REDIS_KEY = ""
 # 每次启动时需要删除的表
 DELETE_TABS = []
 # 爬虫做完request后是否自动结束或者等待任务

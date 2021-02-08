@@ -16,7 +16,7 @@ def crawl_xxx():
     """
     普通爬虫
     """
-    spider = xxx.XXXSpider(table_folder="xxx:xxx")
+    spider = xxx.XXXSpider(redis_key="xxx:xxx")
     spider.start()
 
 
@@ -31,7 +31,7 @@ def crawl_xxx(args):
         batch_name="xxx(周全)",  # 批次名字
         batch_interval=7,  # 批次时间 天为单位 若为小时 可写 1 / 24
         task_keys=["id", "xxx"],  # 需要获取任务表里的字段名，可添加多个
-        table_folder="xxx:xxxx",  # redis中存放request等信息的根key
+        redis_key="xxx:xxxx",  # redis中存放request等信息的根key
         task_state="state",  # mysql中任务状态字段
     )
 

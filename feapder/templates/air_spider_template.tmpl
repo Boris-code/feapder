@@ -10,12 +10,7 @@ Created on {DATE}
 import feapder
 
 
-class ${spider_name}(feapder.Spider):
-    # 自定义数据库，若项目中有setting.py文件，此自定义可删除
-    __custom_setting__ = dict(
-        REDISDB_IP_PORTS="localhost:6379", REDISDB_USER_PASS="", REDISDB_DB=0
-    )
-
+class ${spider_name}(feapder.AirSpider):
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 
@@ -24,4 +19,4 @@ class ${spider_name}(feapder.Spider):
 
 
 if __name__ == "__main__":
-    ${spider_name}(redis_key="xxx:xxx").start()
+    ${spider_name}().start()

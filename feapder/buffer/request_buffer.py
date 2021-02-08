@@ -31,7 +31,7 @@ class Singleton(object):
 class RequestBuffer(threading.Thread, Singleton):
     dedup = None
 
-    def __init__(self, table_folder):
+    def __init__(self, redis_key):
         if not hasattr(self, "_requests_deque"):
             super(RequestBuffer, self).__init__()
 
@@ -42,15 +42,15 @@ class RequestBuffer(threading.Thread, Singleton):
             self._del_requests_deque = collections.deque()
             self._db = RedisDB()
 
-            self._table_request = setting.TAB_REQUSETS.format(table_folder=table_folder)
+            self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
             self._table_failed_request = setting.TAB_FAILED_REQUSETS.format(
-                table_folder=table_folder
+                redis_key=redis_key
             )
 
             if not self.__class__.dedup and setting.REQUEST_FILTER_ENABLE:
                 self.__class__.dedup = Dedup(
                     filter_type=Dedup.ExpireFilter,
-                    name=table_folder,
+                    name=redis_key,
                     expire_time=2592000,
                     to_md5=False,
                 )  # 过期时间为一个月

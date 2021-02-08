@@ -35,7 +35,7 @@ class Scheduler(threading.Thread):
 
     def __init__(
         self,
-        table_folder=None,
+        redis_key=None,
         parser_count=None,
         begin_callback=None,
         end_callback=None,
@@ -52,7 +52,7 @@ class Scheduler(threading.Thread):
         """
         @summary: 调度器
         ---------
-        @param table_folder: 爬虫request及item存放reis中的文件夹
+        @param redis_key: 爬虫request及item存放reis中的文件夹
         @param parser_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
@@ -75,20 +75,20 @@ class Scheduler(threading.Thread):
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
 
-        self._table_folder = table_folder or setting.TABLE_FOLDER
-        if not self._table_folder:
+        self._redis_key = redis_key or setting.REDIS_KEY
+        if not self._redis_key:
             raise Exception(
                 """
-                table_folder 为redis中存放request与item的目录。不能为空，
-                可在setting中配置，如 TABLE_FOLDER = 'test'
-                或spider初始化时传参, 如 TestSpider(table_folder='test')
+                redis_key 为redis中存放request与item的目录。不能为空，
+                可在setting中配置，如 REDIS_KEY = 'test'
+                或spider初始化时传参, 如 TestSpider(redis_key='test')
                 """
             )
 
-        self._request_buffer = RequestBuffer(table_folder)
-        self._item_buffer = ItemBuffer(table_folder)
+        self._request_buffer = RequestBuffer(redis_key)
+        self._item_buffer = ItemBuffer(redis_key)
 
-        self._collector = Collector(table_folder, process_num)
+        self._collector = Collector(redis_key, process_num)
         self._parsers = []
         self._parser_controls = []
         self._parser_control_obj = PaserControl
@@ -121,18 +121,18 @@ class Scheduler(threading.Thread):
 
         self._parser_count = setting.PARSER_COUNT if not parser_count else parser_count
 
-        self._spider_name = table_folder
-        self._project_name = table_folder.split(":")[0]
+        self._spider_name = redis_key
+        self._project_name = redis_key.split(":")[0]
 
         self._tab_spider_time = setting.TAB_SPIDER_TIME.format(
-            table_folder=table_folder
+            redis_key=redis_key
         )
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(
-            table_folder=table_folder
+            redis_key=redis_key
         )
-        self._tab_requests = setting.TAB_REQUSETS.format(table_folder=table_folder)
+        self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_failed_requests = setting.TAB_FAILED_REQUSETS.format(
-            table_folder=table_folder
+            redis_key=redis_key
         )
 
         self._is_notify_end = False  # 是否已经通知结束
@@ -143,7 +143,7 @@ class Scheduler(threading.Thread):
         self._is_exist_project_total_state_table = False
 
         # Request 缓存设置
-        Request.cached_table_folder = table_folder
+        Request.cached_redis_key = redis_key
         Request.cached_expire_time = setting.RESPONSE_CACHED_EXPIRE_TIME
 
         delete_tabs = delete_tabs or setting.DELETE_TABS
@@ -252,7 +252,7 @@ class Scheduler(threading.Thread):
         for i in range(self._parser_count):
             parser_control = self._parser_control_obj(
                 self._collector,
-                self._table_folder,
+                self._redis_key,
                 self._request_buffer,
                 self._item_buffer,
             )
@@ -266,7 +266,7 @@ class Scheduler(threading.Thread):
         # 下发任务 因为时间可能比较长，放到最后面
         if setting.RETRY_FAILED_REQUESTS:
             # 重设失败的任务, 不用加锁，原子性操作
-            handle_failed_requests = HandleFailedRequests(self._table_folder)
+            handle_failed_requests = HandleFailedRequests(self._redis_key)
             handle_failed_requests.reput_failed_requests_to_requests()
 
         # 下发新任务
@@ -419,14 +419,14 @@ class Scheduler(threading.Thread):
 
     def delete_tables(self, delete_tables_list):
         if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._table_folder + "*"]
+            delete_tables_list = [self._redis_key + "*"]
         elif not isinstance(delete_tables_list, (list, tuple)):
             delete_tables_list = [delete_tables_list]
 
         redis = RedisDB()
         for delete_tab in delete_tables_list:
             if delete_tab == "*":
-                delete_tab = self._table_folder + "*"
+                delete_tab = self._redis_key + "*"
 
             tables = redis.getkeys(delete_tab)
             for table in tables:

@@ -98,7 +98,7 @@ From Git:
     import spider
 
 
-    class FirstSpider(spider.SingleSpider):
+    class FirstSpider(spider.AirSpider):
         def start_requests(self, *args, **kws):
             yield spider.Request("https://www.baidu.com")
     
@@ -120,7 +120,7 @@ From Git:
                     
     百度一下
     Thread-2|2020-05-19 18:23:41,727|parser_control.py|run|line:415|INFO| parser 等待任务 ...
-    FirstSpider|2020-05-19 18:23:44,735|single_spider.py|run|line:83|DEBUG| 无任务，爬虫结束
+    FirstSpider|2020-05-19 18:23:44,735|air_spider.py|run|line:83|DEBUG| 无任务，爬虫结束
     
 
 ## 福利

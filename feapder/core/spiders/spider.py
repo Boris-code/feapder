@@ -32,7 +32,7 @@ class Spider(
 
     def __init__(
         self,
-        table_folder=None,
+        redis_key=None,
         min_task_count=1,
         check_task_interval=5,
         parser_count=None,
@@ -51,7 +51,7 @@ class Spider(
         """
         @summary: 爬虫
         ---------
-        @param table_folder: 爬虫request及item存放redis中的文件夹
+        @param redis_key: 爬虫request及item存放redis中的文件夹
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务。默认1秒
         @param check_task_interval: 检查是否还有任务的时间间隔；默认5秒
         @param parser_count: 线程数，默认为配置文件中的线程数
@@ -71,7 +71,7 @@ class Spider(
         @result:
         """
         super(Spider, self).__init__(
-            table_folder=table_folder,
+            redis_key=redis_key,
             parser_count=parser_count,
             begin_callback=begin_callback,
             end_callback=end_callback,
@@ -106,7 +106,7 @@ class Spider(
             try:
                 # 检查redis中是否有任务
                 tab_requests = setting.TAB_REQUSETS.format(
-                    table_folder=self._table_folder
+                    redis_key=self._redis_key
                 )
                 todo_task_count = redisdb.zget_count(tab_requests)
 
@@ -271,7 +271,7 @@ class DebugSpider(Spider):
         if not request and not request_dict:
             raise Exception("request 与 request_dict 不能同时为null")
 
-        kwargs["table_folder"] = kwargs["table_folder"] + "_debug"
+        kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
@@ -285,14 +285,14 @@ class DebugSpider(Spider):
 
     def delete_tables(self, delete_tables_list):
         if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._table_folder + "*"]
+            delete_tables_list = [self._redis_key + "*"]
         elif not isinstance(delete_tables_list, (list, tuple)):
             delete_tables_list = [delete_tables_list]
 
         redis = RedisDB()
         for delete_tab in delete_tables_list:
             if delete_tab == "*":
-                delete_tab = self._table_folder + "*"
+                delete_tab = self._redis_key + "*"
 
             tables = redis.getkeys(delete_tab)
             for table in tables:
@@ -410,7 +410,7 @@ class DebugSpider(Spider):
         for i in range(self._parser_count):
             parser_control = self._parser_control_obj(
                 self._collector,
-                self._table_folder,
+                self._redis_key,
                 self._request_buffer,
                 self._item_buffer,
             )
@@ -440,4 +440,4 @@ class DebugSpider(Spider):
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
-        self.delete_tables([self._table_folder + "*"])
+        self.delete_tables([self._redis_key + "*"])

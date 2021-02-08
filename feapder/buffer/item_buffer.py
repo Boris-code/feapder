@@ -34,19 +34,19 @@ class Singleton(object):
 class ItemBuffer(threading.Thread, Singleton):
     dedup = None
 
-    def __init__(self, table_folder):
+    def __init__(self, redis_key):
         if not hasattr(self, "_table_item"):
             super(ItemBuffer, self).__init__()
 
             self._thread_stop = False
             self._is_adding_to_db = False
-            self._table_folder = table_folder
+            self._redis_key = redis_key
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
             self._db = RedisDB()
 
             self._table_item = setting.TAB_ITEM
-            self._table_request = setting.TAB_REQUSETS.format(table_folder=table_folder)
+            self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
 
             self._item_tables = {
                 # 'xxx_item': {'tab_item': 'xxx:xxx_item'} # 记录item名与redis中item名对应关系
@@ -200,7 +200,7 @@ class ItemBuffer(threading.Thread, Singleton):
             if not item_table:
                 item_name_underline = item.name_underline
                 tab_item = self._table_item.format(
-                    table_folder=self._table_folder, item_name=item_name_underline
+                    redis_key=self._redis_key, item_name=item_name_underline
                 )
 
                 item_table = {}

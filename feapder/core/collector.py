@@ -22,11 +22,11 @@ LOCAL_HOST_IP = tools.get_localhost_ip()
 
 
 class Collector(threading.Thread):
-    def __init__(self, table_folder, process_num=None):
+    def __init__(self, redis_key, process_num=None):
         """
         @summary:
         ---------
-        @param table_folder:
+        @param redis_key:
         @param process_num: 进程编号
         ---------
         @result:
@@ -39,9 +39,9 @@ class Collector(threading.Thread):
 
         self._todo_requests = collections.deque()
 
-        self._tab_requests = setting.TAB_REQUSETS.format(table_folder=table_folder)
+        self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(
-            table_folder=table_folder
+            redis_key=redis_key
         )
 
         self._spider_mark = LOCAL_HOST_IP + (

@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+"""
+Created on {DATE}
+---------
+@summary:
+---------
+@author: {USER}
+"""
+
+import feapder
+
+
+class ${spider_name}(feapder.BatchSpider):
+    # 自定义数据库，若项目中有setting.py文件，此自定义可删除
+    __custom_setting__ = dict(
+        REDISDB_IP_PORTS="localhost:6379",
+        REDISDB_USER_PASS="",
+        REDISDB_DB=0,
+        MYSQL_IP="localhost",
+        MYSQL_PORT=3306,
+        MYSQL_DB="feapder",
+        MYSQL_USER_NAME="feapder",
+        MYSQL_USER_PASS="feapder123",
+    )
+
+    def start_requests(self, task):
+        yield feapder.Request("https://www.baidu.com")
+
+    def parser(self, request, response):
+        print(response)
+
+
+if __name__ == "__main__":
+    spider = ${spider_name}(
+        redis_key="xxx:xxxx",  # redis中存放任务等信息的根key
+        task_table="",  # mysql中的任务表
+        task_keys=["id", "xxx"],  # 需要获取任务表里的字段名，可添加多个
+        task_state="state",  # mysql中任务状态字段
+        batch_record_table="xxx_batch_record",  # mysql中的批次记录表
+        batch_name="xxx(周全)",  # 批次名字
+        batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24
+    )
+
+    # spider.start_monitor_task() # 下发及监控任务
+    spider.start() # 采集

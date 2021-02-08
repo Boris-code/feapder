@@ -31,11 +31,11 @@ class PaserControl(threading.Thread):
     _success_task_count = 0
     _failed_task_count = 0
 
-    def __init__(self, collector, table_folder, request_buffer, item_buffer):
+    def __init__(self, collector, redis_key, request_buffer, item_buffer):
         super(PaserControl, self).__init__()
         self._parsers = []
         self._collector = collector
-        self._table_folder = table_folder
+        self._redis_key = redis_key
         self._request_buffer = request_buffer
         self._item_buffer = item_buffer
 
@@ -392,7 +392,7 @@ class PaserControl(threading.Thread):
         self._parsers.append(parser)
 
 
-class SingleSpiderParserControl(PaserControl):
+class AirSpiderParserControl(PaserControl):
     is_show_tip = False
 
     # 实时统计已做任务数及失败任务数，若失败任务数/已做任务数>0.5 则报警

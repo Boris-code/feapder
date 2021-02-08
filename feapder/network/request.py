@@ -31,9 +31,9 @@ class Request(object):
     proxies_pool = proxy_pool
 
     cache_db = None  # redis / pika
-    cached_table_folder = (
+    cached_redis_key = (
         None
-    )  # 缓存response的文件文件夹 response_cached:cached_table_folder:md5
+    )  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
     cached_expire_time = 1200  # 缓存过期时间
 
     local_filepath = None
@@ -328,9 +328,9 @@ class Request(object):
         return self.__class__.cache_db
 
     @property
-    def _cached_table_folder(self):
-        if self.__class__.cached_table_folder:
-            return f"response_cached:{self.__class__.cached_table_folder}:{self.fingerprint}"
+    def _cached_redis_key(self):
+        if self.__class__.cached_redis_key:
+            return f"response_cached:{self.__class__.cached_redis_key}:{self.fingerprint}"
         else:
             return f"response_cached:test:{self.fingerprint}"
 
@@ -343,7 +343,7 @@ class Request(object):
         """
 
         self._cache_db.strset(
-            self._cached_table_folder, response.to_dict, ex=expire_time
+            self._cached_redis_key, response.to_dict, ex=expire_time
         )
 
     def get_response_from_cached(self, save_cached=True):
@@ -360,7 +360,7 @@ class Request(object):
         @param: save_cached 当无缓存 直接下载 下载完是否保存缓存
         @return:
         """
-        response_dict = self._cache_db.strget(self._cached_table_folder)
+        response_dict = self._cache_db.strget(self._cached_redis_key)
         if not response_dict:
             log.info("无response缓存  重新下载")
             response_obj = self.get_response(save_cached=save_cached)
@@ -370,7 +370,7 @@ class Request(object):
         return response_obj
 
     def del_response_cached(self):
-        self._cache_db.clear(self._cached_table_folder)
+        self._cache_db.clear(self._cached_redis_key)
 
     @classmethod
     def from_dict(cls, request_dict):

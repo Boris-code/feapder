@@ -17,15 +17,15 @@ from feapder.utils.log import log
 class HandleFailedRequests(object):
     """docstring for HandleFailedRequests"""
 
-    def __init__(self, table_folder):
+    def __init__(self, redis_key):
         super(HandleFailedRequests, self).__init__()
-        self._table_folder = table_folder
+        self._redis_key = redis_key
 
         self._redisdb = RedisDB()
-        self._request_buffer = RequestBuffer(self._table_folder)
+        self._request_buffer = RequestBuffer(self._redis_key)
 
         self._table_failed_request = setting.TAB_FAILED_REQUSETS.format(
-            table_folder=table_folder
+            redis_key=redis_key
         )
 
     def get_failed_requests(self, count=100):

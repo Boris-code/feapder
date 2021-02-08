@@ -13,13 +13,13 @@ from threading import Thread
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.core.base_parser import BaseParse
-from feapder.core.parser_control import SingleSpiderParserControl
+from feapder.core.parser_control import AirSpiderParserControl
 from feapder.db.memory_db import MemoryDB
 from feapder.network.request import Request
 from feapder.utils.log import log
 
 
-class SingleSpider(BaseParse, Thread):
+class AirSpider(BaseParse, Thread):
     __custom_setting__ = {}
 
     def __init__(self, parser_count=1, *parser_args, **parser_kwargs):
@@ -29,7 +29,7 @@ class SingleSpider(BaseParse, Thread):
         :param parser_args:
         :param parser_kwargs:
         """
-        super(SingleSpider, self).__init__()
+        super(AirSpider, self).__init__()
 
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
@@ -69,7 +69,7 @@ class SingleSpider(BaseParse, Thread):
         self.distribute_task()
 
         for i in range(self._parser_count):
-            parser_control = SingleSpiderParserControl(self._memory_db)
+            parser_control = AirSpiderParserControl(self._memory_db)
             parser_control.add_parser(self)
             parser_control.start()
             self._parser_controls.append(parser_control)

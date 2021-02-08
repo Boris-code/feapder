@@ -11,7 +11,7 @@ Created on 2020/4/22 10:41 PM
 import feapder
 
 
-class TestSingleSpider(feapder.SingleSpider):
+class TestAirSpider(feapder.AirSpider):
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 
@@ -20,4 +20,4 @@ class TestSingleSpider(feapder.SingleSpider):
 
 
 if __name__ == "__main__":
-    TestSingleSpider().start()
+    TestAirSpider().start()

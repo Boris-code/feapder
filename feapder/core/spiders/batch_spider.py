@@ -41,11 +41,11 @@ class BatchSpider(BatchParser, Scheduler):
         min_task_count=10000,
         check_task_interval=5,
         task_limit=10000,
-        related_table_folder=None,
+        related_redis_key=None,
         related_batch_record=None,
         task_condition="",
         task_order_by="",
-        table_folder=None,
+        redis_key=None,
         parser_count=None,
         begin_callback=None,
         end_callback=None,
@@ -93,7 +93,7 @@ class BatchSpider(BatchParser, Scheduler):
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务
         @param check_task_interval: 检查是否还有任务的时间间隔；
         @param task_limit: 数据库中取任务的数量
-        @param table_folder: 爬虫request及item存放redis中的文件夹
+        @param redis_key: 爬虫request及item存放redis中的文件夹
         @param parser_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
@@ -101,11 +101,11 @@ class BatchSpider(BatchParser, Scheduler):
         @param process_num: 进程数
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param send_run_time: 发送运行时间
-        @param related_table_folder: 有关联的其他爬虫任务表（redis）
-        @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。 环路可用related_table_folder指定
-            related_table_folder 与 related_batch_record 选其一配置即可。
+        @param related_redis_key: 有关联的其他爬虫任务表（redis）
+        @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。 环路可用related_redis_key指定
+            related_redis_key 与 related_batch_record 选其一配置即可。
             若相关连的爬虫为批次爬虫，推荐以related_batch_record配置，
-            若相关连的爬虫为普通爬虫，无批次表，可以以related_table_folder配置
+            若相关连的爬虫为普通爬虫，无批次表，可以以related_redis_key配置
         @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，及where后的条件语句
         @param task_order_by: 取任务时的排序条件 如 id desc
 
@@ -117,7 +117,7 @@ class BatchSpider(BatchParser, Scheduler):
         """
         Scheduler.__init__(
             self,
-            table_folder=table_folder,
+            redis_key=redis_key,
             parser_count=parser_count,
             begin_callback=begin_callback,
             end_callback=end_callback,
@@ -134,7 +134,7 @@ class BatchSpider(BatchParser, Scheduler):
         self._redisdb = RedisDB()
         self._mysqldb = MysqlDB()
 
-        self._request_buffer = RequestBuffer(self._table_folder)
+        self._request_buffer = RequestBuffer(self._redis_key)
 
         self._task_table = task_table  # mysql中的任务表
         self._batch_record_table = batch_record_table  # mysql 中的批次记录表
@@ -146,11 +146,11 @@ class BatchSpider(BatchParser, Scheduler):
         self._check_task_interval = check_task_interval
         self._task_limit = task_limit  # mysql中一次取的任务数量
         self._related_task_tables = [
-            setting.TAB_REQUSETS.format(table_folder=table_folder)
+            setting.TAB_REQUSETS.format(redis_key=redis_key)
         ]  # 自己的task表也需要检查是否有任务
-        if related_table_folder:
+        if related_redis_key:
             self._related_task_tables.append(
-                setting.TAB_REQUSETS.format(table_folder=related_table_folder)
+                setting.TAB_REQUSETS.format(redis_key=related_redis_key)
             )
 
         self._related_batch_record = related_batch_record
@@ -235,7 +235,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                 # 检查redis中是否有任务 任务小于_min_task_count 则从mysql中取
                 tab_requests = setting.TAB_REQUSETS.format(
-                    table_folder=self._table_folder
+                    redis_key=self._redis_key
                 )
                 todo_task_count = self._redisdb.zget_count(tab_requests)
 
@@ -1082,7 +1082,7 @@ class DebugBatchSpider(BatchSpider):
         if not task and not task_id:
             raise Exception("task_id 与 task 不能同时为null")
 
-        kwargs["table_folder"] = kwargs["table_folder"] + "_debug"
+        kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
         if save_to_db:
             self.__class__.__debug_custom_setting__.update(ADD_ITEM_TO_MYSQL=True)
         self.__class__.__custom_setting__.update(
@@ -1187,14 +1187,14 @@ class DebugBatchSpider(BatchSpider):
 
     def delete_tables(self, delete_tables_list):
         if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._table_folder + "*"]
+            delete_tables_list = [self._redis_key + "*"]
         elif not isinstance(delete_tables_list, (list, tuple)):
             delete_tables_list = [delete_tables_list]
 
         redis = RedisDB()
         for delete_tab in delete_tables_list:
             if delete_tab == "*":
-                delete_tab = self._table_folder + "*"
+                delete_tab = self._redis_key + "*"
 
             tables = redis.getkeys(delete_tab)
             for table in tables:
@@ -1216,7 +1216,7 @@ class DebugBatchSpider(BatchSpider):
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
-        self.delete_tables([self._table_folder + "*"])
+        self.delete_tables([self._redis_key + "*"])
 
     def record_spider_state(
         self,
