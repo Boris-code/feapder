@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+
+include feapder/requirements.txt
+include feapder/VERSION
+
+recursive-include feapder/templates *
+
+recursive-include tests *
+
+global-exclude __pycache__ *.py[cod]
