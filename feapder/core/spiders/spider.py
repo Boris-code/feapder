@@ -35,7 +35,7 @@ class Spider(
         redis_key=None,
         min_task_count=1,
         check_task_interval=5,
-        parser_count=None,
+        thread_count=None,
         begin_callback=None,
         end_callback=None,
         delete_tabs=(),
@@ -54,7 +54,7 @@ class Spider(
         @param redis_key: 爬虫request及item存放redis中的文件夹
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务。默认1秒
         @param check_task_interval: 检查是否还有任务的时间间隔；默认5秒
-        @param parser_count: 线程数，默认为配置文件中的线程数
+        @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_tabs: 爬虫启动时删除的表，元组类型。 支持正则
@@ -72,7 +72,7 @@ class Spider(
         """
         super(Spider, self).__init__(
             redis_key=redis_key,
-            parser_count=parser_count,
+            thread_count=thread_count,
             begin_callback=begin_callback,
             end_callback=end_callback,
             delete_tabs=delete_tabs,
@@ -240,11 +240,11 @@ class DebugSpider(Spider):
     __debug_custom_setting__ = dict(
         COLLECTOR_SLEEP_TIME=1,
         COLLECTOR_TASK_COUNT=1,
-        # PARSER
-        PARSER_COUNT=1,
-        PARSER_SLEEP_TIME=0,
-        PARSER_TASK_COUNT=1,
-        PARSER_MAX_RETRY_TIMES=10,
+        # SPIDER
+        SPIDER_THREAD_COUNT=1,
+        SPIDER_SLEEP_TIME=0,
+        SPIDER_TASK_COUNT=1,
+        SPIDER_MAX_RETRY_TIMES=10,
         REQUEST_TIME_OUT=600,  # 10秒
         ADD_ITEM_TO_MYSQL=False,
         PROXY_ENABLE=False,
@@ -407,7 +407,7 @@ class DebugSpider(Spider):
         self._collector.start()
 
         # 启动parser control
-        for i in range(self._parser_count):
+        for i in range(self._thread_count):
             parser_control = self._parser_control_obj(
                 self._collector,
                 self._redis_key,

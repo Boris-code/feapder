@@ -46,7 +46,7 @@ class PaserControl(threading.Thread):
     def run(self):
         while not self._thread_stop:
             try:
-                requests = self._collector.get_requests(setting.PARSER_TASK_COUNT)
+                requests = self._collector.get_requests(setting.SPIDER_TASK_COUNT)
                 if not requests:
                     if not self.is_show_tip:
                         log.info("parser 等待任务 ...")
@@ -260,7 +260,7 @@ class PaserControl(threading.Thread):
                                 raise Exception("exception_request 需return request")
 
                             if (
-                                request.retry_times + 1 > setting.PARSER_MAX_RETRY_TIMES
+                                request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
                                 or request.is_abandoned
                             ):
                                 self.__class__._failed_task_count += 1  # 记录失败任务数
@@ -323,7 +323,7 @@ class PaserControl(threading.Thread):
                                     % (
                                         request.url,
                                         request.retry_times,
-                                        setting.PARSER_MAX_RETRY_TIMES,
+                                        setting.SPIDER_MAX_RETRY_TIMES,
                                     )
                                 )
                                 if used_download_midware_enable:
@@ -375,8 +375,8 @@ class PaserControl(threading.Thread):
                 else:
                     self._request_buffer.put_del_request(request_redis)
 
-        if setting.PARSER_SLEEP_TIME:
-            time.sleep(setting.PARSER_SLEEP_TIME)
+        if setting.SPIDER_SLEEP_TIME:
+            time.sleep(setting.SPIDER_SLEEP_TIME)
 
     def record_download_status(self, status, spider):
         """
@@ -561,7 +561,7 @@ class AirSpiderParserControl(PaserControl):
                                 raise Exception("exception_request 需return request")
 
                             if (
-                                request.retry_times + 1 > setting.PARSER_MAX_RETRY_TIMES
+                                request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
                                 or request.is_abandoned
                             ):
                                 self.__class__._failed_task_count += 1  # 记录失败任务数
@@ -585,7 +585,7 @@ class AirSpiderParserControl(PaserControl):
                                     % (
                                         request.url,
                                         request.retry_times,
-                                        setting.PARSER_MAX_RETRY_TIMES,
+                                        setting.SPIDER_MAX_RETRY_TIMES,
                                     )
                                 )
 
@@ -602,7 +602,7 @@ class AirSpiderParserControl(PaserControl):
                                     % (
                                         request.url,
                                         request.retry_times,
-                                        setting.PARSER_MAX_RETRY_TIMES,
+                                        setting.SPIDER_MAX_RETRY_TIMES,
                                     )
                                 )
                                 self._memory_db.add(request)
@@ -624,5 +624,5 @@ class AirSpiderParserControl(PaserControl):
 
                     break
 
-        if setting.PARSER_SLEEP_TIME:
-            time.sleep(setting.PARSER_SLEEP_TIME)
+        if setting.SPIDER_SLEEP_TIME:
+            time.sleep(setting.SPIDER_SLEEP_TIME)

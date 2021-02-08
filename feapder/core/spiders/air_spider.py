@@ -22,10 +22,10 @@ from feapder.utils.log import log
 class AirSpider(BaseParse, Thread):
     __custom_setting__ = {}
 
-    def __init__(self, parser_count=1, *parser_args, **parser_kwargs):
+    def __init__(self, thread_count=1, *parser_args, **parser_kwargs):
         """
         基于内存队列的爬虫，不支持分布式
-        :param parser_count: 线程数
+        :param thread_count: 线程数
         :param parser_args:
         :param parser_kwargs:
         """
@@ -34,7 +34,7 @@ class AirSpider(BaseParse, Thread):
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
 
-        self._parser_count = setting.PARSER_COUNT if not parser_count else parser_count
+        self._thread_count = setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
 
         self._parser_args = parser_args
         self._parser_kwargs = parser_kwargs
@@ -68,7 +68,7 @@ class AirSpider(BaseParse, Thread):
     def run(self):
         self.distribute_task()
 
-        for i in range(self._parser_count):
+        for i in range(self._thread_count):
             parser_control = AirSpiderParserControl(self._memory_db)
             parser_control.add_parser(self)
             parser_control.start()

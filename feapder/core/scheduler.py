@@ -36,7 +36,7 @@ class Scheduler(threading.Thread):
     def __init__(
         self,
         redis_key=None,
-        parser_count=None,
+        thread_count=None,
         begin_callback=None,
         end_callback=None,
         delete_tabs=(),
@@ -53,7 +53,7 @@ class Scheduler(threading.Thread):
         @summary: 调度器
         ---------
         @param redis_key: 爬虫request及item存放reis中的文件夹
-        @param parser_count: 线程数，默认为配置文件中的线程数
+        @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_tabs: 爬虫启动时删除的表，类型: 元组/bool/string。 支持正则
@@ -103,7 +103,7 @@ class Scheduler(threading.Thread):
         self._auto_start_requests = (
             auto_start_requests
             if auto_start_requests is not None
-            else setting.PARSER_AUTO_START_REQUESTS
+            else setting.SPIDER_AUTO_START_REQUESTS
         )
         self._send_run_time = send_run_time
         self._batch_interval = batch_interval
@@ -119,7 +119,7 @@ class Scheduler(threading.Thread):
             else lambda: log.info("\n********** feapder end **********")
         )
 
-        self._parser_count = setting.PARSER_COUNT if not parser_count else parser_count
+        self._thread_count = setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
 
         self._spider_name = redis_key
         self._project_name = redis_key.split(":")[0]
@@ -249,7 +249,7 @@ class Scheduler(threading.Thread):
         self._collector.start()
 
         # 启动parser control
-        for i in range(self._parser_count):
+        for i in range(self._thread_count):
             parser_control = self._parser_control_obj(
                 self._collector,
                 self._redis_key,
