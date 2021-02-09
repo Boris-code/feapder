@@ -315,7 +315,7 @@ item为与数据库表的映射，与数据入库的逻辑相关。
 
     1. 测试 输入`feapder shell --`, 粘贴刚刚复制的curl
 
-                > feapder shell --curl 'https://www.baidu.com/' \
+            > feapder shell --curl 'https://www.baidu.com/' \
               -H 'Connection: keep-alive' \
               -H 'Pragma: no-cache' \
               -H 'Cache-Control: no-cache' \
@@ -339,8 +339,6 @@ item为与数据库表的映射，与数据入库的逻辑相关。
             Python 3.6.3 (v3.6.3:2c5fed86e0, Oct  3 2017, 00:32:08)
             Type 'copyright', 'credits' or 'license' for more information
             IPython 7.14.0 -- An enhanced Interactive Python. Type '?' for help.
-
-
             now you can use response
 
             In [1]:
