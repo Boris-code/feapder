@@ -64,12 +64,12 @@ class ItemBuffer(threading.Thread, Singleton):
                 self.__class__.dedup = Dedup(to_md5=False)
 
     def db_tip(self):
-        msg = "\n"
+        msg = ""
         if setting.ADD_ITEM_TO_MYSQL:
-            msg += "item 自动入mysql\n"
+            msg += "item 自动入mysql "
         if setting.ADD_ITEM_TO_REDIS:
-            msg += "item 自动入redis\n"
-        if msg == "\n":
+            msg += "item 自动入redis "
+        if not msg:
             log.warning("*** 请注意检查item是否入库 !!!")
         else:
             log.info(msg)

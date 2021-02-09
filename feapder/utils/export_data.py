@@ -15,8 +15,22 @@ from feapder.utils.log import log
 
 class ExportData(object):
     def __init__(self):
-        self._redisdb = RedisDB()
-        self._to_db = MysqlDB()
+        self._redisdb = None
+        self._to_db = None
+
+    @property
+    def redisdb(self):
+        if not self._redisdb:
+            self._redisdb = RedisDB()
+
+        return self._redisdb
+
+    @property
+    def to_db(self):
+        if not self._to_db:
+            self._to_db = MysqlDB()
+
+        return self._to_db
 
     def export(self, from_table, to_table, auto_update=False, batch_count=100):
         """
@@ -35,7 +49,7 @@ class ExportData(object):
         while True:
             datas = []
             try:
-                datas = self._redisdb.sget(from_table, count=batch_count, is_pop=False)
+                datas = self.redisdb.sget(from_table, count=batch_count, is_pop=False)
                 if not datas:
                     log.info(
                         """
@@ -48,9 +62,9 @@ class ExportData(object):
                 sql, json_datas = tools.make_batch_sql(
                     to_table, json_datas, auto_update
                 )
-                if self._to_db.add_batch(sql, json_datas):
+                if self.to_db.add_batch(sql, json_datas):
                     total_count += len(json_datas)
-                    self._redisdb.srem(from_table, datas)
+                    self.redisdb.srem(from_table, datas)
 
             except Exception as e:
                 log.exception(e)
@@ -80,7 +94,7 @@ class ExportData(object):
         @result:
         """
         tables = (
-            self._redisdb.getkeys(tables + "*_item")
+            self.redisdb.getkeys(tables + "*_item")
             if not isinstance(tables, list)
             else tables
         )
@@ -113,7 +127,7 @@ class ExportData(object):
 
         to_table = tools.get_info(tab_item, ":s_(.*?)_item", fetch_one=True)
         sql, datas = tools.make_batch_sql(to_table, items_data)
-        add_count = self._to_db.add_batch(sql, datas)
+        add_count = self.to_db.add_batch(sql, datas)
         datas_size = len(datas)
         if add_count is None:
             log.error("导出数据到表 %s 失败" % (to_table))
@@ -141,7 +155,7 @@ class ExportData(object):
             items_data,
             update_columns=update_keys or list(items_data[0].keys()),
         )
-        update_count = self._to_db.add_batch(sql, datas)
+        update_count = self.to_db.add_batch(sql, datas)
         if update_count is None:
             log.error("更新表 %s 数据失败" % (to_table))
         else:
