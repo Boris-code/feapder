@@ -1,6 +1,7 @@
 # FEAPDER
 
-![](https://img.shields.io/badge/python-3.6-brightgreen) 
+![](https://img.shields.io/badge/python-3.6-brightgreen)
+[![Gitter](https://badges.gitter.im/feapder/community.svg)](https://gitter.im/feapder/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ## 简介
 
@@ -71,6 +72,7 @@ From Git:
 
 
 ## 学习交流
+
 
 知识星球：
 
