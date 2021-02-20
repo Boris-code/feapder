@@ -1,70 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>feapder-document</title>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-  <meta name="description" content="Description">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <link rel="stylesheet" href="./lib/docsify/lib/themes/vue.css">
+    <meta charset="UTF-8">
+    <title>feapder-document</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="description" content="Description">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <link rel="stylesheet" href="./lib/docsify/lib/themes/vue.css">
 </head>
+
 <body>
-  <div id="app"></div>
-  <script>
-    window.$docsify = {
-      name: 'feapder-document',
-      repo: 'https://github.com/Boris-code/feapder',
-      loadNavbar: true,
-      loadSidebar: true,
-      coverpage: true,
-      auto2top: true,
-      maxLevel: 2,
-      subMaxLevel: 3,
-      search: {
-        placeholder: '搜索',
-        noData: '找不到结果!',
-        depth: 3
-      },
-      alias: {
-        '/.*/_sidebar.md': '/_sidebar.md',//防止意外回退
-        '/.*/_navbar.md': '/_navbar.md'
-      },
-      ga: 'UA-144208445-1',
-      plugins: [
-        function(hook) {
-          var header = [
-            '<p>',
-            '<a href="https://www.aliyun.com/sale-season/2020/procurement-new-members?userCode=44mjc0yx">',
-            '<img src="/images/aliyun_sale.jpg" alt="阿里云" width="640px" height="60px">',
-            '</a>',
-            '</p>'
-          ].join('');
-          var footer = [
-            '<hr/>',
-            '<footer style="text-align: center">',
-            '<span><a href="http://www.beian.miit.gov.cn/" target="_blank">苏ICP备19059396号-1</a></span>',
-            '</footer>'
-          ].join('');
-          hook.afterEach(function (html) {
-            // var isReadme = window.location.href.indexOf("README");
-            var isReadme = 1; // 可以投放广告
-            if(isReadme===-1){
-              return header + html + footer;
-            }else{
-              return html;
-            }
-          });
+    <div id="app"></div>
+    <script>
+        window.$docsify = {
+            name: 'feapder-document',
+            repo: 'https://github.com/Boris-code/feapder',
+            loadNavbar: true,
+            loadSidebar: true,
+            coverpage: true,
+            auto2top: true,
+            maxLevel: 2,
+            subMaxLevel: 3,
+            search: {
+                placeholder: '搜索',
+                noData: '找不到结果!',
+                depth: 3
+            },
+            alias: {
+                '/.*/_sidebar.md': '/_sidebar.md',//防止意外回退
+                '/.*/_navbar.md': '/_navbar.md'
+            },
+            ga: 'UA-144208445-1',
+            plugins: [
+                function (hook) {
+                    var header = [
+                        '<p>',
+                        '<a href="https://www.aliyun.com/sale-season/2020/procurement-new-members?userCode=44mjc0yx">',
+                        '<img src="/images/aliyun_sale.jpg" alt="阿里云" width="640px" height="60px">',
+                        '</a>',
+                        '</p>'
+                    ].join('');
+                    var footer = [
+                        '<hr/>',
+                        '<footer style="text-align: center">',
+                        '<span><a href="http://www.beian.miit.gov.cn/" target="_blank">苏ICP备19059396号-1</a></span>',
+                        '</footer>'
+                    ].join('');
+                    hook.afterEach(function (html) {
+                        // var isReadme = window.location.href.indexOf("README");
+                        var isReadme = 1; // 可以投放广告
+                        if (isReadme === -1) {
+                            return header + html + footer;
+                        } else {
+                            return html;
+                        }
+                    });
+                }
+            ]
         }
-      ]
-    }
-  </script>
-  <script src="./lib/docsify/lib/docsify.min.js"></script>
-  <script src="./lib/docsify/lib/plugins/ga.js"></script>
-  <script src="./lib/docsify/lib/plugins/search.js"></script>
-  <script src="./lib/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  <script src="./lib/prismjs/components/prism-bash.js"></script>
-  <script src="./lib/prismjs/components/prism-java.js"></script>
-  <script src="./lib/prismjs/components/prism-sql.js"></script>
-  <script src="./lib/prismjs/components/prism-yaml.js"></script>
+    </script>
+    <!-- 评论 -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+    <script>
+        const gitalk = new Gitalk({
+            clientID: '9bbc1bce85637dc3fd74',
+            clientSecret: 'fff857ba856732b11b0e38e18103ff3444c667d6',
+            repo: 'feapder',
+            owner: 'Boris-code',
+            admin: ['Boris-code'],
+            // facebook-like distraction free mode
+            distractionFreeMode: false
+        })
+    </script>
+    <script src="./lib/docsify/lib/docsify.min.js"></script>
+    <script src="./lib/docsify/lib/plugins/ga.js"></script>
+    <script src="./lib/docsify/lib/plugins/search.js"></script>
+    <script src="./lib/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+    <script src="./lib/prismjs/components/prism-bash.js"></script>
+    <script src="./lib/prismjs/components/prism-java.js"></script>
+    <script src="./lib/prismjs/components/prism-sql.js"></script>
+    <script src="./lib/prismjs/components/prism-yaml.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
 </body>
+
 </html>
