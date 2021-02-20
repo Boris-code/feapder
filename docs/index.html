@@ -73,6 +73,7 @@
             owner: 'Boris-code',
             admin: 'Boris-code',
             proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',
+            id: decodeURI(location.href.substr(location.href.indexOf("#") + 1)), // 防止默认的评论id超过50字
             // facebook-like distraction free mode
             distractionFreeMode: false
         })
