@@ -27,7 +27,7 @@ From Git:
 
     pip3 install git+https://github.com/Boris-code/feapder.git
 
-若安装出错，请参考常见问题
+若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
 
 ## 小试一下
 
