@@ -27,6 +27,21 @@ def crawl_test(args):
     else:
         spider.start()  # 采集
 
+def test_debug():
+    spider = test_spider.TestSpider.to_DebugBatchSpider(
+        task_id=1,
+        redis_key="feapder:test_batch_spider",  # redis中存放任务等信息的根key
+        task_table="batch_spider_task",  # mysql中的任务表
+        task_keys=["id", "url"],  # 需要获取任务表里的字段名，可添加多个
+        task_state="state",  # mysql中任务状态字段
+        batch_record_table="batch_spider_batch_record",  # mysql中的批次记录表
+        batch_name="批次爬虫测试(周全)",  # 批次名字
+        batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24
+    )
+
+
+    spider.start()  # 采集
+
 
 if __name__ == "__main__":
 
@@ -35,6 +50,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--crawl_test", type=int, nargs=1, help="(1|2）", function=crawl_test
     )
+    parser.add_argument("--test_debug", action="store_true", help="测试debug", function=test_debug)
 
     parser.start()
 

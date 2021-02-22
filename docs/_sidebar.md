@@ -11,6 +11,7 @@
   * [使用前必读](usage/使用前必读.md)
   * [AirSpider](usage/AirSpider.md)
   * [Spider](usage/Spider.md)
+  * [BatchSpider](usage/BatchSpider.md)
 
 * 框架剖析
   * [Request](source_code/Request.md)
@@ -20,6 +21,7 @@
   * [MysqlDB](source_code/MysqlDB.md)
   * [RedisDB](source_code/RedisDB.md)
   * [Spider进阶](source_code/Spider进阶.md)
+  * [BatchSpider进阶](source_code/BatchSpider进阶.md)
   * [Item](source_code/Item.md)
   * [ItemBuffer](source_code/ItemBuffer.md)
 
