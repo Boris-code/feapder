@@ -8,9 +8,12 @@
 
 之前一直在公司内部使用，已使用本框架采集100+数据源，日采千万数据。现在开源，供大家学习交流！
 
+读音: `[ˈfiːpdə]`
+
 官方文档：http://boris.org.cn/feapder/
 
-读音: `[ˈfiːpdə]`
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139928869250.jpg?x-oss-process=style/markdown-media)
+
 
 ## 环境要求：
 
