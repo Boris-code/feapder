@@ -100,11 +100,11 @@ BatchSpider参数：
 
 任务表为存储任务种子的，表结构需要包含`id`、`任务状态`两个字段，如我们需要对某些地址进行采集，设计如下
 
-![-w752](media/16139762922842.jpg)
+![-w752](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139762922842.jpg?x-oss-process=style/markdown-media)
 
 建表语句：
 
-```
+```sql
 CREATE TABLE `batch_spider_task` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `url` varchar(255) DEFAULT NULL,
@@ -123,13 +123,15 @@ CREATE TABLE `batch_spider_task` (
 
 ## 7. 拼接任务
 
-    def start_requests(self, task):
-        pass
+```
+def start_requests(self, task):
+    pass
+```
         
 任务拼接在`start_requests`里处理。这里的task参数为元组，值为BatchSpider启动参数中指定的`task_keys`对应的值
 
 如表`batch_spider_task`，现有任务信息如下：
-![-w398](media/16139773315622.jpg)
+![-w398](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139773315622.jpg?x-oss-process=style/markdown-media)
 
 启动参数配置如下，注意`task_keys=["id", "url"]`：
 
