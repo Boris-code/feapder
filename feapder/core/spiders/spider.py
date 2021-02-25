@@ -238,7 +238,7 @@ class DebugSpider(Spider):
         SPIDER_SLEEP_TIME=0,
         SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
-        REQUEST_TIME_OUT=600,  # 10秒
+        REQUEST_TIME_OUT=600,  # 10分钟
         ADD_ITEM_TO_MYSQL=False,
         PROXY_ENABLE=False,
         RETRY_FAILED_REQUESTS=False,
