@@ -22,7 +22,7 @@ from feapder.utils.log import log
 class AirSpider(BaseParse, Thread):
     __custom_setting__ = {}
 
-    def __init__(self, thread_count=1):
+    def __init__(self, thread_count=None):
         """
         基于内存队列的爬虫，不支持分布式
         :param thread_count: 线程数
