@@ -39,11 +39,11 @@ class CreateProject:
         if os.path.exists(project_name):
             print("%s 项目已经存在" % project_name)
         else:
-            templete_path = os.path.abspath(
+            template_path = os.path.abspath(
                 os.path.join(__file__, "../../../templates/project_template")
             )
             shutil.copytree(
-                templete_path, project_name, copy_function=self.copy_callback
+                template_path, project_name, copy_function=self.copy_callback
             )
 
             print("\n%s 项目生成成功" % project_name)

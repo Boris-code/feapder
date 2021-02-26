@@ -70,10 +70,10 @@ class CreateItem:
         return table_hump_format
 
     def get_item_template(self):
-        templete_path = os.path.abspath(
+        template_path = os.path.abspath(
             os.path.join(__file__, "../../../templates/item_template.tmpl")
         )
-        with open(templete_path, "r", encoding="utf-8") as file:
+        with open(template_path, "r", encoding="utf-8") as file:
             item_template = file.read()
 
         return item_template
