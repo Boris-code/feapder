@@ -14,6 +14,7 @@ class SinaNewsParser(feapder.BatchParser):
     """
     注意 这里继承的是BatchParser，而不是BatchSpider
     """
+
     def start_requests(self, task):
         task_id = task[0]
         url = task[1]

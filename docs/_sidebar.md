@@ -18,6 +18,7 @@
   * [Request](source_code/Request.md)
   * [Response](source_code/Response.md)
   * [BaseParser](source_code/BaseParser.md)
+  * [BatchParser](source_code/BatchParser.md)
   * [配置文件](source_code/配置文件.md)
   * [MysqlDB](source_code/MysqlDB.md)
   * [RedisDB](source_code/RedisDB.md)
@@ -25,6 +26,7 @@
   * [BatchSpider进阶](source_code/BatchSpider进阶.md)
   * [Item](source_code/Item.md)
   * [ItemBuffer](source_code/ItemBuffer.md)
+  * [tools](source_code/tools.md)
 
 
 * 常见问题
