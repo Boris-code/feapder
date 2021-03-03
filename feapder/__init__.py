@@ -16,7 +16,7 @@ __all__ = [
     "AirSpider",
     "Spider",
     "BatchSpider",
-    "BaseParse",
+    "BaseParser",
     "BatchParser",
     "Request",
     "Response",
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 from feapder.core.spiders import Spider, BatchSpider, AirSpider
-from feapder.core.base_parser import BaseParse, BatchParser
+from feapder.core.base_parser import BaseParser, BatchParser
 from feapder.network.request import Request
 from feapder.network.response import Response
 from feapder.network.item import Item, UpdateItem

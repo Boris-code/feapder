@@ -20,7 +20,7 @@ class TestSpider(feapder.BatchSpider):
         id, url = task  # id， url为所取的字段，main函数中指定的
         yield feapder.Request(url, task_id=id)
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         title = response.xpath('//title/text()').extract_first()  # 取标题
         item = spider_data_item.SpiderDataItem()  # 声明一个item
         item.title = title  # 给item属性赋值

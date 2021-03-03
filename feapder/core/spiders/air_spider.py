@@ -12,14 +12,14 @@ from threading import Thread
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
-from feapder.core.base_parser import BaseParse
+from feapder.core.base_parser import BaseParser
 from feapder.core.parser_control import AirSpiderParserControl
 from feapder.db.memory_db import MemoryDB
 from feapder.network.request import Request
 from feapder.utils.log import log
 
 
-class AirSpider(BaseParse, Thread):
+class AirSpider(BaseParser, Thread):
     __custom_setting__ = {}
 
     def __init__(self, thread_count=None):

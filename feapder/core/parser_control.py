@@ -145,7 +145,7 @@ class PaserControl(threading.Thread):
                             )
                             results = callback_parser(request, response)
                         else:  # 否则默认用parser处理
-                            results = parser.parser(request, response)
+                            results = parser.parse(request, response)
 
                         if results and not isinstance(results, Iterable):
                             raise Exception(
@@ -479,7 +479,7 @@ class AirSpiderParserControl(PaserControl):
                             )
                             results = callback_parser(request, response)
                         else:  # 否则默认用parser处理
-                            results = parser.parser(request, response)
+                            results = parser.parse(request, response)
 
                         if results and not isinstance(results, Iterable):
                             raise Exception(

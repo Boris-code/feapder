@@ -14,7 +14,7 @@ from collections import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
-from feapder.core.base_parser import BaseParse
+from feapder.core.base_parser import BaseParser
 from feapder.core.scheduler import Scheduler
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
@@ -23,7 +23,7 @@ from feapder.utils.log import log
 
 
 class Spider(
-    BaseParse, Scheduler
+    BaseParser, Scheduler
 ):  # threading 中有name函数， 必须先继承BaseParser 否则其内部的name会被Schedule的基类threading.Thread的name覆盖
     """
     @summary: 为了简化搭建爬虫

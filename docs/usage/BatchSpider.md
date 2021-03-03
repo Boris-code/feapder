@@ -1,6 +1,6 @@
 # BatchSpider
 
-BatchSpider是一款分布式批次爬虫框架，对于需要周期性采集的数据，优先考虑使用本爬虫。
+BatchSpider是一款分布式批次爬虫，对于需要周期性采集的数据，优先考虑使用本爬虫。
 
 ## 1. 创建项目
 
@@ -37,7 +37,7 @@ class BatchSpiderTest(feapder.BatchSpider):
     def start_requests(self, task):
         yield feapder.Request("https://www.baidu.com")
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         print(response)
 
 

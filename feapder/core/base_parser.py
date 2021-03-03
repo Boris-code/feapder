@@ -15,7 +15,7 @@ from feapder.network.item import UpdateItem
 from feapder.utils.log import log
 
 
-class BaseParse(object):
+class BaseParser(object):
     def start_requests(self):
         """
         @summary: 添加初始url
@@ -26,7 +26,7 @@ class BaseParse(object):
 
         pass
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         """
         @summary: 默认的回调函数
         ---------
@@ -101,28 +101,26 @@ class BaseParse(object):
         pass
 
 
-class BatchParser(BaseParse):
+class BatchParser(BaseParser):
     """
     @summary: 批次爬虫模版
     ---------
     """
 
     def __init__(
-        self, task_table, batch_record_table, task_state, date_format, task_condition=""
+        self,
+        task_table,
+        batch_record_table,
+        task_state,
+        date_format,
+        mysqldb=None,
     ):
-        self._mysqldb = MysqlDB()  # mysqldb
+        self._mysqldb = mysqldb or MysqlDB()  # mysqldb
 
         self._task_table = task_table  # mysql中的任务表
         self._batch_record_table = batch_record_table  # mysql 中的批次记录表
         self._task_state = task_state  # mysql中任务表的state字段名
         self._date_format = date_format  # 批次日期格式
-
-        self._task_condition_prefix_and = task_condition and " and {}".format(
-            task_condition
-        )
-        self._task_condition_prefix_where = task_condition and " where {}".format(
-            task_condition
-        )
 
     def add_task(self):
         """
@@ -140,21 +138,6 @@ class BatchParser(BaseParse):
         ---------
         @result:
         """
-
-    def init_task(self):
-        """
-        @summary: 初始化任务表中的任务， 新一个批次开始时调用。 可能会重写
-        ---------
-        ---------
-        @result:
-        """
-
-        sql = "update {task_table} set {state} = 0 where {state} != -1{task_condition}".format(
-            task_table=self._task_table,
-            state=self._task_state,
-            task_condition=self._task_condition_prefix_and,
-        )
-        return self._mysqldb.update(sql)
 
     def update_task_state(self, task_id, state=1, **kwargs):
         """

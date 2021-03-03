@@ -15,7 +15,7 @@ import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
 from feapder.buffer.request_buffer import RequestBuffer
-from feapder.core.base_parser import BaseParse
+from feapder.core.base_parser import BaseParser
 from feapder.core.collector import Collector
 from feapder.core.handle_failed_requests import HandleFailedRequests
 from feapder.core.parser_control import PaserControl
@@ -146,7 +146,7 @@ class Scheduler(threading.Thread):
 
     def add_parser(self, parser):
         parser = parser()  # parser 实例化
-        if isinstance(parser, BaseParse):
+        if isinstance(parser, BaseParser):
             self._parsers.append(parser)
         else:
             raise ValueError("parser 必须继承spider.core.base_parser.BaseParser")

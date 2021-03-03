@@ -5,13 +5,14 @@
 
 ## 简介
 
-**feapder** 是一款简单、快速、轻量级的爬虫框架。起名源于 fast、easy、air、pro、spider的缩写，以开发快速、抓取快速、使用简单、功能强大为宗旨，历时4年倾心打造。支持分布式爬虫、批次爬虫、多模板爬虫，以及完善的爬虫报警机制。
+**feapder** 是一款简单、快速、轻量级的爬虫框架。起名源于 fast、easy、air、pro、spider的缩写，以开发快速、抓取快速、使用简单、功能强大为宗旨，历时4年倾心打造。支持轻量爬虫、分布式爬虫、批次爬虫、爬虫集成，以及完善的爬虫报警机制。
 
 之前一直在公司内部使用，已使用本框架采集100+数据源，日采千万数据。现在开源，供大家学习交流！
 
+读音: `[ˈfiːpdə]`
+
 官方文档：http://boris.org.cn/feapder/
 
-读音: `[ˈfiːpdə]`
 
 ## 环境要求：
 
@@ -46,7 +47,7 @@ From Git:
         def start_requests(self):
             yield feapder.Request("https://www.baidu.com")
 
-        def parser(self, request, response):
+        def parse(self, request, response):
             print(response)
 
 

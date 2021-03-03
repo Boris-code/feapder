@@ -1,6 +1,6 @@
 # Spider
 
-Spider是一款基于redis的分布式爬虫框架，适用于海量数据采集，支持断点续爬、爬虫报警、数据自动入库等功能
+Spider是一款基于redis的分布式爬虫，适用于海量数据采集，支持断点续爬、爬虫报警、数据自动入库等功能
 
 ## 1. 创建项目
 
@@ -42,7 +42,7 @@ Spider是一款基于redis的分布式爬虫框架，适用于海量数据采集
         def start_requests(self):
             yield feapder.Request("https://www.baidu.com")
     
-        def parser(self, request, response):
+        def parse(self, request, response):
             print(response)
     
     

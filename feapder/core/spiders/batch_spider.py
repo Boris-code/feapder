@@ -146,6 +146,7 @@ class BatchSpider(BatchParser, Scheduler):
             )
 
         self._related_batch_record = related_batch_record
+        self._task_condition = task_condition
         self._task_condition_prefix_and = task_condition and " and {}".format(
             task_condition
         )
@@ -188,6 +189,7 @@ class BatchSpider(BatchParser, Scheduler):
             self._batch_record_table,
             self._task_state,
             self._date_format,
+            self._mysqldb,
         )  # parser 实例化
         self._parsers.append(parser)
 
@@ -226,9 +228,7 @@ class BatchSpider(BatchParser, Scheduler):
                 is_first_check = False
 
                 # 检查redis中是否有任务 任务小于_min_task_count 则从mysql中取
-                tab_requests = setting.TAB_REQUSETS.format(
-                    redis_key=self._redis_key
-                )
+                tab_requests = setting.TAB_REQUSETS.format(redis_key=self._redis_key)
                 todo_task_count = self._redisdb.zget_count(tab_requests)
 
                 tasks = []
@@ -591,6 +591,21 @@ class BatchSpider(BatchParser, Scheduler):
             )
 
         return self._spider_deal_speed_cached
+
+    def init_task(self):
+        """
+        @summary: 初始化任务表中的任务， 新一个批次开始时调用。 可能会重写
+        ---------
+        ---------
+        @result:
+        """
+
+        sql = "update {task_table} set {state} = 0 where {state} != -1{task_condition}".format(
+            task_table=self._task_table,
+            state=self._task_state,
+            task_condition=self._task_condition_prefix_and,
+        )
+        return self._mysqldb.update(sql)
 
     def check_batch(self, is_first_check=False):
         """

@@ -15,7 +15,7 @@ class TestAirSpider(feapder.AirSpider):
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         print(response.xpath("//title").extract_first())
 
 

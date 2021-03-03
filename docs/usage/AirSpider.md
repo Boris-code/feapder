@@ -1,6 +1,6 @@
 # AirSpider
 
-AirSpider是一款轻量爬虫框架，学习成本低。面对一些数据量较少，无需断点续爬，无需分布式采集的需求，可采用此爬虫。
+AirSpider是一款轻量爬虫，学习成本低。面对一些数据量较少，无需断点续爬，无需分布式采集的需求，可采用此爬虫。
 
 ## 1. 创建爬虫
 
@@ -20,7 +20,7 @@ AirSpider是一款轻量爬虫框架，学习成本低。面对一些数据量�
         def start_requests(self):
             yield feapder.Request("https://www.baidu.com")
         
-        def parser(self, request, response):
+        def parse(self, request, response):
             print(response)
     
     
@@ -40,7 +40,7 @@ AirSpider是一款轻量爬虫框架，学习成本低。面对一些数据量�
 4. parser：数据解析函数
 5. response：请求响应的返回体，支持xpath、re、css等解析方式，详情可参考[Response](source_code/Response.md)
 
-除了start_requests、parser两个函数。系统还内置了下载中间件等函数，具体支持可参考[BaseParse](source_code/BaseParse.md)
+除了start_requests、parser两个函数。系统还内置了下载中间件等函数，具体支持可参考[BaseParser](source_code/BaseParser.md)
 
 ## 3. 自定义解析函数
 
@@ -61,7 +61,7 @@ AirSpider是一款轻量爬虫框架，学习成本低。面对一些数据量�
     def start_requests(self):
         yield feapder.Request("https://www.baidu.com",  xxx="我是携带的数据")
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         xxx = request.xxx
         print(xxx)
         
@@ -73,7 +73,7 @@ AirSpider是一款轻量爬虫框架，学习成本低。面对一些数据量�
 
 parser中支持下发新任务，写法与start_requests一致，只需要`yield feapder.Request`即可。示例如下：
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         yield feapder.Request("url1") # 不指定callback，任务会调度默认的parser上
         yield feapder.Request("url2", callback=self.parser_detail) # 指定了callback，任务由callback指定的函数解析
 
@@ -114,7 +114,7 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 
 例如下面代码，校验了返回的code是否为200，非200抛出异常，触发重试
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         if response.code != 200:
             raise Exception("非法页面")
             

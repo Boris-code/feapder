@@ -111,7 +111,7 @@ AirSpider爬虫示例：
         def start_requests(self):
             yield feapder.Request("https://www.baidu.com")
 
-        def parser(self, request, response):
+        def parse(self, request, response):
             print(response)
 
 

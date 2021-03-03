@@ -26,7 +26,7 @@ class ${spider_name}(feapder.BatchSpider):
     def start_requests(self, task):
         yield feapder.Request("https://www.baidu.com")
 
-    def parser(self, request, response):
+    def parse(self, request, response):
         print(response)
 
 

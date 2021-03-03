@@ -9,14 +9,15 @@
 
 * 使用说明
   * [使用前必读](usage/使用前必读.md)
-  * [AirSpider](usage/AirSpider.md)
-  * [Spider](usage/Spider.md)
-  * [BatchSpider](usage/BatchSpider.md)
+  * [轻量爬虫-AirSpider](usage/AirSpider.md)
+  * [分布式爬虫-Spider](usage/Spider.md)
+  * [批次爬虫-BatchSpider](usage/BatchSpider.md)
+  * [爬虫集成](usage/爬虫集成.md)
 
 * 框架剖析
   * [Request](source_code/Request.md)
   * [Response](source_code/Response.md)
-  * [BaseParse](source_code/BaseParse.md)
+  * [BaseParser](source_code/BaseParser.md)
   * [配置文件](source_code/配置文件.md)
   * [MysqlDB](source_code/MysqlDB.md)
   * [RedisDB](source_code/RedisDB.md)
