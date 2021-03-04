@@ -72,10 +72,10 @@ BatchSpider参数：
 
     ![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg?x-oss-process=style/markdown-media)
 
-1. task_table：mysql中的任务表，为抓取的任务种子
+1. task_table：mysql中的任务表，为抓取的任务种子，需要运行前手动创建好
 2. task_keys：任务表里需要获取的字段，框架会将这些字段的数据查询出来，传递给爬虫，然后拼接请求
 3. task_state：任务表里表示任务完成状态的字段，默认是state。字段为整形，有4种状态（0 待抓取，1抓取完毕，2抓取中，-1抓取失败）
-4. batch_record_table：批次信息表，用于记录批次信息
+4. batch_record_table：批次信息表，用于记录批次信息，由爬虫自动创建
 5. batch_name： 批次名称，可以理解成爬虫的名字，用于报警等
 6. batch_interval：批次周期 天为单位 若为小时 可写 1 / 24
 
@@ -156,7 +156,6 @@ def crawl_test(args):
 这时，start_requests的task参数值即为任务表里id与url对应的值。
 
 ```
-
     def start_requests(self, task):
         # task 为在任务表中取出的每一条任务
         id, url = task  # id， url为所取的字段，main函数中指定的
