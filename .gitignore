@@ -3,6 +3,7 @@ files/*
 .idea/*
 */.idea/*
 venv/*
+venv2/*
 *.pyc
 *test.py
 *.log

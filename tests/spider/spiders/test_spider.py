@@ -11,7 +11,7 @@ import feapder
 from items import *
 
 
-class TestSpider2(feapder.Spider):
+class TestSpider(feapder.Spider):
     def start_requests(self):
         yield feapder.Request("https://www.baidu.com")
 

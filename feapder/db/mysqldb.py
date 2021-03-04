@@ -12,7 +12,7 @@ import json
 from urllib import parse
 
 import pymysql
-from DBUtils.PooledDB import PooledDB
+from dbutils.pooled_db import PooledDB
 from pymysql import cursors
 from pymysql import err
 
@@ -189,12 +189,12 @@ class MysqlDB:
                         col.startswith("{") or col.startswith("[")
                     ):
                         try:
-                            col = self.unescape_string(col)
+                            # col = self.unescape_string(col)
                             return json.loads(col)
                         except:
                             return col
                     else:
-                        col = self.unescape_string(col)
+                        # col = self.unescape_string(col)
                         return col
 
                 return [convert(c) for c in row]

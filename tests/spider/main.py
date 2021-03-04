@@ -12,17 +12,17 @@ from feapder import Request
 from feapder import ArgumentParser
 
 
-def test_spider():
+def spider_test():
     spider = test_spider.TestSpider(redis_key="feapder:test_spider")
     spider.start()
 
 
-def test_spider2():
+def spider2_test():
     spider = test_spider.TestSpider2(redis_key="feapder:test_spider2")
     spider.start()
 
 
-def test_debug_spider():
+def debug_spider_test():
     # debug爬虫
     spider = test_spider.TestSpider.to_DebugSpider(
         redis_key="feapder:test_spider", request=Request("http://www.baidu.com")
@@ -34,16 +34,16 @@ if __name__ == "__main__":
     parser = ArgumentParser(description="Spider测试")
 
     parser.add_argument(
-        "--test_spider", action="store_true", help="测试Spider", function=test_spider
+        "--spider_test", action="store_true", help="测试Spider", function=spider_test
     )
     parser.add_argument(
-        "--test_spider2", action="store_true", help="测试Spider2", function=test_spider2
+        "--spider2_test", action="store_true", help="测试Spider2", function=spider2_test
     )
     parser.add_argument(
         "--test_debug_spider",
         action="store_true",
         help="测试DebugSpider",
-        function=test_debug_spider,
+        function=debug_spider_test,
     )
 
     parser.start()

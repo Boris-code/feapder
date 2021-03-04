@@ -8,11 +8,11 @@ Created on 2016-11-16 16:25
 """
 
 import redis
+from redis.sentinel import Sentinel
+from rediscluster import RedisCluster
 
 import feapder.setting as setting
 from feapder.utils.log import log
-from redis.sentinel import Sentinel
-from rediscluster import StrictRedisCluster
 
 
 class Singleton(object):
@@ -89,7 +89,7 @@ class RedisDB:
 
                     else:
                         log.debug("使用redis集群模式")
-                        self._redis = StrictRedisCluster(
+                        self._redis = RedisCluster(
                             startup_nodes=startup_nodes,
                             decode_responses=decode_responses,
                             password=user_pass,
@@ -265,11 +265,15 @@ class RedisDB:
             if not self._is_redis_cluster:
                 pipe.multi()
             for value, priority in zip(values, prioritys):
-                pipe.zadd(table, priority, value)
+                pipe.execute_command(
+                    "ZADD", table, priority, value
+                )  # 为了兼容2.x与3.x版本的redis
             return pipe.execute()
 
         else:
-            return self._redis.zadd(table, prioritys, values)
+            return self._redis.execute_command(
+                "ZADD", table, prioritys, values
+            )  # 为了兼容2.x与3.x版本的redis
 
     def zget(self, table, count=1, is_pop=True):
         """
