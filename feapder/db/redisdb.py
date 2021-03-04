@@ -593,7 +593,7 @@ class RedisDB:
         return self._redis.llen(table)
 
     def lrem(self, table, value, num=0):
-        return self._redis.lrem(table, value, num)
+        return self._redis.lrem(table, num, value)
 
     def hset(self, table, key, value):
         """
