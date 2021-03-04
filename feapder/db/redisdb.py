@@ -31,7 +31,7 @@ class RedisDB:
     def __init__(
         self,
         ip_ports=None,
-        db=None,
+        db=0,
         user_pass=None,
         url=None,
         decode_responses=True,
@@ -593,7 +593,21 @@ class RedisDB:
         return self._redis.llen(table)
 
     def lrem(self, table, value, num=0):
+        """
+        @summary:
+        删除value
+        ---------
+        @param table:
+        @param value:
+        @param num:
+        ---------
+        @result: 删除的条数
+        """
+
         return self._redis.lrem(table, num, value)
+
+    def lrange(self, table, start=0, end=-1):
+        return self._redis.lrange(table, start, end)
 
     def hset(self, table, key, value):
         """
