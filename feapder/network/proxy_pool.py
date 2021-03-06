@@ -15,6 +15,7 @@ import requests
 
 from feapder import setting
 from feapder.utils import log
+from feapder.utils import tools
 
 # 建立本地缓存代理文件夹
 proxy_path = os.path.join(os.path.dirname(__file__), "proxy_file")
@@ -77,7 +78,7 @@ def get_proxy_from_http(proxy_source_url, **kwargs):
     :param kwargs:
     :return:
     """
-    filename = proxy_source_url.split("/")[-1]
+    filename = tools.get_md5(proxy_source_url) + ".txt"
     abs_filename = os.path.join(proxy_path, filename)
     update_interval = kwargs.get("local_proxy_file_cache_timeout", 60)
     update_flag = 0
@@ -721,10 +722,7 @@ class ProxyPool(ProxyPoolBase):
         return get_proxy_from_url(**self.kwargs)
 
 
-if setting.PROXY_ENABLE and not setting.PROXY_EXTRACT_API:
+if not setting.PROXY_ENABLE or not setting.PROXY_EXTRACT_API:
     proxy_pool = None
 else:
     proxy_pool = ProxyPool(size=-1, proxy_source_url=setting.PROXY_EXTRACT_API)
-
-if __name__ == "__main__":
-    pass

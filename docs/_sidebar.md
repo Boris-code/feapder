@@ -15,18 +15,20 @@
   * [爬虫集成](usage/爬虫集成.md)
 
 * 使用进阶
-  * [Request](source_code/Request.md)
-  * [Response](source_code/Response.md)
-  * [BaseParser](source_code/BaseParser.md)
-  * [BatchParser](source_code/BatchParser.md)
-  * [配置文件](source_code/配置文件.md)
-  * [MysqlDB](source_code/MysqlDB.md)
-  * [RedisDB](source_code/RedisDB.md)
+  * [请求-Request](source_code/Request.md)
+  * [响应-Response](source_code/Response.md)
+  * [解析器-BaseParser](source_code/BaseParser.md)
+  * [批次解析器-BatchParser](source_code/BatchParser.md)
   * [Spider进阶](source_code/Spider进阶.md)
   * [BatchSpider进阶](source_code/BatchSpider进阶.md)
   * [Item](source_code/Item.md)
+  * [UpdateItem](source_code/UpdateItem.md)
   * [ItemBuffer](source_code/ItemBuffer.md)
-  * [tools](source_code/tools.md)
+  * [配置文件](source_code/配置文件.md)
+  * [MysqlDB](source_code/MysqlDB.md)
+  * [RedisDB](source_code/RedisDB.md)
+  * [工具库-tools](source_code/tools.md)
+  * [海量数据去重-dedup](source_code/dedup.md)
 
 * 常见问题
   * [安装问题](question/安装问题.md)

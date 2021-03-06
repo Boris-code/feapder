@@ -455,6 +455,9 @@ class Scheduler(threading.Thread):
         if self._begin_callback:
             self._begin_callback()
 
+        for parser in self._parsers:
+            parser.start_callback()
+
         # 记录开始时间
         if not self._redisdb.hexists(self._tab_spider_time, SPIDER_START_TIME_KEY):
             current_timestamp = tools.get_current_timestamp()

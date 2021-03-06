@@ -75,7 +75,7 @@ class BaseParser(object):
 
     def start_callback(self):
         """
-        @summary: 程序开始的回掉
+        @summary: 程序开始的回调
         ---------
         ---------
         @result: None
