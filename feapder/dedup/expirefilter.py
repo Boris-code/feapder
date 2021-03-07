@@ -16,14 +16,16 @@ from feapder.db.redisdb import RedisDB
 class ExpireFilter:
     redis_db = None
 
-    def __init__(self, name: str, expire_time: int, expire_time_record_key=None):
+    def __init__(
+        self, name: str, expire_time: int, expire_time_record_key=None, redis_url=None
+    ):
         if not name:
             raise ValueError("name cant't be None")
         if not expire_time:
             raise ValueError("please set expire time, units is seconds")
 
         if not self.__class__.redis_db:
-            self.__class__.redis_db = RedisDB()
+            self.__class__.redis_db = RedisDB(url=redis_url)
 
         self.name = name
         self.expire_time = expire_time

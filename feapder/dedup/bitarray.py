@@ -104,12 +104,12 @@ class RedisBitArray(BitArray):
 
     redis_db = None
 
-    def __init__(self, name):
+    def __init__(self, name, redis_url=None):
         self.name = name
         self.count_cached_name = name + "_count_cached"
 
         if not self.__class__.redis_db:
-            self.__class__.redis_db = RedisDB()
+            self.__class__.redis_db = RedisDB(url=redis_url)
 
     def __repr__(self):
         return "RedisBitArray: {}".format(self.name)
