@@ -1,6 +1,6 @@
 # FEAPDER
 
-![](https://img.shields.io/badge/python-3.6-brightgreen) 
+![](https://img.shields.io/badge/python-3.6-brightgreen)
 
 ## 简介
 
@@ -11,9 +11,6 @@
 读音: `[ˈfiːpdə]`
 
 官方文档：http://boris.org.cn/feapder/
-
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139928869250.jpg?x-oss-process=style/markdown-media)
 
 
 ## 环境要求：
@@ -31,7 +28,7 @@ From Git:
 
     pip3 install git+https://github.com/Boris-code/feapder.git
 
-若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
+若安装出错，请参考[安装问题](question/安装问题.md)
 
 ## 小试一下
 
@@ -68,43 +65,66 @@ From Git:
     Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|INFO| parser 等待任务 ...
     FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|DEBUG| 无任务，爬虫结束
 
-## 功能概览
+代码解释如下：
 
-### 1. 支持周期性采集
+1. start_requests： 生产任务
+2. parser： 解析数据
 
-周期性抓取是爬虫中常见的需求，如每日抓取一次商品的销量等，我们把每个周期称为一个批次。
+## 为什么不使用scrapy
 
-本框架支持批次采集，引入了批次表的概念，详细记录了每一批次的抓取状态
+**scrapy**给我的印象：
 
+1. **重**：框架中的许多东西都用不到，如CrawlSpider、XMLFeedSpider
+2. 中间件不灵活
+3. 从数据库中取任务作为种子抓取不支持，需要自己写代码取任务，维护任务状态
+4. 数据入库不支持批量，需要自己写批量逻辑
+5. 启动方式需要用scrapy命令行，打断点调试不方便
+6. 英文文档，阅读理解起来费精力
+
+**feapder** 正是迎着以上痛点而生的，以数据库中取任务作为种子为例，写法如下：
+
+```
+import feapder
+from items import *
+
+
+class TestSpider(feapder.BatchSpider):
+
+    def start_requests(self, task):
+        # task 为在任务表中取出的每一条任务
+        id, url = task  # id， url为所取的字段，main函数中指定的
+        yield feapder.Request(url, task_id=id)
+
+    def parse(self, request, response):
+        title = response.xpath('//title/text()').extract_first()  # 取标题
+        item = spider_data_item.SpiderDataItem()  # 声明一个item
+        item.title = title  # 给item属性赋值
+        yield item  # 返回item， item会自动批量入库
+        yield self.update_task_batch(request.task_id, 1) # 更新任务状态为1
+        
+if __name__ == "__main__":
+    spider = TestSpider(
+        redis_key="feapder:test_batch_spider",  # redis中存放任务等信息的根key
+        task_table="batch_spider_task",  # mysql中的任务表
+        task_keys=["id", "url"],  # 需要获取任务表里的字段名，可添加多个
+        task_state="state",  # mysql中任务状态字段
+        batch_record_table="batch_spider_batch_record",  # mysql中的批次记录表
+        batch_name="批次爬虫测试(周全)",  # 批次名字
+        batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24。 这里为每一天一个批次
+    )
+
+
+    spider.start_monitor_task()  # 下发及监控任务
+    # spider.start()  # 采集        
+```
+
+任务表：`batch_spider_task`
+![-w398](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139773315622.jpg?x-oss-process=style/markdown-media)
+
+批次记录表记录着每个批次的抓取状态，自动生成
 ![-w899](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084680404224.jpg?x-oss-process=style/markdown-media)
 
-### 2. 支持分布式采集
-
-面对海量的数据，分布式采集必不可少的，本框架支持分布式，且可随时重启爬虫，任务不丢失
-
-### 3. 支持爬虫集成
-
-本功能可以将多个爬虫以插件的形式集成为一个爬虫，常用于采集周期一致，需求一致的，但需要采集多个数据源的项目
-
-### 4. 支持海量数据去重
-
-框架内置3种去重机制，通过简单的配置可对任务及数据自动去重，也可拿出来单独作为模块使用，支持批量去重。
-
-1. 临时去重：处理一万条数据约0.26秒。 去重1亿条数据占用内存约1.43G，可指定去重的失效周期
-2. 内存去重：处理一万条数据约0.5秒。 去重一亿条数据占用内存约285MB
-3. 永久去重：处理一万条数据约3.5秒。去重一亿条数据占用内存约285MB
-
-### 5. 数据自动入库
-
-只需要根据数据库表自动生成item，然后给item属性赋值，直接yield 返回即可批量入库
-
-### 6. 支持Debug模式
-
-爬虫支持debug模式，debug模式下默认数据不入库、不修改任务状态。可针对某个任务进行调试，方便开发
-
-### 7. 完善的报警机制
-
-为了保证数据的全量性、准确性、时效性，本框架内置报警机制，有了这些报警，我们可以实时掌握爬虫状态
+feapder会自动维护任务状态，每个批次（采集周期）的进度，并且内置丰富的报警，保证我们的数据时效性，如：
 
 1. 实时计算爬虫抓取速度，估算剩余时间，在指定的抓取周期内预判是否会超时
 
@@ -119,17 +139,9 @@ From Git:
 
     ![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg?x-oss-process=style/markdown-media)
 
-### 8. 下载监控
-
-框架对请求总数、成功数、失败数、解析异常数进行监控，将数据点打入到infuxdb，结合Grafana面板，可方便掌握抓取情况
-
-![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg?x-oss-process=style/markdown-media)
-
-
 
 ## 学习交流
 
-官方文档：http://boris.org.cn/feapder/
 
 知识星球：
 
