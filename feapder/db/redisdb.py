@@ -31,7 +31,7 @@ class RedisDB:
     def __init__(
         self,
         ip_ports=None,
-        db=0,
+        db=None,
         user_pass=None,
         url=None,
         decode_responses=True,

@@ -8,14 +8,10 @@ Created on 2021-02-08 16:06:12
 """
 
 import feapder
-from feapder.dedup import Dedup
 from items import *
 
 
 class TestSpider(feapder.Spider):
-    def __init__(self, *args, **kwargs):
-        self.dedup = Dedup()
-
     def start_requests(self):
         yield feapder.Request("https://www.baidu.com")
 
