@@ -28,7 +28,7 @@ From Git:
 
     pip3 install git+https://github.com/Boris-code/feapder.git
 
-若安装出错，请参考[安装问题](question/安装问题.md)
+若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
 
 ## 小试一下
 
@@ -80,11 +80,11 @@ scrapy给我的印象：
 4. 数据入库不支持批量，需要自己写批量逻辑
 5. 启动方式需要用scrapy命令行，打断点调试不方便
 
-## 举例说明
+### 举例说明
 
 本文以某东的商品爬虫为例，假如我们有1亿个商品，需要每7天全量更新一次，如何做呢？
 
-### 1. 准备种子任务
+#### 1. 准备种子任务
 
 首先需要个种子任务表来存储这些商品id，设计表如下：
 
@@ -103,7 +103,7 @@ CREATE TABLE `jd_item_task` (
 
 ![-w357](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152932156268.jpg?x-oss-process=style/markdown-media)
 
-### 2. 准备数据表
+#### 2. 准备数据表
 
 ![-w808](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152934374807.jpg?x-oss-process=style/markdown-media)
 
@@ -121,7 +121,7 @@ CREATE TABLE `jd_item` (
 
 这里只是演示，因此只采集标题字段
 
-### 3. 采集
+#### 3. 采集
 
 若使用`scrapy`，需要手动将这些种子任务分批取出来发给爬虫，还需要维护种子任务的状态，以及上面提及的批次信息`batch_date`。并且为了保证数据的时效性，需要对采集进度进行监控，写个爬虫十分繁琐。
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
 
 启动参数中指定，自动生成。批次表里详细记录了每个批次的抓取状态，如任务总量、已做量、失败量、是否已完成等信息
 
-### 4. 监控
+#### 4. 监控
 
 feapder会自动维护任务状态，每个批次（采集周期）的进度，并且内置丰富的报警，保证我们的数据时效性，如：
 
