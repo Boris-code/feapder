@@ -118,3 +118,19 @@ def test_filter():
 - **expire_time**：ExpireFilter的过期时间 单位为秒，其他两种过滤器不用指定
 - **error_rate**：BloomFilter/MemoryFilter的误判率 默认为0.00001
 - **to_md5**：去重前是否将数据转为MD5，默认是
+
+## 爬虫中使用
+
+框架支持对请求和入库的数据进行去重，仅需要在[配置文件](source_code/配置文件)中进行配置即可
+
+```python
+ITEM_FILTER_ENABLE = False # item 去重
+REQUEST_FILTER_ENABLE = False # request 去重
+```
+
+或者可以直接导入此去重模块使用
+
+```python
+from feapder.dedup import Dedup
+```
+
