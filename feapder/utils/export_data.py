@@ -102,7 +102,7 @@ class ExportData(object):
             log.info("无表数据")
         for table in tables:
             from_table = table
-            to_table = tools.get_info(str(from_table), ":s_(.*?)_item", fetch_one=True)
+            to_table = tools.get_info(str(from_table), ":s_(.*?)_item$", fetch_one=True)
             if callable(every_table_per_export_callback):
                 to_table, auto_update, batch_count = every_table_per_export_callback(
                     to_table, auto_update, batch_count
@@ -125,7 +125,7 @@ class ExportData(object):
         @result:
         """
 
-        to_table = tools.get_info(tab_item, ":s_(.*?)_item", fetch_one=True)
+        to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
         sql, datas = tools.make_batch_sql(to_table, items_data)
         add_count = self.to_db.add_batch(sql, datas)
         datas_size = len(datas)
@@ -149,7 +149,7 @@ class ExportData(object):
         ---------
         @result:
         """
-        to_table = tools.get_info(tab_item, ":s_(.*?)_item", fetch_one=True)
+        to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
         sql, datas = tools.make_batch_sql(
             to_table,
             items_data,

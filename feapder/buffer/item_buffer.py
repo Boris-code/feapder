@@ -227,7 +227,7 @@ class ItemBuffer(threading.Thread, Singleton):
     def __export_to_db(self, tab_item, datas, is_update=False, update_keys=()):
         export_success = False
         # 打点 校验
-        to_table = tools.get_info(tab_item, ":s_(.*?)_item", fetch_one=True)
+        to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
         item_name = to_table + "_item"
         self.check_datas(table=to_table, datas=datas)
 
