@@ -1970,8 +1970,20 @@ def make_batch_sql(
 ############### json相关 #######################
 
 
-def key2underline(key):
-    regex = "[A-Z]*"
+def key2underline(key, strict=True):
+    """
+    >>> key2underline("HelloWord")
+    'hello_word'
+    >>> key2underline("SHData", strict=True)
+    's_h_data'
+    >>> key2underline("SHData", strict=False)
+    'sh_data'
+    >>> key2underline("SHDataHi", strict=False)
+    'sh_data_hi'
+    >>> key2underline("SHDataHi", strict=True)
+    's_h_data_hi'
+    """
+    regex = "[A-Z]*" if not strict else "[A-Z]"
     capitals = re.findall(regex, key)
 
     if capitals:
@@ -1980,7 +1992,9 @@ def key2underline(key):
                 continue
             if pos == 0:
                 if len(capital) > 1:
-                    key = key.replace(capital, capital.lower() + "_", 1)
+                    key = key.replace(
+                        capital, capital[:-1].lower() + "_" + capital[-1].lower(), 1
+                    )
                 else:
                     key = key.replace(capital, capital.lower(), 1)
             else:
