@@ -40,9 +40,7 @@ class Collector(threading.Thread):
         self._todo_requests = collections.deque()
 
         self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
-        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(
-            redis_key=redis_key
-        )
+        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
 
         self._spider_mark = LOCAL_HOST_IP + (
             "_%s" % process_num if process_num else "_0"
@@ -96,26 +94,18 @@ class Collector(threading.Thread):
         if not request_count:
             return
 
-        # requests_list = self._db.zget(self._tab_requests, count = request_count)
-
-        # 取任务
+        # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_TIME_OUT
         current_timestamp = tools.get_current_timestamp()
-        priority_max = current_timestamp - setting.REQUEST_TIME_OUT  # 普通的任务 与 已经超时的任务
         requests_list = self._db.zrangebyscore_set_score(
             self._tab_requests,
             priority_min="-inf",
-            priority_max=priority_max,
-            score=current_timestamp,
+            priority_max=current_timestamp,
+            score=current_timestamp + setting.REQUEST_TIME_OUT,
             count=request_count,
         )
-        # print('取任务', len(requests_list))
 
-        if not requests_list:
-            pass
-        else:
+        if requests_list:
             self._is_collector_task = True
-            # 将取到的任务放回到redis， 以当前时间戳标记，表示正在做的任务。任务做完在request_buffer中删除，没做完则到超时时间后重新做
-            # self._db.zadd(self._tab_requests, requests_list, prioritys=current_timestamp)
 
             # 汇报节点信息
             self._db.zadd(self._tab_spider_status, self._spider_mark, 1)  # 正在做
