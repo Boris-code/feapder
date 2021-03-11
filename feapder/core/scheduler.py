@@ -39,7 +39,7 @@ class Scheduler(threading.Thread):
         thread_count=None,
         begin_callback=None,
         end_callback=None,
-        delete_tabs=(),
+        delete_keys=(),
         process_num=None,
         auto_stop_when_spider_done=None,
         auto_start_requests=None,
@@ -54,7 +54,7 @@ class Scheduler(threading.Thread):
         @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
-        @param delete_tabs: 爬虫启动时删除的表，类型: 元组/bool/string。 支持正则
+        @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则
         @param process_num: 进程数
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param auto_start_requests: 爬虫是否自动添加任务
@@ -137,9 +137,9 @@ class Scheduler(threading.Thread):
         Request.cached_redis_key = redis_key
         Request.cached_expire_time = setting.RESPONSE_CACHED_EXPIRE_TIME
 
-        delete_tabs = delete_tabs or setting.DELETE_TABS
-        if delete_tabs:
-            self.delete_tables(delete_tabs)
+        delete_keys = delete_keys or setting.DELETE_KEYS
+        if delete_keys:
+            self.delete_tables(delete_keys)
 
         self._last_check_task_status_time = 0
         self.wait_lock = wait_lock

@@ -60,8 +60,8 @@ WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报�
 # 爬虫初始化工作
 # redis 存放item与request的根目录
 REDIS_KEY = ""
-# 每次启动时需要删除的表
-DELETE_TABS = []
+# 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
+DELETE_KEYS = []
 # 爬虫做完request后是否自动结束或者等待任务
 AUTO_STOP_WHEN_SPIDER_DONE = True
 # 是否将item添加到 mysql 支持列表 指定添加的item 可模糊指定
