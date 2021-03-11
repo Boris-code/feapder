@@ -31,9 +31,7 @@ class Request(object):
     proxies_pool = proxy_pool
 
     cache_db = None  # redis / pika
-    cached_redis_key = (
-        None
-    )  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
+    cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
     cached_expire_time = 1200  # 缓存过期时间
 
     local_filepath = None
@@ -265,20 +263,25 @@ class Request(object):
 
         log.debug(
             """
-                -------------- %s.%s request for ----------------
+                -------------- %srequest for ----------------
                 url  = %s
                 method = %s
                 body = %s
                 """
             % (
-                self.parser_name,
-                (
-                    self.callback
-                    and callable(self.callback)
-                    and getattr(self.callback, "__name__")
-                    or self.callback
-                )
-                or "parser",
+                ""
+                if not self.parser_name
+                else "%s.%s "
+                % (
+                    self.parser_name,
+                    (
+                        self.callback
+                        and callable(self.callback)
+                        and getattr(self.callback, "__name__")
+                        or self.callback
+                    )
+                    or "parser",
+                ),
                 self.url,
                 method,
                 self.requests_kwargs,
@@ -331,7 +334,9 @@ class Request(object):
     @property
     def _cached_redis_key(self):
         if self.__class__.cached_redis_key:
-            return f"response_cached:{self.__class__.cached_redis_key}:{self.fingerprint}"
+            return (
+                f"response_cached:{self.__class__.cached_redis_key}:{self.fingerprint}"
+            )
         else:
             return f"response_cached:test:{self.fingerprint}"
 
@@ -343,9 +348,7 @@ class Request(object):
         @return:
         """
 
-        self._cache_db.strset(
-            self._cached_redis_key, response.to_dict, ex=expire_time
-        )
+        self._cache_db.strset(self._cached_redis_key, response.to_dict, ex=expire_time)
 
     def get_response_from_cached(self, save_cached=True):
         """
