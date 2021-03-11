@@ -224,7 +224,7 @@ def failed_request(self, request, response):
 
 ## 10.增量采集
 
-每个批次开始时，框架默认会重置状态非-1的任务为0，然后重新抓取。但是有些需求是增强采集的，做过的任务无需再次处理。重置任务是`init_task`方法实现的，我们可以将`init_task`方法置空来实现增量采集
+每个批次开始时，框架默认会重置状态非-1的任务为0，然后重新抓取。但是有些需求是增量采集的，做过的任务无需再次处理。重置任务是`init_task`方法实现的，我们可以将`init_task`方法置空来实现增量采集
 
 ```
     def init_task(self):
@@ -261,7 +261,7 @@ DebugBatchSpider爬虫支持传递`task_id`或直接传递`task`来指定任务�
 
 ## 12. 运行BatchSpider
 
-与[Spider](usage/Spider?id=_7-运行多个spider)运行方式类型。但因每个爬虫都有maser和work两个入口，因此框架提供一种更方便的方式，写法如下
+与[Spider](usage/Spider?id=_7-运行多个spider)运行方式类似。但因每个爬虫都有maser和work两个入口，因此框架提供一种更方便的方式，写法如下
 
 ```
 from spiders import *
