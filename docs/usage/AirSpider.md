@@ -81,21 +81,49 @@ parser中支持下发新任务，写法与start_requests一致，只需要`yield
 
 下载中间件用于在请求之前，对请求做一些处理，如添加cookie、header等。写法如下：
 
+~~~python
+class AirSpiderTest(feapder.AirSpider):
+    def start_requests(self):
+        yield feapder.Request("http://httpbin.org/headers")
+
+    def parse(self, request, response):
+        print(response.text)
 
     def download_midware(self, request):
         request.headers = {'User-Agent':"lalala"}
         return request
 
+
+if __name__ == "__main__":
+    AirSpiderTest().start()
+~~~
+
+此处为请求配置 headers 参数，其设置在代码执行后可以在输出中观察到  
+
+~~~bash
+                -------------- AirSpiderTest.parser request for ----------------
+                url  = http://httpbin.org/headers
+                method = GET
+                body = {'headers': {'User-Agent': 'lalala'}, 'timeout': 22, 'stream': True, 'verify': False}
+~~~
+
 request.参数， 这里的参数支持requests所有参数，同时也可携带些自定义的参数，详情可参考[Request](source_code/Request.md)
 
 默认所有的解析函数在请求之前都会经过此下载中间件
+
+
 
 ## 7. 自定义下载中间件
 
 与自定义解析函数类似，下载中间件也支持自定义，只需要在feapder.Request参数里指定个`download_midware`回调即可，写法如下：
 
+~~~python
+class AirSpiderTest(feapder.AirSpider):
     def start_requests(self):
-        yield feapder.Request("https://www.baidu.com", download_midware=self.xxx)
+        yield feapder.Request("http://httpbin.org/headers", download_midware=self.xxx)
+
+    def parse(self, request, response):
+        print(response.text)
 
     def xxx(self, request):
         """
@@ -105,7 +133,12 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
         """
         request.headers = {'User-Agent':"lalala"}
         return request
-        
+
+
+if __name__ == "__main__":
+    AirSpiderTest().start()
+~~~
+
 自定义的下载中间件只有指定的请求才会经过。其他未指定下载中间件的请求，还是会经过默认的下载中间件
 
 ## 8. 失败重试
