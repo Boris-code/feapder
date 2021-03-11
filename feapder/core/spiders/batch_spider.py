@@ -49,7 +49,7 @@ class BatchSpider(BatchParser, Scheduler):
         thread_count=None,
         begin_callback=None,
         end_callback=None,
-        delete_tabs=(),
+        delete_keys=(),
         process_num=None,
         auto_stop_when_spider_done=None,
         send_run_time=False,
@@ -91,11 +91,11 @@ class BatchSpider(BatchParser, Scheduler):
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务
         @param check_task_interval: 检查是否还有任务的时间间隔；
         @param task_limit: 数据库中取任务的数量
-        @param redis_key: 爬虫request及item存放redis中的文件夹
+        @param redis_key: 任务等数据存放在redis中的key前缀
         @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
-        @param delete_tabs: 爬虫启动时删除的表（redis里的key），元组类型。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
+        @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
         @param process_num: 进程数
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param send_run_time: 发送运行时间
@@ -115,7 +115,7 @@ class BatchSpider(BatchParser, Scheduler):
             thread_count=thread_count,
             begin_callback=begin_callback,
             end_callback=end_callback,
-            delete_tabs=delete_tabs,
+            delete_keys=delete_keys,
             process_num=process_num,
             auto_stop_when_spider_done=auto_stop_when_spider_done,
             auto_start_requests=False,
@@ -1062,7 +1062,7 @@ class DebugBatchSpider(BatchSpider):
         ITEM_FILTER_ENABLE=False,
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
-        DELETE_TABS=True,
+        DELETE_KEYS=True,
     )
 
     def __init__(

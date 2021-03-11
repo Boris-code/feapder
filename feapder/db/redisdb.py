@@ -15,23 +15,23 @@ import feapder.setting as setting
 from feapder.utils.log import log
 
 
-class Singleton(object):
-    def __init__(self, cls):
-        self._cls = cls
-        self._instance = {}
-
-    def __call__(self, *args, **kwargs):
-        if self._cls not in self._instance:
-            self._instance[self._cls] = self._cls(*args, **kwargs)
-        return self._instance[self._cls]
-
-
-@Singleton
+# class Singleton(object):
+#     def __init__(self, cls):
+#         self._cls = cls
+#         self._instance = {}
+#
+#     def __call__(self, *args, **kwargs):
+#         if self._cls not in self._instance:
+#             self._instance[self._cls] = self._cls(*args, **kwargs)
+#         return self._instance[self._cls]
+#
+#
+# @Singleton
 class RedisDB:
     def __init__(
         self,
         ip_ports=None,
-        db=0,
+        db=None,
         user_pass=None,
         url=None,
         decode_responses=True,
@@ -64,6 +64,9 @@ class RedisDB:
 
         try:
             if not url:
+                if not ip_ports:
+                    raise Exception("未设置redis连接信息")
+
                 ip_ports = (
                     ip_ports if isinstance(ip_ports, list) else ip_ports.split(",")
                 )
@@ -74,7 +77,7 @@ class RedisDB:
                         startup_nodes.append({"host": ip, "port": port})
 
                     if service_name:
-                        log.debug("使用redis哨兵模式")
+                        # log.debug("使用redis哨兵模式")
                         hosts = [(node["host"], node["port"]) for node in startup_nodes]
                         sentinel = Sentinel(hosts, socket_timeout=3, **kwargs)
                         self._redis = sentinel.master_for(
@@ -88,7 +91,7 @@ class RedisDB:
                         )
 
                     else:
-                        log.debug("使用redis集群模式")
+                        # log.debug("使用redis集群模式")
                         self._redis = RedisCluster(
                             startup_nodes=startup_nodes,
                             decode_responses=decode_responses,
@@ -117,10 +120,11 @@ class RedisDB:
         except Exception as e:
             raise
         else:
-            if not url:
-                log.debug("连接到redis数据库 %s db%s" % (ip_ports, db))
-            else:
-                log.debug("连接到redis数据库 %s" % (url))
+            # if not url:
+            #     log.debug("连接到redis数据库 %s db%s" % (ip_ports, db))
+            # else:
+            #     log.debug("连接到redis数据库 %s" % (url))
+            pass
 
         self._ip_ports = ip_ports
         self._db = db
@@ -137,6 +141,14 @@ class RedisDB:
 
     @classmethod
     def from_url(cls, url):
+        """
+
+        Args:
+            url: redis://[[username]:[password]]@localhost:6379/0
+
+        Returns:
+
+        """
         return cls(url=url)
 
     def sadd(self, table, values):

@@ -1,6 +1,6 @@
 # FEAPDER
 
-![](https://img.shields.io/badge/python-3.6-brightgreen) 
+![](https://img.shields.io/badge/python-3.6-brightgreen)
 
 ## 简介
 
@@ -11,9 +11,6 @@
 读音: `[ˈfiːpdə]`
 
 官方文档：http://boris.org.cn/feapder/
-
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139928869250.jpg?x-oss-process=style/markdown-media)
 
 
 ## 环境要求：
@@ -68,43 +65,143 @@ From Git:
     Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|INFO| parser 等待任务 ...
     FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|DEBUG| 无任务，爬虫结束
 
-## 功能概览
+代码解释如下：
 
-### 1. 支持周期性采集
+1. start_requests： 生产任务
+2. parser： 解析数据
 
-周期性抓取是爬虫中常见的需求，如每日抓取一次商品的销量等，我们把每个周期称为一个批次。
+## 为什么不使用scrapy
 
-本框架支持批次采集，引入了批次表的概念，详细记录了每一批次的抓取状态
+scrapy给我的印象：
 
-![-w899](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084680404224.jpg?x-oss-process=style/markdown-media)
+1. 重，框架中的许多东西都用不到，如CrawlSpider、XMLFeedSpider
+2. 中间件不灵活
+3. 不支持从数据库中取任务作为种子抓取
+4. 数据入库不支持批量，需要自己写批量逻辑
+5. 启动方式需要用scrapy命令行，打断点调试不方便
 
-### 2. 支持分布式采集
+### 举例说明
 
-面对海量的数据，分布式采集必不可少的，本框架支持分布式，且可随时重启爬虫，任务不丢失
+本文以某东的商品爬虫为例，假如我们有1亿个商品，需要每7天全量更新一次，如何做呢？
 
-### 3. 支持爬虫集成
+#### 1. 准备种子任务
 
-本功能可以将多个爬虫以插件的形式集成为一个爬虫，常用于采集周期一致，需求一致的，但需要采集多个数据源的项目
+首先需要个种子任务表来存储这些商品id，设计表如下：
 
-### 4. 支持海量数据去重
+![-w1028](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152931277517.jpg?x-oss-process=style/markdown-media)
 
-框架内置3种去重机制，通过简单的配置可对任务及数据自动去重，也可拿出来单独作为模块使用，支持批量去重。
+```sql
+CREATE TABLE `jd_item_task` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `item_id` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL COMMENT '商品id',
+  `state` int(11) DEFAULT '0' COMMENT '任务状态 0 待抓取 1 抓取成功 2 抓取中 -1 抓取失败',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
 
-1. 临时去重：处理一万条数据约0.26秒。 去重1亿条数据占用内存约1.43G，可指定去重的失效周期
-2. 内存去重：处理一万条数据约0.5秒。 去重一亿条数据占用内存约285MB
-3. 永久去重：处理一万条数据约3.5秒。去重一亿条数据占用内存约285MB
+然后将这1亿个商品id录入进来，作为种子任务
 
-### 5. 数据自动入库
+![-w357](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152932156268.jpg?x-oss-process=style/markdown-media)
 
-只需要根据数据库表自动生成item，然后给item属性赋值，直接yield 返回即可批量入库
+#### 2. 准备数据表
 
-### 6. 支持Debug模式
+![-w808](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152934374807.jpg?x-oss-process=style/markdown-media)
 
-爬虫支持debug模式，debug模式下默认数据不入库、不修改任务状态。可针对某个任务进行调试，方便开发
+```sql
+CREATE TABLE `jd_item` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `title` varchar(255) DEFAULT NULL,
+  `batch_date` date DEFAULT NULL COMMENT '批次时间',
+  `crawl_time` datetime DEFAULT NULL COMMENT '采集时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+```
 
-### 7. 完善的报警机制
+需求是每7天全量更新一次，即数据要以7天为维度划分，因此设置个`batch_date`字段，表示每条数据所属的批次。
 
-为了保证数据的全量性、准确性、时效性，本框架内置报警机制，有了这些报警，我们可以实时掌握爬虫状态
+这里只是演示，因此只采集标题字段
+
+#### 3. 采集
+
+若使用`scrapy`，需要手动将这些种子任务分批取出来发给爬虫，还需要维护种子任务的状态，以及上面提及的批次信息`batch_date`。并且为了保证数据的时效性，需要对采集进度进行监控，写个爬虫十分繁琐。
+
+而`feapder`内置了批次爬虫，可以很方便的应对这个需求。完整的爬虫写法如下：
+
+```python
+import feapder
+from feapder import Item
+from feapder.utils import tools
+
+
+class JdSpider(feapder.BatchSpider):
+    # 自定义数据库，若项目中有setting.py文件，此自定义可删除
+    __custom_setting__ = dict(
+        REDISDB_IP_PORTS="localhost:6379",
+        REDISDB_DB=0,
+        MYSQL_IP="localhost",
+        MYSQL_PORT=3306,
+        MYSQL_DB="feapder",
+        MYSQL_USER_NAME="feapder",
+        MYSQL_USER_PASS="feapder123",
+    )
+
+    def start_requests(self, task):
+        task_id, item_id = task
+        url = "https://item.jd.com/{}.html".format(item_id)
+        yield feapder.Request(url, task_id=task_id)  # 携带task_id字段
+
+    def parse(self, request, response):
+        title = response.xpath("string(//div[@class='sku-name'])").extract_first(default="").strip()
+
+        item = Item()
+        item.table_name = "jd_item"  # 指定入库的表名
+        item.title = title
+        item.batch_date = self.batch_date  # 获取批次信息，批次信息框架自己维护
+        item.crawl_time = tools.get_current_date()  # 获取当前时间
+        yield item  # 自动批量入库
+        yield self.update_task_batch(request.task_id, 1)  # 更新任务状态
+
+
+if __name__ == "__main__":
+    spider = JdSpider(
+        redis_key="feapder:jd_item",  # redis中存放任务等信息key前缀
+        task_table="jd_item_task",  # mysql中的任务表
+        task_keys=["id", "item_id"],  # 需要获取任务表里的字段名，可添加多个
+        task_state="state",  # mysql中任务状态字段
+        batch_record_table="jd_item_batch_record",  # mysql中的批次记录表，自动生成
+        batch_name="京东商品爬虫(周度全量)",  # 批次名字
+        batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24
+    )
+
+    # 下面两个启动函数 相当于 master、worker。需要分开运行
+    spider.start_monitor_task() # maser: 下发及监控任务
+    # spider.start()  # worker: 采集
+
+```
+
+我们分别运行`spider.start_monitor_task()`与`spider.start()`，待爬虫结束后，观察数据库
+
+**任务表**：`jd_item_task`
+
+![-w282](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953028811.jpg?x-oss-process=style/markdown-media)
+
+任务均已完成了，框架有任务丢失重发机制，直到所有任务均已做完
+
+**数据表**：`jd_item`:
+
+![-w569](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152952623851.jpg?x-oss-process=style/markdown-media)
+
+数据里携带了批次时间信息，我们可以根据这个时间来对数据进行划分。当前批次为3月9号，若7天一批次，则下一批次为3月18号。
+
+**批次表**：`jd_item_batch_record` 
+
+![-w901](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953428596.jpg?x-oss-process=style/markdown-media)
+
+启动参数中指定，自动生成。批次表里详细记录了每个批次的抓取状态，如任务总量、已做量、失败量、是否已完成等信息
+
+#### 4. 监控
+
+feapder会自动维护任务状态，每个批次（采集周期）的进度，并且内置丰富的报警，保证我们的数据时效性，如：
 
 1. 实时计算爬虫抓取速度，估算剩余时间，在指定的抓取周期内预判是否会超时
 
@@ -119,17 +216,12 @@ From Git:
 
     ![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg?x-oss-process=style/markdown-media)
 
-### 8. 下载监控
+1. 下载情况监控
 
-框架对请求总数、成功数、失败数、解析异常数进行监控，将数据点打入到infuxdb，结合Grafana面板，可方便掌握抓取情况
-
-![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg?x-oss-process=style/markdown-media)
-
+    ![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg?x-oss-process=style/markdown-media)
 
 
 ## 学习交流
-
-官方文档：http://boris.org.cn/feapder/
 
 知识星球：
 

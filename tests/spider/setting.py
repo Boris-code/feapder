@@ -14,7 +14,6 @@ MYSQL_USER_PASS = "feapder123"
 # IP:PORT
 REDISDB_IP_PORTS = "localhost:6379"
 REDISDB_USER_PASS = ""
-# 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
 
 # # 爬虫相关

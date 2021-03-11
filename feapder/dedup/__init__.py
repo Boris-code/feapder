@@ -15,24 +15,25 @@ from feapder.utils.tools import get_md5
 from .bloomfilter import BloomFilter, ScalableBloomFilter
 from .expirefilter import ExpireFilter
 
-BASE_NAME = "dedup:"
-
 
 class Dedup:
     BloomFilter = 1
     MemoryFilter = 2
-    ExpireFilter = 2
+    ExpireFilter = 3
 
     def __init__(self, filter_type: int = BloomFilter, to_md5: bool = True, **kwargs):
         """
         去重过滤器 集成BloomFilter、MemoryFilter、ExpireFilter
         Args:
             filter_type: 过滤器类型 BloomFilter
-            name: 过滤器名称 该名称会被dedup默认加前缀 dedup:expire_set:name/dedup:bloomfilter:name。 默认ExpireFilter name=过期时间; BloomFilter name=dedup:bloomfilter:bloomfilter
-            absolute_name: 过滤器绝对名称 不会被dedup加前缀
+            name: 过滤器名称 该名称会默认以dedup作为前缀 dedup:expire_set:[name]/dedup:bloomfilter:[name]。 默认ExpireFilter name=过期时间; BloomFilter name=dedup:bloomfilter:bloomfilter
+            absolute_name: 过滤器绝对名称 不会加dedup前缀
             expire_time: ExpireFilter的过期时间 单位为秒，其他两种过滤器不用指定
             error_rate: BloomFilter/MemoryFilter的误判率 默认为0.00001
-            to_md5: 是否处理数据为md5 默认true
+            to_md5: 去重前是否将数据转为MD5，默认是
+            redis_url: redis://[[username]:[password]]@localhost:6379/0
+                       BloomFilter 与 ExpireFilter 使用
+                       默认会读取setting中的redis配置，若无setting，则需要专递redis_url
             **kwargs:
         """
 
@@ -51,6 +52,7 @@ class Dedup:
                 name=name,
                 expire_time=expire_time,
                 expire_time_record_key=expire_time_record_key,
+                redis_url=kwargs.get("redis_url"),
             )
 
         else:
@@ -65,6 +67,7 @@ class Dedup:
                     initial_capacity=initial_capacity,
                     error_rate=error_rate,
                     bitarray_type=ScalableBloomFilter.BASE_REDIS,
+                    redis_url=kwargs.get("redis_url"),
                 )
             elif filter_type == Dedup.MemoryFilter:
                 self.dedup = ScalableBloomFilter(
@@ -98,10 +101,10 @@ class Dedup:
         self, datas: Union[List[Any], Any], skip_check: bool = False
     ) -> Union[List[Any], Any]:
         """
-        添加数据 如果数据已存在 返回 0 否则返回 1
+        添加数据
         @param datas: list / 单个值
         @param skip_check: 是否直接添加，不检查是否存在 适用于bloomfilter，加快add速度
-        @return: list / 单个值
+        @return: list / 单个值 (如果数据已存在 返回 0 否则返回 1, 可以理解为是否添加成功)
         """
 
         keys = self._deal_datas(datas)
@@ -111,9 +114,9 @@ class Dedup:
 
     def get(self, datas: Union[List[Any], Any]) -> Union[List[Any], Any]:
         """
-        检查数据是否存在 存在返回1 不存在返回0
+        检查数据是否存在
         @param datas: list / 单个值
-        @return: list / 单个值
+        @return: list / 单个值 （存在返回1 不存在返回0)
         """
         keys = self._deal_datas(datas)
         is_exists = self.dedup.get(keys)
@@ -122,8 +125,8 @@ class Dedup:
 
     def filter_exist_data(
         self,
-        *,
         datas: List[Any],
+        *,
         datas_fingerprints: Optional[List] = None,
         callback: Callable[[Any], None] = None
     ) -> Union[Tuple[List[Any], List[Any]], List[Any]]:

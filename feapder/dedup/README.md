@@ -1,65 +1,93 @@
+# Dedup
 
-# 大数据去重
+Dedup是feapder大数据去重模块，内置3种去重机制，使用方式一致，可容纳的去重数据量与内存有关。不同于BloomFilter，去重受槽位数量影响，Dedup使用了弹性的去重机制，可容纳海量的数据去重。
 
-## 功能
 
-1. 基于redis临时去重：
-    指定数据时效性，时效性之外的历史数据不参与去重
-2. 基于内存去重：
-    使用可扩展的bloomfilter方式，适用于程序运行到结束生命周期内去重
-3. 基于redis永久去重
-    使用可扩展的bloomfilter方式，永久去重海量数据  
-4. 支持批量去重，输入列表数据，返回列表结果（如[0,1] 0不存在 1 已存在） 
+## 去重方式
 
-## 使用方法
+### 临时去重
 
-### 临时去重 
+> 基于redis，支持批量，去重有时效性。去重一万条数据约0.26秒，一亿条数据占用内存约1.43G
 
-> 支持批量。速度快，一万条数据约0.26秒。 去重1亿条数据占用内存约1.43G，不适合永久去重
+```
+from feapder.dedup import Dedup
 
-    from spider.dedup import Dedup
-    
-    datas = {
-        "xxx": xxx,
-        "xxxx": "xxxx",
-    }
-    
-    dedup = Dedup('test', 3) # 表名为test 历史数据3秒有效期
-    
-    print(dedup) # <ExpireSet: dedup:expire_set:test>
-    print(dedup.add(datas)) # 0 不存在
-    print(dedup.get(datas)) # 1 存在
-    
+data = {"xxx": 123, "xxxx": "xxxx"}
+datas = ["xxx", "bbb"]
+
+def test_ExpireFilter():
+    dedup = Dedup(
+        Dedup.ExpireFilter, expire_time=10, redis_url="redis://@localhost:6379/0"
+    )
+
+    # 逐条去重
+    assert dedup.add(data) == 1
+    assert dedup.get(data) == 1
+
+    # 批量去重
+    assert dedup.add(datas) == [1, 1]
+    assert dedup.get(datas) == [1, 1]
+```
+
+
 ### 内存去重
 
-> 支持批量。一万条数据约0.5秒。 去重一亿条数据占用内存约285MB
-   
-    from spider.dedup import Dedup
+> 基于内存，支持批量。去重一万条数据约0.5秒，一亿条数据占用内存约285MB
 
-    datas = {
-        "xxx": xxx,
-        "xxxx": "xxxx",
-    }
-    
-    dedup = Dedup(use_memory=True)
-    
-    print(dedup) # <ScalableBloomFilter: MemoryBitArray: 2396264597> （2396264597 为位数组的大小）
-    print(dedup.add(datas)) # 0 不存在
-    print(dedup.get(datas)) # 1 存在
-    
+```
+from feapder.dedup import Dedup
+
+data = {"xxx": 123, "xxxx": "xxxx"}
+datas = ["xxx", "bbb"]
+
+def test_MemoryFilter():
+    dedup = Dedup(Dedup.MemoryFilter)  # 表名为test 历史数据3秒有效期
+
+    # 逐条去重
+    assert dedup.add(data) == 1
+    assert dedup.get(data) == 1
+
+    # 批量去重
+    assert dedup.add(datas) == [1, 1]
+    assert dedup.get(datas) == [1, 1]
+```
+
 ### 永久去重
 
-> 支持批量。 一万条数据约3.5秒。去重一亿条数据占用内存约285MB
+> 基于redis，支持批量，永久去重。 去重一万条数据约3.5秒，一亿条数据占用内存约285MB
 
-    from spider.dedup import Dedup
+    from feapder.dedup import Dedup
 
     datas = {
         "xxx": xxx,
         "xxxx": "xxxx",
     }
-    
+
     dedup = Dedup()
-    
+
     print(dedup) # <ScalableBloomFilter: RedisBitArray: dedup:bloomfilter:bloomfilter>
     print(dedup.add(datas)) # 0 不存在
     print(dedup.get(datas)) # 1 存在
+    
+## 过滤数据
+
+Dedup可以通过如下方法，过滤掉已存在的数据
+
+
+```python
+from feapder.dedup import Dedup
+
+def test_filter():
+    dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0")
+
+    # 制造已存在数据
+    datas = ["xxx", "bbb"]
+    dedup.add(datas)
+
+    # 过滤掉已存在数据 "xxx", "bbb"
+    datas = ["xxx", "bbb", "ccc"]
+    dedup.filter_exist_data(datas)
+    assert datas == ["ccc"]
+```
+
+

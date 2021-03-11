@@ -118,52 +118,17 @@ class CreateItem:
                 )
 
             if column_extra == "auto_increment" or column_default is not None:
-                propertys += (
-                    "# self.{column_name} = {value}  # type : {column_type} | allow_null : {is_nullable} | key : {column_key} | default_value : {column_default} | extra : {column_extra} | column_comment : {column_comment}".format(
-                        column_name=column_name,
-                        value=value,
-                        column_type=column_type,
-                        is_nullable=is_nullable,
-                        column_key=column_key,
-                        column_default=column_default,
-                        column_extra=column_extra,
-                        column_comment=column_comment,
-                    )
-                    + "\n"
-                    + " " * 8
-                )
+                propertys += f"# self.{column_name} = {value}"
 
             else:
                 if value is None or isinstance(value, (float, int)) or support_dict:
-                    propertys += (
-                        "self.{column_name} = {value}  # type : {column_type} | allow_null : {is_nullable} | key : {column_key} | default_value : {column_default} | extra : {column_extra}| column_comment : {column_comment}".format(
-                            column_name=column_name,
-                            value=value,
-                            column_type=column_type,
-                            is_nullable=is_nullable,
-                            column_key=column_key,
-                            column_default=column_default,
-                            column_extra=column_extra,
-                            column_comment=column_comment,
-                        )
-                        + "\n"
-                        + " " * 8
-                    )
+                    propertys += f"self.{column_name} = {value}"
                 else:
-                    propertys += (
-                        "self.{column_name} = '{value}'  # type : {column_type} | allow_null : {is_nullable} | key : {column_key} | default_value : {column_default} | extra : {column_extra}| column_comment : {column_comment}".format(
-                            column_name=column_name,
-                            value=value,
-                            column_type=column_type,
-                            is_nullable=is_nullable,
-                            column_key=column_key,
-                            column_default=column_default,
-                            column_extra=column_extra,
-                            column_comment=column_comment,
-                        )
-                        + "\n"
-                        + " " * 8
-                    )
+                    propertys += f"self.{column_name} = '{value}'"
+
+            if column_comment:
+                propertys += f"  # {column_comment}"
+            propertys += "\n" + " " * 8
 
         item_template = item_template.replace("${propertys}", propertys.strip())
         item_template = deal_file_info(item_template)

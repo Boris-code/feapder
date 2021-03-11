@@ -10,6 +10,7 @@ Created on 2018/12/13 4:11 PM
 
 import hashlib
 import math
+import threading
 import time
 from struct import unpack, pack
 
@@ -71,6 +72,7 @@ class BloomFilter(object):
         error_rate: float = 0.00001,
         bitarray_type=BASE_REDIS,
         name=None,
+        redis_url=None,
     ):
         if not (0 < error_rate < 1):
             raise ValueError("Error_Rate must be between 0 and 1.")
@@ -97,7 +99,7 @@ class BloomFilter(object):
             self.bitarray.setall(False)
         elif bitarray_type == BloomFilter.BASE_REDIS:
             assert name, "name can't be None "
-            self.bitarray = bitarray.RedisBitArray(name)
+            self.bitarray = bitarray.RedisBitArray(name, redis_url)
         else:
             raise ValueError("not support this bitarray type")
 
@@ -209,23 +211,27 @@ class ScalableBloomFilter(object):
         error_rate: float = 0.00001,
         bitarray_type=BASE_REDIS,
         name=None,
+        redis_url=None,
     ):
 
         if not error_rate or error_rate < 0:
             raise ValueError("Error_Rate must be a decimal less than 0.")
 
-        self._setup(initial_capacity, error_rate, name, bitarray_type)
+        self._setup(
+            initial_capacity, error_rate, name, bitarray_type, redis_url=redis_url
+        )
 
-    def _setup(self, initial_capacity, error_rate, name, bitarray_type):
+    def _setup(self, initial_capacity, error_rate, name, bitarray_type, redis_url):
         self.initial_capacity = initial_capacity
         self.error_rate = error_rate
         self.name = name
         self.bitarray_type = bitarray_type
+        self.redis_url = redis_url
 
         self.filters = []
 
         self.filters.append(self.create_filter())
-        # self._thread_lock = threading.RLock()
+        self._thread_lock = threading.RLock()
         self._check_capacity_time = 0
 
     def __repr__(self):
@@ -237,6 +243,7 @@ class ScalableBloomFilter(object):
             error_rate=self.error_rate,
             bitarray_type=self.bitarray_type,
             name=self.name + str(len(self.filters)) if self.name else self.name,
+            redis_url=self.redis_url,
         )
 
         return filter
@@ -250,14 +257,8 @@ class ScalableBloomFilter(object):
             not self._check_capacity_time
             or time.time() - self._check_capacity_time > 1800
         ):
-            # with self._thread_lock:
-            with RedisLock(
-                key="ScalableBloomFilter",
-                timeout=300,
-                wait_timeout=300,
-                redis_cli=RedisDB().get_redis_obj(),
-            ) as lock:  # 全局锁 同一时间只有一个进程在真正的创建新的filter，等这个进程创建完，其他进程只是把刚创建的filter append进来
-                if lock.locked:
+            if self.bitarray_type == ScalableBloomFilter.BASE_MEMORY:
+                with self._thread_lock:
                     while True:
                         if self.filters[-1].is_at_capacity:
                             self.filters.append(self.create_filter())
@@ -265,6 +266,21 @@ class ScalableBloomFilter(object):
                             break
 
                     self._check_capacity_time = time.time()
+            else:
+                with RedisLock(
+                    key="ScalableBloomFilter",
+                    timeout=300,
+                    wait_timeout=300,
+                    redis_cli=RedisDB(url=self.redis_url).get_redis_obj(),
+                ) as lock:  # 全局锁 同一时间只有一个进程在真正的创建新的filter，等这个进程创建完，其他进程只是把刚创建的filter append进来
+                    if lock.locked:
+                        while True:
+                            if self.filters[-1].is_at_capacity:
+                                self.filters.append(self.create_filter())
+                            else:
+                                break
+
+                        self._check_capacity_time = time.time()
 
     def add(self, keys, skip_check=False):
         """
