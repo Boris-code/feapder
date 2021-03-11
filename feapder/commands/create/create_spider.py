@@ -88,6 +88,10 @@ class CreateSpider:
         self._create_init.create()
 
     def create(self, spider_name, spider_type):
+        # 检查spider_name
+        if not re.search("^[a-zA-Z][a-zA-Z0-9_]*$", spider_name):
+            raise Exception("爬虫名不符合命名规范，请用下划线命名或驼峰命名方式")
+
         if spider_name.islower():
             spider_name = tools.key2hump(spider_name)
         spider_template = self.get_spider_template(spider_type)
