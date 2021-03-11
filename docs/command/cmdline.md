@@ -97,6 +97,8 @@
 * BatchSpider 对应的 spider_type 值为 3
 * 默认 spider_type 值为 1
 
+>注意：爬虫名会会被用于进行代码生成，所以请取 符合Python基本命名规范的名称 作为爬虫的名称  
+
 AirSpider爬虫示例：
 
     feapder create -s first_spider 1
