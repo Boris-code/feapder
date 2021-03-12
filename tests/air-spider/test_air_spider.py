@@ -12,6 +12,10 @@ import feapder
 
 
 class TestAirSpider(feapder.AirSpider):
+    # __custom_setting__ = dict(
+    #     LOG_LEVEL = "INFO"
+    # )
+
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 

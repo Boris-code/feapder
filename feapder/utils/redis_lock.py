@@ -9,7 +9,7 @@ Created on 2019/11/5 5:25 PM
 """
 import time
 
-import feapder.utils.log as log
+from feapder.utils.log import log
 
 
 class RedisLock(object):
@@ -17,16 +17,15 @@ class RedisLock(object):
         self,
         key,
         timeout=300,
-        wait_timeout=8 * 3600,
+        wait_timeout=300,
         break_wait=None,
         redis_cli=None,
-        logger=None,
     ):
         """
         redis超时锁
         :param key: 关键字  不同项目区分
         :param timeout: 锁超时时间
-        :param wait_timeout:  等待加锁超时时间 默认8小时  防止多线程竞争时可能出现的 某个线程无限等待
+        :param wait_timeout:  等待加锁超时时间 防止多线程竞争时可能出现的 某个线程无限等待
                             <=0 则不等待 直接加锁失败
         :param break_wait: 可自定义函数 灵活控制 wait_timeout 时间 当此函数返回True时 不再wait
         :param redis_cli: redis客户端
@@ -44,9 +43,6 @@ class RedisLock(object):
             raise Exception("redis_cli is empty")
 
         self.redis_conn = redis_cli
-
-        self.logger = logger or log.get_logger(__file__)
-
         self.lock_key = "redis_lock:{}".format(key)
         # 锁超时时间
         self.timeout = timeout
@@ -78,13 +74,11 @@ class RedisLock(object):
 
     def acquire(self):
         start = time.time()
-        self.logger.debug("准备获取锁{} ...".format(self))
         while 1:
             # 尝试加锁
             if self.redis_conn.setnx(self.lock_key, time.time()):
                 self.redis_conn.expire(self.lock_key, self.timeout)
                 self.locked = True
-                self.logger.debug("加锁成功: {}".format(self))
                 break
             else:
                 # 修复bug： 当加锁时被干掉 导致没有设置expire成功 锁无限存在
@@ -93,14 +87,15 @@ class RedisLock(object):
 
             if self.wait_timeout > 0:
                 if time.time() - start > self.wait_timeout:
+                    log.info("加锁失败")
                     break
             else:
                 # 不等待
                 break
             if self.break_wait():
-                self.logger.debug("break_wait 生效 不再等待加锁")
+                log.info("break_wait 生效 不再等待加锁")
                 break
-            self.logger.debug("等待加锁: {} wait:{}".format(self, time.time() - start))
+            log.debug("等待加锁: {} wait:{}".format(self, time.time() - start))
             if self.wait_timeout > 10:
                 time.sleep(5)
             else:

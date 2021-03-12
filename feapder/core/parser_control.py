@@ -49,10 +49,10 @@ class PaserControl(threading.Thread):
                 requests = self._collector.get_requests(setting.SPIDER_TASK_COUNT)
                 if not requests:
                     if not self.is_show_tip:
-                        log.info("parser 等待任务 ...")
+                        log.debug("parser 等待任务 ...")
                         self.is_show_tip = True
 
-                    # log.info('parser 等待任务 {}...'.format(tools.format_seconds(self._wait_task_time)))
+                    # log.debug('parser 等待任务 {}...'.format(tools.format_seconds(self._wait_task_time)))
 
                     time.sleep(1)
                     self._wait_task_time += 1
@@ -412,7 +412,7 @@ class AirSpiderParserControl(PaserControl):
                 requests = self._memory_db.get()
                 if not requests:
                     if not self.is_show_tip:
-                        log.info("parser 等待任务 ...")
+                        log.debug("parser 等待任务 ...")
                         self.is_show_tip = True
 
                     time.sleep(1)

@@ -178,3 +178,16 @@ log = get_logger(
     log_level=setting.LOG_LEVEL,
     is_write_to_file=setting.LOG_IS_WRITE_TO_FILE,
 )
+
+
+def reload():
+    global log
+    log = get_logger(
+        name=setting.LOG_NAME,
+        path=setting.LOG_PATH,
+        log_level=setting.LOG_LEVEL,
+        is_write_to_file=setting.LOG_IS_WRITE_TO_FILE,
+    )
+
+
+log.reload = reload

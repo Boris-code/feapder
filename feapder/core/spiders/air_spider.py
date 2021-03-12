@@ -31,6 +31,7 @@ class AirSpider(BaseParser, Thread):
 
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
+            log.reload()
 
         self._thread_count = (
             setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
@@ -77,5 +78,5 @@ class AirSpider(BaseParser, Thread):
                 for parser_control in self._parser_controls:
                     parser_control.stop()
 
-                log.debug("无任务，爬虫结束")
+                log.info("无任务，爬虫结束")
                 break
