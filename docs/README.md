@@ -1,6 +1,9 @@
 # FEAPDER
 
 ![](https://img.shields.io/badge/python-3.6-brightgreen)
+![](https://img.shields.io/github/watchers/Boris-code/feapder?style=social)
+![](https://img.shields.io/github/stars/Boris-code/feapder?style=social)
+![](https://img.shields.io/github/forks/Boris-code/feapder?style=social)
 
 ## 简介
 
@@ -68,14 +71,14 @@ From Git:
 代码解释如下：
 
 1. start_requests： 生产任务
-2. parser： 解析数据
+2. parse： 解析数据
 
 ## 为什么不使用scrapy
 
 scrapy给我的印象：
 
 1. 重，框架中的许多东西都用不到，如CrawlSpider、XMLFeedSpider
-2. 中间件不灵活
+2. 不好上手，对小白不友好
 3. 不支持从数据库中取任务作为种子抓取
 4. 数据入库不支持批量，需要自己写批量逻辑
 5. 启动方式需要用scrapy命令行，打断点调试不方便
@@ -219,6 +222,17 @@ feapder会自动维护任务状态，每个批次（采集周期）的进度，�
 1. 下载情况监控
 
     ![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg?x-oss-process=style/markdown-media)
+
+
+## 来自使用者的评价
+
+![-w625](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154605699226.jpg?x-oss-process=style/markdown-media)
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606478110.jpg?x-oss-process=style/markdown-media)
+
+![-w552](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/12/16155327974180.jpg?x-oss-process=style/markdown-media)
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606955574.jpg?x-oss-process=style/markdown-media)
 
 
 ## 学习交流
