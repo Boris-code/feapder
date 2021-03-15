@@ -53,7 +53,7 @@ SAVE_FAILED_REQUEST = True
 # 下载缓存 利用redis缓存，由于内存小，所以仅供测试时使用
 RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True
 RESPONSE_CACHED_EXPIRE_TIME = 3600  # 缓存时间 秒
-RESPONSE_CACHED_USED = False  # 是否使用缓存 补才数据时可设置为True
+RESPONSE_CACHED_USED = False  # 是否使用缓存 补采数据时可设置为True
 
 WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 

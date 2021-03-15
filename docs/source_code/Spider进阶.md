@@ -133,7 +133,7 @@ def spider_test():
 
 ## Spider方法
 
-Spider继承自BaseParser，并且BaseParser是对开发者暴露的常用方法接口，因此推荐先看[BaseParser](source_code/BaseParser)，Spider方法如下：
+Spider继承至BaseParser，并且BaseParser是对开发者暴露的常用方法接口，因此推荐先看[BaseParser](source_code/BaseParser)，Spider方法如下：
 
 ### 1. start_monitor_task
 
@@ -155,7 +155,7 @@ Spider继承自BaseParser，并且BaseParser是对开发者暴露的常用方法
 
 Spider爬虫支持任务防丢，断点续爬，实现原理如下：
 
-Spider利用了redis有序集合来存储任务，有序集合有个分数，爬虫取任务时，只取小于当前时间搓分数的任务，同时将任务分数修改为当前时间搓+10分钟，（这个取任务与改分数是原子性的操作）。当任务做完时，再主动将任务删除。
+Spider利用了redis有序集合来存储任务，有序集合有个分数，爬虫取任务时，只取小于当前时间搓分数的任务，同时将任务分数修改为当前时间搓+10分钟，（这个取任务与改分数是原子性的操作）。**当任务做完时，且数据已入库后，再主动将任务删除。**
 
 目的：将取到的任务分数修改成10分钟后，可防止其他爬虫节点取到同样的任务，同时当爬虫意外退出后，任务也不会丢失，10分钟后还可以取到。
 
@@ -225,3 +225,7 @@ SPIDER_MAX_RETRY_TIMES = 100 # 每个请求最大重试次数
 COLLECTOR 为从任务队列中取任务到内存队列的线程，SPIDER为实际采集的线程
 
 `COLLECTOR_TASK_COUNT` 建议 >= `SPIDER_THREAD_COUNT`, 这样每个线程的爬虫才有任务可做。但COLLECTOR_TASK_COUNT不建议过大，不然分布式时，一个池子里的任务都被节点A取走了，其他节点取不到任务了。
+
+### 了解更多
+
+更多配置，详见[配置文件](source_code/配置文件)
