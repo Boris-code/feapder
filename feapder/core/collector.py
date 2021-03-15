@@ -18,16 +18,13 @@ from feapder.db.redisdb import RedisDB
 from feapder.network.request import Request
 from feapder.utils.log import log
 
-LOCAL_HOST_IP = tools.get_localhost_ip()
-
 
 class Collector(threading.Thread):
-    def __init__(self, redis_key, process_num=None):
+    def __init__(self, redis_key):
         """
         @summary:
         ---------
         @param redis_key:
-        @param process_num: 进程编号
         ---------
         @result:
         """
@@ -42,9 +39,7 @@ class Collector(threading.Thread):
         self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
 
-        self._spider_mark = LOCAL_HOST_IP + (
-            "_%s" % process_num if process_num else "_0"
-        )
+        self._spider_mark = tools.get_localhost_ip()
 
         self._interval = setting.COLLECTOR_SLEEP_TIME
         self._request_count = setting.COLLECTOR_TASK_COUNT

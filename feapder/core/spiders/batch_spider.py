@@ -50,7 +50,6 @@ class BatchSpider(BatchParser, Scheduler):
         begin_callback=None,
         end_callback=None,
         delete_keys=(),
-        process_num=None,
         auto_stop_when_spider_done=None,
         send_run_time=False,
     ):
@@ -96,7 +95,6 @@ class BatchSpider(BatchParser, Scheduler):
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
-        @param process_num: 进程数
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param send_run_time: 发送运行时间
         @param related_redis_key: 有关联的其他爬虫任务表（redis）
@@ -116,7 +114,6 @@ class BatchSpider(BatchParser, Scheduler):
             begin_callback=begin_callback,
             end_callback=end_callback,
             delete_keys=delete_keys,
-            process_num=process_num,
             auto_stop_when_spider_done=auto_stop_when_spider_done,
             auto_start_requests=False,
             send_run_time=send_run_time,
@@ -305,8 +302,8 @@ class BatchSpider(BatchParser, Scheduler):
                 CREATE TABLE `{table_name}` (
                       `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
                       `batch_date` {batch_date} DEFAULT NULL COMMENT '批次时间',
-                      `done_count` int(11) DEFAULT NULL COMMENT '完成数 (1,-1)',
                       `total_count` int(11) DEFAULT NULL COMMENT '任务总数',
+                      `done_count` int(11) DEFAULT NULL COMMENT '完成数 (1,-1)',
                       `fail_count` int(11) DEFAULT NULL COMMENT '失败任务数 (-1)',
                       `interval` float(11) DEFAULT NULL COMMENT '批次间隔',
                       `interval_unit` varchar(20) DEFAULT NULL COMMENT '批次间隔单位 day, hour',

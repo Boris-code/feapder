@@ -39,7 +39,6 @@ class Spider(
         begin_callback=None,
         end_callback=None,
         delete_keys=(),
-        process_num=None,
         auto_stop_when_spider_done=None,
         auto_start_requests=None,
         send_run_time=False,
@@ -56,7 +55,6 @@ class Spider(
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
-        @param process_num: 进程数
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param auto_start_requests: 爬虫是否自动添加任务
         @param send_run_time: 发送运行时间
@@ -71,7 +69,6 @@ class Spider(
             begin_callback=begin_callback,
             end_callback=end_callback,
             delete_keys=delete_keys,
-            process_num=process_num,
             auto_stop_when_spider_done=auto_stop_when_spider_done,
             auto_start_requests=auto_start_requests,
             send_run_time=send_run_time,
