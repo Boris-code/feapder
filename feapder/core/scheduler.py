@@ -413,13 +413,12 @@ class Scheduler(threading.Thread):
 
         redis = RedisDB()
         for delete_tab in delete_tables_list:
-            if delete_tab == "*":
-                delete_tab = self._redis_key + "*"
-
+            if not delete_tab.startswith(self._redis_key):
+                delete_tab = self._redis_key + delete_tab
             tables = redis.getkeys(delete_tab)
             for table in tables:
                 if table != self._tab_spider_time:
-                    log.info("正在删除表 %s" % table)
+                    log.info("正在删除key %s" % table)
                     redis.clear(table)
 
     def _stop_all_thread(self):
