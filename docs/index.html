@@ -96,13 +96,13 @@
             owner: 'Boris-code',
             admin: 'Boris-code',
             proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',
-            id: decodeURI(location.href.substr(location.href.indexOf("#") + 1)), // 防止默认的评论id超过50字
+            id: decodeURI(location.href.match(/(?<=#)[^?]*/g)[0]), // 取地址#xxx? 中的xxx， 防止默认的评论id超过50字
             // facebook-like distraction free mode
             distractionFreeMode: false
         })
         // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。
         window.onhashchange = function (event) {
-            if (event.newURL.split('#')[1] !== event.oldURL.split('#')[1]) {
+            if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
                 location.reload()
             }
         }
