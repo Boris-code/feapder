@@ -24,11 +24,11 @@
   * [配置文件](source_code/配置文件.md)
   * [Item](source_code/Item.md)
   * [UpdateItem](source_code/UpdateItem.md)
-  * [ItemBuffer](source_code/ItemBuffer.md)
   * [MysqlDB](source_code/MysqlDB.md)
   * [RedisDB](source_code/RedisDB.md)
   * [工具库-tools](source_code/tools.md)
   * [海量数据去重-dedup](source_code/dedup.md)
+  * [ItemBuffer](source_code/ItemBuffer.md)
 
 * 常见问题
   * [安装问题](question/安装问题.md)

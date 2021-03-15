@@ -8,11 +8,11 @@ UpdateItem用于更新数据，继承至Item，所以使用方式基本与Item�
 
 比如将title设置唯一，要求每条数据的title都不能重复
 
-![-w781](media/16158245077159.jpg)
+![-w781](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/16158245077159.jpg?x-oss-process=style/markdown-media)
 
 或联合索引，要求title与url不能同时重复
 
-![-w761](media/16158245648750.jpg)
+![-w761](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/16158245648750.jpg?x-oss-process=style/markdown-media)
 
 
 ## 指定更新的字段
