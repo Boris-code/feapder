@@ -119,7 +119,7 @@ class Request(object):
         @param stream: 如果为 False，将会立即下载响应内容
         @param cert:
         --
-        @param **kwargs: 其他值: 如 Request(item=item) 则item可直接用 reqeust.item 取出
+        @param **kwargs: 其他值: 如 Request(item=item) 则item可直接用 request.item 取出
         ---------
         @result:
         """

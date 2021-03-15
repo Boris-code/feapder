@@ -46,15 +46,6 @@ class Item(metaclass=ItemMetaclass):
         """
         pass
 
-    def after_to_db(self):
-        """
-        @summary: 入库后的处理 (弃用)
-        ---------
-        ---------
-        @result:
-        """
-        pass
-
     @property
     def to_dict(self):
         propertys = {}
