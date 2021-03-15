@@ -67,29 +67,19 @@ class BatchSpider(BatchParser, Scheduler):
               `parser_name` varchar(255) DEFAULT NULL COMMENT '任务解析器的脚本类名',
               PRIMARY KEY (`id`),
               UNIQUE KEY `nui` (`param`) USING BTREE
-            ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-
-        2、需有批次记录表 不存在自动创建
-
-            此表节结构固定，参考建表语句如下：
-            CREATE TABLE `xxx_batch_record` (
-              `id` int(11) NOT NULL AUTO_INCREMENT,
-              `batch_date` date DEFAULT NULL,
-              `done_count` int(11) DEFAULT NULL,
-              `total_count` int(11) DEFAULT NULL,
-              PRIMARY KEY (`id`)
             ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
+        2、需有批次记录表 不存在自动创建
         ---------
         @param task_table: mysql中的任务表
         @param batch_record_table: mysql 中的批次记录表
         @param batch_name: 批次采集程序名称
         @param batch_interval: 批次间隔 天为单位。 如想一小时一批次，可写成1/24
         @param task_keys: 需要获取的任务字段 列表 [] 如需指定解析的parser，则需将parser_name字段取出来。
-        @param task_state: mysql中任务表的state字段名
+        @param task_state: mysql中任务表的任务状态字段
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务
         @param check_task_interval: 检查是否还有任务的时间间隔；
-        @param task_limit: 数据库中取任务的数量
+        @param task_limit: 从数据库中取任务的数量
         @param redis_key: 任务等数据存放在redis中的key前缀
         @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
@@ -97,12 +87,12 @@ class BatchSpider(BatchParser, Scheduler):
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
         @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
         @param send_run_time: 发送运行时间
-        @param related_redis_key: 有关联的其他爬虫任务表（redis）
-        @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。 环路可用related_redis_key指定
-            related_redis_key 与 related_batch_record 选其一配置即可。
+        @param related_redis_key: 有关联的其他爬虫任务表（redis）注意：要避免环路 如 A -> B & B -> A 。
+        @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。
+            related_redis_key 与 related_batch_record 选其一配置即可；用于相关联的爬虫没结束时，本爬虫也不结束
             若相关连的爬虫为批次爬虫，推荐以related_batch_record配置，
             若相关连的爬虫为普通爬虫，无批次表，可以以related_redis_key配置
-        @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，及where后的条件语句
+        @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，即where后的条件语句
         @param task_order_by: 取任务时的排序条件 如 id desc
         ---------
         @result:
