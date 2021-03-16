@@ -104,7 +104,7 @@ class SpiderDataItem(Item):
 
 Item详细介绍参考[Item](source_code/Item.md)
 
-ItemBuffer详细介绍请参考[ItemBuffer](source_code/ItemBuffer.md)
+[comment]: <> (ItemBuffer详细介绍请参考[ItemBuffer]&#40;source_code/ItemBuffer.md&#41;)
 
 ## 6. 调试
 
