@@ -144,7 +144,7 @@ class RedisDB:
         """
 
         Args:
-            url: redis://[[username]:[password]]@localhost:6379/0
+            url: redis://[[username]:[password]]@[host]:[port]/[db]
 
         Returns:
 
