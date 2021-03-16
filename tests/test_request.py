@@ -10,7 +10,11 @@ Created on 2021/3/4 11:26 下午
 
 from feapder import Request
 
-request = Request("https://www.baidu.com", data={}, params=None)
+request = Request("https://www.baidu.com?a=1&b=2", data={}, params=None)
+print(request.fingerprint)
+request = Request("https://www.baidu.com?b=2&a=1", data={}, params=None)
+print(request.fingerprint)
+
 response = request.get_response()
 print(response)
 

@@ -39,7 +39,7 @@ import redis
 import requests
 import six
 from requests.cookies import RequestsCookieJar
-from w3lib.url import canonicalize_url as sort_url
+from w3lib.url import canonicalize_url as _canonicalize_url
 
 import feapder.setting as setting
 from feapder.utils.log import log
@@ -321,7 +321,7 @@ def canonicalize_url(url):
     """
     url 归一化 会参数排序 及去掉锚点
     """
-    return sort_url(url)
+    return _canonicalize_url(url)
 
 
 def get_url_md5(url):

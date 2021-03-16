@@ -314,7 +314,11 @@ class Request(object):
         request唯一表识
         @return:
         """
-        args = [self.__dict__.get("url", "")]
+        url = self.__dict__.get("url", "")
+        # url 归一化
+        url = tools.canonicalize_url(url)
+
+        args = [url]
         params = self.requests_kwargs.get("params")
         datas = self.requests_kwargs.get("data")
         if params:
