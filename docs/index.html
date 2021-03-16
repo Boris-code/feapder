@@ -107,6 +107,7 @@
             if (event.newURL.indexOf("#") !== -1 && event.oldURL.indexOf("#") !== -1) {
                 if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
                     if (event.newURL.indexOf("?") === -1) {
+                        location.replace(event.newURL)
                         location.reload()
                     }
                 }
