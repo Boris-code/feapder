@@ -97,7 +97,7 @@ def test_filter():
 - **filter_type**：去重类型，支持BloomFilter、MemoryFilter、ExpireFilter三种
 - **redis_url**不是必须传递的，若项目中存在setting.py文件，且已配置redis连接方式，则可以不传递redis_url
 
-    ![-w294](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151133801599.jpg?x-oss-process=style/markdown-media)
+    ![-w294](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151133801599.jpg)
     
     ```
     import feapder
@@ -110,7 +110,7 @@ def test_filter():
 
 - **name**: 过滤器名称 该名称会默认以dedup作为前缀 `dedup:expire_set:[name]`或`dedup:bloomfilter:[name]`。 默认ExpireFilter name=过期时间，BloomFilter name=`dedup:bloomfilter:bloomfilter`
 
- ![-w499](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151136442498.jpg?x-oss-process=style/markdown-media)
+ ![-w499](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151136442498.jpg)
  
  若对不同数据源去重，可通过name参数来指定不同去重库
 

@@ -41,7 +41,7 @@ def __init__(
 
 redis_key为redis中存储任务等信息的key前缀，如redis_key="feapder:spider_test", 则redis中会生成如下
 
-![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg?x-oss-process=style/markdown-media)
+![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg)
 
 key的命名方式为[配置文件](source_code/配置文件.md)中定义的
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
 delete_keys 接收类型为tuple/bool/string，支持正则，拿以下的key举例
 
-![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg?x-oss-process=style/markdown-media)
+![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg)
 
 删除`feapder:spider_test_z_requests` 可写为 `delete_keys="*z_requests"`
 

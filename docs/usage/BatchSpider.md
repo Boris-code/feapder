@@ -70,7 +70,7 @@ BatchSpider参数：
 
 1. redis_key：redis中存储任务等信息的key前缀，如redis_key="feapder:spider_test", 则redis中会生成如下
 
-    ![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg?x-oss-process=style/markdown-media)
+    ![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg)
 
 1. task_table：mysql中的任务表，为抓取的任务种子，需要运行前手动创建好
 2. task_keys：任务表里需要获取的字段，框架会将这些字段的数据查询出来，传递给爬虫，然后拼接请求
@@ -100,7 +100,7 @@ BatchSpider参数：
 
 任务表为存储任务种子的，表结构需要包含`id`、`任务状态`两个字段，如我们需要对某些地址进行采集，设计如下
 
-![-w752](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139762922842.jpg?x-oss-process=style/markdown-media)
+![-w752](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139762922842.jpg)
 
 建表语句：
 
@@ -131,7 +131,7 @@ def start_requests(self, task):
 任务拼接在`start_requests`里处理。这里的task参数为元组，值为BatchSpider启动参数中指定的`task_keys`对应的值
 
 如表`batch_spider_task`，现有任务信息如下：
-![-w398](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139773315622.jpg?x-oss-process=style/markdown-media)
+![-w398](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139773315622.jpg)
 
 启动参数配置如下，注意`task_keys=["id", "url"]`：
 

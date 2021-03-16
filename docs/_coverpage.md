@@ -1,4 +1,4 @@
-![feapder](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/feapder.png?x-oss-process=style/markdown-media)
+![feapder](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/feapder.png)
 
 #  feapder 爬虫框架文档
 

@@ -75,7 +75,7 @@
 
 生成如下：
 
-![-w354](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127822246620.jpg?x-oss-process=style/markdown-media)
+![-w354](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127822246620.jpg)
 
 * items： 文件夹存放与数据库表映射的item
 * spiders： 文件夹存放爬虫脚本
@@ -143,7 +143,7 @@ item为与数据库表的映射，与数据入库的逻辑相关。
 
 2. 配置setting.py， 连接方式换成自己数据库的
 
-    ![-w799](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127839359771.jpg?x-oss-process=style/markdown-media)
+    ![-w799](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127839359771.jpg)
 
 
 3. 进入items目录，执行命令
@@ -231,11 +231,11 @@ item = SpiderDataItem(**response_data)
 
 1. copy 请求头，粘贴到提示下方
 
-    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127849396722.jpg?x-oss-process=style/markdown-media)
+    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127849396722.jpg)
 
 1. 输出如下：
 
-    ![-w1394](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127850065269.jpg?x-oss-process=style/markdown-media)
+    ![-w1394](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127850065269.jpg)
 
 **sort_json** 与json命令类似，只不过该命令生成的json是按照key排序的有序字典， 命令为
 
@@ -292,7 +292,7 @@ item = SpiderDataItem(**response_data)
     feapder create -init
 
 观察生成的\__init__.py文件，已自动包含当前目录下的py文件
-![-w880](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127859798201.jpg?x-oss-process=style/markdown-media)
+![-w880](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/08/16127859798201.jpg)
 
 
 ## 3. feapder shell
@@ -340,12 +340,12 @@ item = SpiderDataItem(**response_data)
     可以看出，我们可以直接使用response， response支持xpath表达式
 
     若想查看都支持哪些函数，可输入`resonse.` 然后敲两次`tab键`，如下：
-    ![-w1738](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/06/21/15927532396490.jpg?x-oss-process=style/markdown-media)
+    ![-w1738](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/06/21/15927532396490.jpg)
 
 1. 以curl为例，请求百度（通常用来测试post接口比较方便）
 
     1. 打开浏览器检查工具，复制需要测试的接口为curl格式
-    ![-w569](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/06/21/15927533333272.jpg?x-oss-process=style/markdown-media)
+    ![-w569](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/06/21/15927533333272.jpg)
 
     1. 测试 输入`feapder shell --`, 粘贴刚刚复制的curl
 

@@ -91,7 +91,7 @@ scrapy给我的印象：
 
 首先需要个种子任务表来存储这些商品id，设计表如下：
 
-![-w1028](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152931277517.jpg?x-oss-process=style/markdown-media)
+![-w1028](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152931277517.jpg)
 
 ```sql
 CREATE TABLE `jd_item_task` (
@@ -104,11 +104,11 @@ CREATE TABLE `jd_item_task` (
 
 然后将这1亿个商品id录入进来，作为种子任务
 
-![-w357](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152932156268.jpg?x-oss-process=style/markdown-media)
+![-w357](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152932156268.jpg)
 
 #### 2. 准备数据表
 
-![-w808](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152934374807.jpg?x-oss-process=style/markdown-media)
+![-w808](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152934374807.jpg)
 
 ```sql
 CREATE TABLE `jd_item` (
@@ -186,19 +186,19 @@ if __name__ == "__main__":
 
 **任务表**：`jd_item_task`
 
-![-w282](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953028811.jpg?x-oss-process=style/markdown-media)
+![-w282](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953028811.jpg)
 
 任务均已完成了，框架有任务丢失重发机制，直到所有任务均已做完
 
 **数据表**：`jd_item`:
 
-![-w569](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152952623851.jpg?x-oss-process=style/markdown-media)
+![-w569](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152952623851.jpg)
 
 数据里携带了批次时间信息，我们可以根据这个时间来对数据进行划分。当前批次为3月9号，若7天一批次，则下一批次为3月18号。
 
 **批次表**：`jd_item_batch_record` 
 
-![-w901](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953428596.jpg?x-oss-process=style/markdown-media)
+![-w901](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/09/16152953428596.jpg)
 
 启动参数中指定，自动生成。批次表里详细记录了每个批次的抓取状态，如任务总量、已做量、失败量、是否已完成等信息
 
@@ -208,31 +208,31 @@ feapder会自动维护任务状态，每个批次（采集周期）的进度，�
 
 1. 实时计算爬虫抓取速度，估算剩余时间，在指定的抓取周期内预判是否会超时
 
-    ![-w657](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg?x-oss-process=style/markdown-media)
+    ![-w657](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
 
 
 2. 爬虫卡死报警
 
-    ![-w501](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg?x-oss-process=style/markdown-media)
+    ![-w501](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
 
 3. 爬虫任务失败数过多报警，可能是由于网站模板改动或封堵导致
 
-    ![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg?x-oss-process=style/markdown-media)
+    ![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
 
 1. 下载情况监控
 
-    ![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg?x-oss-process=style/markdown-media)
+    ![-w1299](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/09/16128568548280.jpg)
 
 
 ## 来自使用者的评价
 
-![-w625](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154605699226.jpg?x-oss-process=style/markdown-media)
+![-w625](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154605699226.jpg)
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606478110.jpg?x-oss-process=style/markdown-media)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606478110.jpg)
 
-![-w552](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/12/16155327974180.jpg?x-oss-process=style/markdown-media)
+![-w552](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/12/16155327974180.jpg)
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606955574.jpg?x-oss-process=style/markdown-media)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/11/16154606955574.jpg)
 
 
 ## 学习交流
@@ -247,4 +247,4 @@ feapder会自动维护任务状态，每个批次（采集周期）的进度，�
 
 搞个**微信**赞赏码，不知道屏幕前的你愿不愿意请我喝杯咖啡，让我激动激动🥺
 
-![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png?x-oss-process=style/markdown-media)
+![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png)

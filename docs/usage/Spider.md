@@ -14,7 +14,7 @@ Spider是一款基于redis的分布式爬虫，适用于海量数据采集，支
     
 创建好项目后，开发时我们需要将项目设置为工作区间，否则引入非同级目录下的文件时，编译器会报错。不过因为main.py在项目的根目录下，因此不影响正常运行。
 
-![-w925](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139218044066.jpg?x-oss-process=style/markdown-media)
+![-w925](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139218044066.jpg)
 
 设置工作区间方式（以pycharm为例）：项目->右键->Mark Directory as -> Sources Root
 
@@ -64,7 +64,7 @@ Spider参数：
 
 redis_key为redis中存储任务等信息的key前缀，如redis_key="feapder:spider_test", 则redis中会生成如下
 
-![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg?x-oss-process=style/markdown-media)
+![-w365](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139009217536.jpg)
 
 更详细的说明可查看 [Spider进阶](source_code/Spider进阶.md)
 
@@ -98,7 +98,7 @@ class SpiderDataItem(Item):
 
 代码示例：
 
-![-w682](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139031333228.jpg?x-oss-process=style/markdown-media)
+![-w682](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139031333228.jpg)
 
 返回item后，item会流经到框架的ItemBuffer, ItemBuffer每.05秒或当item数量积攒到5000个，便会批量将这些item批量入库。表名为类名去掉Item的小写，如SpiderDataItem数据会落入到spider_data表。
 
@@ -135,7 +135,7 @@ Item详细介绍参考[Item](source_code/Item.md)
 
 例如如下项目：
 
-![-w300](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139224711465.jpg?x-oss-process=style/markdown-media)
+![-w300](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16139224711465.jpg)
 
 项目中包含了两个spider，main.py写法如下：
 

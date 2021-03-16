@@ -127,7 +127,7 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 
 配置文件：在工作区间的根目录下引入`setting.py`，具体参考[配置文件](source_code/配置文件.md)
 
-![-w261](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16138971894815.jpg?x-oss-process=style/markdown-media)
+![-w261](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/21/16138971894815.jpg)
 
 
 自定义配置：
