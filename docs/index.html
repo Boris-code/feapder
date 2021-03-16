@@ -103,7 +103,9 @@
         // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。
         window.onhashchange = function (event) {
             if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
-                location.reload()
+                if (event.newURL.indexOf("?") != -1) {
+                    location.reload()
+                }
             }
         }
         // 由于docsify/lib/plugins/gitalk.min.js文件中已经有下面代码了，所以不需要在写一次了
