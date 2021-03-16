@@ -39,18 +39,18 @@ class Collector(threading.Thread):
         self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
 
-        self._spider_mark = tools.get_localhost_ip()
+        self._spider_mark = tools.get_localhost_ip() + f"-{time.time()}"
 
         self._interval = setting.COLLECTOR_SLEEP_TIME
         self._request_count = setting.COLLECTOR_TASK_COUNT
         self._is_collector_task = False
 
-        self._db.clear(self._tab_spider_status)
+        self.__delete_dead_node()
 
     def run(self):
         while not self._thread_stop:
-
             try:
+                self.__report_node_heartbeat()
                 self.__input_data()
             except Exception as e:
                 log.exception(e)
@@ -63,17 +63,18 @@ class Collector(threading.Thread):
         self._thread_stop = True
 
     def __input_data(self):
+        current_timestamp = tools.get_current_timestamp()
         if len(self._todo_requests) >= self._request_count:
             return
 
-        # 汇报节点信息
-        self._db.zadd(self._tab_spider_status, self._spider_mark, 0)  # 未做
-
         request_count = self._request_count  # 先赋值
-        # 根据等待节点数量，动态分配request
+        # 查询最近有心跳的节点数量
         spider_wait_count = self._db.zget_count(
-            self._tab_spider_status, priority_min=0, priority_max=0
+            self._tab_spider_status,
+            priority_min=current_timestamp - (self._interval + 10),
+            priority_max=current_timestamp,
         )
+        # 根据等待节点数量，动态分配request
         if spider_wait_count:
             # 任务数量
             task_count = self._db.zget_count(self._tab_requests)
@@ -90,7 +91,6 @@ class Collector(threading.Thread):
             return
 
         # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_TIME_OUT
-        current_timestamp = tools.get_current_timestamp()
         requests_list = self._db.zrangebyscore_set_score(
             self._tab_requests,
             priority_min="-inf",
@@ -101,12 +101,26 @@ class Collector(threading.Thread):
 
         if requests_list:
             self._is_collector_task = True
-
-            # 汇报节点信息
-            self._db.zadd(self._tab_spider_status, self._spider_mark, 1)  # 正在做
-
             # 存request
             self.__put_requests(requests_list)
+
+    def __report_node_heartbeat(self):
+        """
+        汇报节点心跳，以便任务平均分配
+        """
+        self._db.zadd(
+            self._tab_spider_status, self._spider_mark, tools.get_current_timestamp()
+        )
+
+    def __delete_dead_node(self):
+        """
+        删除没有心跳的节点信息
+        """
+        self._db.zremrangebyscore(
+            self._tab_spider_status,
+            "-inf",
+            tools.get_current_timestamp() - (self._interval + 10),
+        )
 
     def __put_requests(self, requests_list):
         for request in requests_list:

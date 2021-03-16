@@ -500,17 +500,15 @@ class RedisDB:
         @result:
         """
         if isinstance(values, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
-
-            if not self._is_redis_cluster:
-                pipe.multi()
-            for value in values:
-                pipe.zrem(table, value)
-            pipe.execute()
+            self._redis.zrem(table, *values)
         else:
             self._redis.zrem(table, values)
+
+    def zremrangebyscore(self, table, priority_min, priority_max):
+        """
+        根据分数区间删除
+        """
+        self._redis.zremrangebyscore(table, priority_min, priority_max)
 
     def zexists(self, table, values):
         """
