@@ -242,3 +242,9 @@ feapder会自动维护任务状态，每个批次（采集周期）的进度，�
 ![知识星球](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg)
 
 星球会不定时分享爬虫技术干货，涉及的领域包括但不限于js逆向技巧、爬虫框架刨析、爬虫技术分享等
+
+## 赞赏
+
+搞个**微信**赞赏码，不知道屏幕前的你愿不愿意请我喝杯咖啡，让我激动激动🥺
+
+![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png?x-oss-process=style/markdown-media)
