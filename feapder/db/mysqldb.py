@@ -10,6 +10,7 @@ Created on 2016-11-16 16:25
 import datetime
 import json
 from urllib import parse
+from typing import List, Dict
 
 import pymysql
 from dbutils.pooled_db import PooledDB
@@ -154,7 +155,7 @@ class MysqlDB:
         return len(self.connect_pool._idle_cache)
 
     @auto_retry
-    def find(self, sql, limit=0, to_json=False, cursor=None):
+    def find(self, sql, limit=0, to_json=False):
         """
         @summary:
         无数据： 返回()
@@ -163,6 +164,7 @@ class MysqlDB:
         ---------
         @param sql:
         @param limit:
+        @param to_json 是否将查询结果转为json
         ---------
         @result:
         """
@@ -206,7 +208,16 @@ class MysqlDB:
 
         return result
 
-    def add(self, sql, exception_callfunc=""):
+    def add(self, sql, exception_callfunc=None):
+        """
+
+        Args:
+            sql:
+            exception_callfunc: 异常回调
+
+        Returns: 添加行数
+
+        """
         affect_count = None
 
         try:
@@ -229,18 +240,28 @@ class MysqlDB:
 
         return affect_count
 
-    def add2(self, table, data, **kwargs):
+    def add_smart(self, table, data: Dict, **kwargs):
+        """
+        添加数据, 直接传递json格式的数据，不用拼sql
+        Args:
+            table: 表名
+            data: 字典 {"xxx":"xxx"}
+            **kwargs:
+
+        Returns: 添加行数
+
+        """
         sql = make_insert_sql(table, data, **kwargs)
         return self.add(sql)
 
-    def add_batch(self, sql, datas):
+    def add_batch(self, sql, datas: List[Dict]):
         """
-        @summary:
+        @summary: 批量添加数据
         ---------
         @ param sql: insert ignore into (xxx,xxx) values (%s, %s, %s)
-        # param datas:[[..], [...]]
+        # param datas: 列表 [[..], [...]]
         ---------
-        @result:
+        @result: 添加行数
         """
         affect_count = None
 
@@ -262,7 +283,17 @@ class MysqlDB:
 
         return affect_count
 
-    def add_batch2(self, table, datas, **kwargs):
+    def add_batch_smart(self, table, datas: List[Dict], **kwargs):
+        """
+        批量添加数据, 直接传递list格式的数据，不用拼sql
+        Args:
+            table: 表名
+            datas: 列表 [[..], [...]]
+            **kwargs:
+
+        Returns: 添加行数
+
+        """
         sql, datas = make_batch_sql(table, datas, **kwargs)
         return self.add_batch(sql, datas)
 
@@ -286,11 +317,29 @@ class MysqlDB:
         finally:
             self.close_connection(conn, cursor)
 
-    def update2(self, table, data, condition):
+    def update_smart(self, table, data: Dict, condition):
+        """
+        更新, 不用拼sql
+        Args:
+            table: 表名
+            data: 数据 {"xxx":"xxx"}
+            condition: 更新条件 where后面的条件，如 condition='status=1'
+
+        Returns: True / False
+
+        """
         sql = make_update_sql(table, data, condition)
         return self.update(sql)
 
     def delete(self, sql):
+        """
+        删除
+        Args:
+            sql:
+
+        Returns: True / False
+
+        """
         try:
             conn, cursor = self.get_connection()
             cursor.execute(sql)
@@ -326,23 +375,6 @@ class MysqlDB:
             )
             return False
         else:
-            return True
-        finally:
-            self.close_connection(conn, cursor)
-
-    def set_unique_key(self, table, key):
-        try:
-            sql = "alter table %s add unique (%s)" % (table, key)
-
-            conn, cursor = self.get_connection()
-            cursor.execute(sql)
-            conn.commit()
-
-        except Exception as e:
-            log.error(table + " " + str(e) + " key = " + key)
-            return False
-        else:
-            log.debug("%s表创建唯一索引成功 索引为 %s" % (table, key))
             return True
         finally:
             self.close_connection(conn, cursor)
