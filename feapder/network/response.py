@@ -21,8 +21,6 @@ from requests.models import Response as res
 from feapder.network.selector import Selector
 from feapder.utils.log import log
 from feapder.utils.tools import is_have_chinese
-import webbrowser
-import tempfile
 
 FAIL_ENCODING = "ISO-8859-1"
 
