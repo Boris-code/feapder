@@ -4,7 +4,7 @@ Created on 2021-02-08 16:01:50
 ---------
 @summary: 爬虫入口
 ---------
-@author: liubo
+@author: Boris
 """
 
 from spiders import *

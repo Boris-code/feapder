@@ -4,23 +4,23 @@ import os
 
 
 # MYSQL
-MYSQL_IP = ""
+MYSQL_IP = "localhost"
 MYSQL_PORT = 3306
-MYSQL_DB = ""
-MYSQL_USER_NAME = ""
-MYSQL_USER_PASS = ""
+MYSQL_DB = "feapder"
+MYSQL_USER_NAME = "feapder"
+MYSQL_USER_PASS = "feapder123"
 
 # REDIS
 # IP:PORT
-REDISDB_IP_PORTS = "xxx:6379"
+REDISDB_IP_PORTS = "localhost:6379"
 REDISDB_USER_PASS = ""
 # 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
 
 # 数据入库的pipline，可自定义，默认MysqlPipline
-# ITEM_PIPLINES = [
-#     "feapder.piplines.mysql_pipline.MysqlPipline"
-# ]
+ITEM_PIPLINES = [
+    "pipline.Pipline"
+]
 
 # # 爬虫相关
 # # COLLECTOR
@@ -47,7 +47,7 @@ REDISDB_DB = 0
 # WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 #
 # # 爬虫初始化工作
-# # 爬虫是否自动结束，若为False，则会等待新任务下发，进程不退出
+# # 爬虫做完request后是否自动结束或者等待任务
 # AUTO_STOP_WHEN_SPIDER_DONE = True
 # # 是否将item添加到 mysql 支持列表 指定添加的item 可模糊指定
 # ADD_ITEM_TO_MYSQL = True

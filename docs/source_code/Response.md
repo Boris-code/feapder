@@ -200,7 +200,7 @@ response.code="utf-8"
 '�?�好'
 >>>str(content, errors='strict')
 Traceback (most recent call last):
-  File "/Users/liubo/workspace/feapder/venv2/lib/python3.6/site-packages/IPython/core/interactiveshell.py", line 3343, in run_code
+  File "/Users/Boris/workspace/feapder/venv2/lib/python3.6/site-packages/IPython/core/interactiveshell.py", line 3343, in run_code
     exec(code_obj, self.user_global_ns, self.user_ns)
   File "<ipython-input-11-a129a2aa6283>", line 1, in <module>
     str(content, errors='strict')

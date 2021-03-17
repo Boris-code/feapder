@@ -8,6 +8,7 @@ Created on 2018-06-19 17:17
 @email: boris@bzkj.tech
 """
 
+import importlib
 import threading
 from queue import Queue
 
@@ -16,11 +17,13 @@ import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
-from feapder.utils.export_data import ExportData
+from feapder.piplines import BasePipline
 from feapder.utils.log import log
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
 UPLOAD_BATCH_MAX_SIZE = 1000
+
+MYSQL_PIPLINE_PATH = "feapder.piplines.mysql_pipline.MysqlPipline"
 
 
 class Singleton(object):
@@ -56,23 +59,34 @@ class ItemBuffer(threading.Thread, Singleton):
                 # 'xxx:xxx_item': ['id', 'name'...] # 记录redis中item名与需要更新的key对应关系
             }
 
-            self._export_data = ExportData() if setting.ADD_ITEM_TO_MYSQL else None
+            self._piplines = self.load_piplines()
 
-            self.db_tip()
+            self._have_mysql_pipline = MYSQL_PIPLINE_PATH in setting.ITEM_PIPLINES
+            self._mysql_pipline = None
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 self.__class__.dedup = Dedup(to_md5=False)
 
-    def db_tip(self):
-        msg = ""
-        if setting.ADD_ITEM_TO_MYSQL:
-            msg += "item 自动入mysql "
-        if setting.ADD_ITEM_TO_REDIS:
-            msg += "item 自动入redis "
-        if not msg:
-            log.warning("*** 请注意检查item是否入库 !!!")
-        else:
-            log.info(msg)
+    def load_piplines(self):
+        piplines = []
+        for pipline_path in setting.ITEM_PIPLINES:
+            module, class_name = pipline_path.rsplit(".", 1)
+            pipline_cls = importlib.import_module(module).__getattribute__(class_name)
+            pipline = pipline_cls()
+            if not isinstance(pipline, BasePipline):
+                raise ValueError(f"{pipline_path} 需继承 feapder.piplines.BasePipline")
+            piplines.append(pipline)
+
+        return piplines
+
+    @property
+    def mysql_pipline(self):
+        if not self._mysql_pipline:
+            module, class_name = MYSQL_PIPLINE_PATH.rsplit(".", 1)
+            pipline_cls = importlib.import_module(module).__getattribute__(class_name)
+            self._mysql_pipline = pipline_cls()
+
+        return self._mysql_pipline
 
     def run(self):
         while not self._thread_stop:
@@ -225,48 +239,29 @@ class ItemBuffer(threading.Thread, Singleton):
         return datas_dict
 
     def __export_to_db(self, tab_item, datas, is_update=False, update_keys=()):
-        export_success = False
-        # 打点 校验
         to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
-        item_name = to_table + "_item"
+
+        # 打点 校验
         self.check_datas(table=to_table, datas=datas)
 
-        if setting.ADD_ITEM_TO_MYSQL:  # 任务表需要入mysql
-            if isinstance(setting.ADD_ITEM_TO_MYSQL, (list, tuple)):
-                for item in setting.ADD_ITEM_TO_MYSQL:
-                    if item in item_name:
-                        export_success = (
-                            self._export_data.export_items(to_table, datas)
-                            if not is_update
-                            else self._export_data.update_items(
-                                to_table, datas, update_keys=update_keys
-                            )
-                        )
-
-            else:
-                export_success = (
-                    self._export_data.export_items(to_table, datas)
-                    if not is_update
-                    else self._export_data.update_items(
-                        to_table, datas, update_keys=update_keys
+        for pipline in self._piplines:
+            if is_update:
+                if not pipline.update_items(to_table, datas, update_keys=update_keys):
+                    log.error(
+                        f"{pipline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
                     )
-                )
-
-        if setting.ADD_ITEM_TO_REDIS:
-            if isinstance(setting.ADD_ITEM_TO_REDIS, (list, tuple)):
-                for item in setting.ADD_ITEM_TO_REDIS:
-                    if item in item_name:
-                        self._db.sadd(tab_item, datas)
-                        export_success = True
-                        log.info("共导出 %s 条数据 到redis %s" % (len(datas), tab_item))
-                        break
+                    return False
 
             else:
-                self._db.sadd(tab_item, datas)
-                export_success = True
-                log.info("共导出 %s 条数据 到redis %s" % (len(datas), tab_item))
+                if not pipline.save_items(to_table, datas):
+                    log.error(
+                        f"{pipline.__class__.__name__} 保存数据失败. table: {to_table}  items: {datas}"
+                    )
+                    return False
 
-        return export_success
+        # 若是任务表, 且上面的pipline里没mysql，则需调用mysql更新任务
+        if not self._have_mysql_pipline and is_update and to_table.endswith("_task"):
+            self.mysql_pipline.update_items(to_table, datas, update_keys=update_keys)
 
     def __add_item_to_db(
         self, items, update_items, requests, callbacks, items_fingerprints

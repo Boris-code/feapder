@@ -22,6 +22,7 @@
   * [Spider进阶](source_code/Spider进阶.md)
   * [BatchSpider进阶](source_code/BatchSpider进阶.md)
   * [配置文件](source_code/配置文件.md)
+  * [数据管道-pipline](source_code/pipline.md)
   * [Item](source_code/Item.md)
   * [UpdateItem](source_code/UpdateItem.md)
   * [MysqlDB](source_code/MysqlDB.md)
