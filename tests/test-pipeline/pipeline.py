@@ -8,13 +8,13 @@ Created on 2021/3/18 12:39 上午
 @email: boris_liu@foxmail.com
 """
 
-from feapder.piplines import BasePipline
+from feapder.pipelines import BasePipeline
 from typing import Dict, List, Tuple
 
 
-class Pipline(BasePipline):
+class Pipeline(BasePipeline):
     """
-    pipline 是单线程的，批量保存数据的操作，不建议在这里写网络请求代码，如下载图片等
+    pipeline 是单线程的，批量保存数据的操作，不建议在这里写网络请求代码，如下载图片等
     """
 
     def save_items(self, table, items: List[Dict]) -> bool:
@@ -29,7 +29,7 @@ class Pipline(BasePipline):
 
         """
 
-        print("自定义pipline， 保存数据 >>>>", table, items)
+        print("自定义pipeline， 保存数据 >>>>", table, items)
 
         return True
 
@@ -46,6 +46,6 @@ class Pipline(BasePipline):
 
         """
 
-        print("自定义pipline， 更新数据 >>>>", table, items, update_keys)
+        print("自定义pipeline， 更新数据 >>>>", table, items, update_keys)
 
         return True

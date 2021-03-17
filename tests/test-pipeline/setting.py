@@ -17,9 +17,9 @@ REDISDB_USER_PASS = ""
 # 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
 
-# 数据入库的pipline，可自定义，默认MysqlPipline
-ITEM_PIPLINES = [
-    "pipline.Pipline"
+# 数据入库的pipeline，可自定义，默认MysqlPipeline
+ITEM_PIPELINES = [
+    "pipeline.Pipeline"
 ]
 
 # # 爬虫相关
@@ -49,10 +49,6 @@ ITEM_PIPLINES = [
 # # 爬虫初始化工作
 # # 爬虫做完request后是否自动结束或者等待任务
 # AUTO_STOP_WHEN_SPIDER_DONE = True
-# # 是否将item添加到 mysql 支持列表 指定添加的item 可模糊指定
-# ADD_ITEM_TO_MYSQL = True
-# # 是否将item添加到 redis 支持列表 指定添加的item 可模糊指定
-# ADD_ITEM_TO_REDIS = False
 #
 #
 # # 设置代理

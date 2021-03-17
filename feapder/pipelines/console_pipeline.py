@@ -1,19 +1,18 @@
-# Pipeline
+# -*- coding: utf-8 -*-
+"""
+Created on 2021/3/18 12:39 上午
+---------
+@summary:
+---------
+@author: Boris
+@email: boris_liu@foxmail.com
+"""
 
-Pipeline是数据入库时流经的管道，默认为使用mysql入库，用户可自定义。
-
-注：AirSpider不支持
-
-## 使用方式
-
-### 1. 编写pipeline
-
-```python
 from feapder.pipelines import BasePipeline
 from typing import Dict, List, Tuple
 
 
-class Pipeline(BasePipeline):
+class ConsolePipeline(BasePipeline):
     """
     pipeline 是单线程的，批量保存数据的操作，不建议在这里写网络请求代码，如下载图片等
     """
@@ -30,8 +29,6 @@ class Pipeline(BasePipeline):
 
         """
 
-        print("自定义pipeline， 保存数据 >>>>", table, items)
-
         return True
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
@@ -47,24 +44,4 @@ class Pipeline(BasePipeline):
 
         """
 
-        print("自定义pipeline， 更新数据 >>>>", table, items, update_keys)
-
         return True
-```
-
-`Pipeline`需继承`BasePipeline`，类名和存放位置随意，需要实现`save_items`、`update_items`两个接口。一定要有返回值，返回`False`表示数据没保存成功，数据不入去重库，以便再次入库
-
-### 2. 编写配置文件
-
-```python
-# 数据入库的pipeline，可自定义，默认MysqlPipeline
-ITEM_PIPELINES = [
-    "pipeline.Pipeline"
-]
-``` 
-
-将编写好的pipeline配置进来，值为类的模块路径，需要指定到具体的类名
-
-## 示例
-
-地址：

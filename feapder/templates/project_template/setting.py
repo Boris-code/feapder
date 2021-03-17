@@ -17,9 +17,9 @@ REDISDB_USER_PASS = ""
 # 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
 
-# 数据入库的pipline，可自定义，默认MysqlPipline
-# ITEM_PIPLINES = [
-#     "feapder.piplines.mysql_pipline.MysqlPipline"
+# 数据入库的pipeline，可自定义，默认MysqlPipeline
+# ITEM_PIPELINES = [
+#     "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 # ]
 
 # # 爬虫相关
@@ -49,11 +49,6 @@ REDISDB_DB = 0
 # # 爬虫初始化工作
 # # 爬虫是否自动结束，若为False，则会等待新任务下发，进程不退出
 # AUTO_STOP_WHEN_SPIDER_DONE = True
-# # 是否将item添加到 mysql 支持列表 指定添加的item 可模糊指定
-# ADD_ITEM_TO_MYSQL = True
-# # 是否将item添加到 redis 支持列表 指定添加的item 可模糊指定
-# ADD_ITEM_TO_REDIS = False
-#
 #
 # # 设置代理
 # PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n

@@ -30,9 +30,9 @@ REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
 # 适用于redis哨兵模式
 REDISDB_SERVICE_NAME =  os.getenv("REDISDB_SERVICE_NAME")
 
-# 数据入库的pipline，可自定义，默认MysqlPipline
-ITEM_PIPLINES = [
-    "feapder.piplines.mysql_pipline.MysqlPipline"
+# 数据入库的pipeline，可自定义，默认MysqlPipeline
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 ]
 
 # 爬虫相关
@@ -69,10 +69,6 @@ REDIS_KEY = ""
 DELETE_KEYS = []
 # 爬虫做完request后是否自动结束或者等待任务
 AUTO_STOP_WHEN_SPIDER_DONE = True
-# 是否将item添加到 mysql 支持列表 指定添加的item 可模糊指定
-ADD_ITEM_TO_MYSQL = True
-# 是否将item添加到 redis 支持列表 指定添加的item 可模糊指定
-ADD_ITEM_TO_REDIS = False
 
 # PROCESS 进程数 未用
 PROCESS_COUNT = 1

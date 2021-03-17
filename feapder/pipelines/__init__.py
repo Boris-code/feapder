@@ -12,9 +12,9 @@ import abc
 from typing import Dict, List, Tuple
 
 
-class BasePipline(metaclass=abc.ABCMeta):
+class BasePipeline(metaclass=abc.ABCMeta):
     """
-    pipline 是单线程的，批量保存数据的操作，不建议在这里写网络请求代码，如下载图片等
+    pipeline 是单线程的，批量保存数据的操作，不建议在这里写网络请求代码，如下载图片等
     """
 
     @abc.abstractmethod

@@ -21,6 +21,8 @@ from feapder.network.item import Item
 from feapder.network.request import Request
 from feapder.utils.log import log
 
+CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
+
 
 class Spider(
     BaseParser, Scheduler
@@ -43,7 +45,7 @@ class Spider(
         auto_start_requests=None,
         send_run_time=False,
         batch_interval=0,
-        wait_lock=True
+        wait_lock=True,
     ):
         """
         @summary: 爬虫
@@ -95,9 +97,7 @@ class Spider(
         while True:
             try:
                 # 检查redis中是否有任务
-                tab_requests = setting.TAB_REQUSETS.format(
-                    redis_key=self._redis_key
-                )
+                tab_requests = setting.TAB_REQUSETS.format(redis_key=self._redis_key)
                 todo_task_count = redisdb.zget_count(tab_requests)
 
                 if todo_task_count < self._min_task_count:  # 添加任务
@@ -236,7 +236,6 @@ class DebugSpider(Spider):
         SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
         REQUEST_TIME_OUT=600,  # 10分钟
-        ADD_ITEM_TO_MYSQL=False,
         PROXY_ENABLE=False,
         RETRY_FAILED_REQUESTS=False,
         # 保存失败的request
@@ -246,6 +245,7 @@ class DebugSpider(Spider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
+        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
     def __init__(self, request=None, request_dict=None, *args, **kwargs):

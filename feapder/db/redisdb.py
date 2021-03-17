@@ -164,7 +164,7 @@ class RedisDB:
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -190,7 +190,7 @@ class RedisDB:
                 if count > 1:
                     pipe = self._redis.pipeline(
                         transaction=True
-                    )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+                    )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
                     if not self._is_redis_cluster:
                         pipe.multi()
@@ -219,7 +219,7 @@ class RedisDB:
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -302,7 +302,7 @@ class RedisDB:
 
         pipe = self._redis.pipeline(
             transaction=True
-        )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+        )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
         if not self._is_redis_cluster:
             pipe.multi()  # 标记事务的开始 参考 http://www.runoob.com/redis/redis-transactions.html
@@ -521,7 +521,7 @@ class RedisDB:
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
             pipe.multi()
             for value in values:
                 pipe.zscore(table, value)
@@ -542,7 +542,7 @@ class RedisDB:
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -570,7 +570,7 @@ class RedisDB:
             if count > 1:
                 pipe = self._redis.pipeline(
                     transaction=True
-                )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+                )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
 
                 if not self._is_redis_cluster:
                     pipe.multi()
@@ -712,7 +712,7 @@ class RedisDB:
 
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
             pipe.multi()
 
             for offset, value in zip(offsets, values):
@@ -733,7 +733,7 @@ class RedisDB:
         if isinstance(offsets, list):
             pipe = self._redis.pipeline(
                 transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipline实现一次请求指定多个命令，并且默认情况下一次pipline 是原子性操作。
+            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
             pipe.multi()
             for offset in offsets:
                 pipe.getbit(table, offset)

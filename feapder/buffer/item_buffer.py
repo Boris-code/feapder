@@ -17,13 +17,13 @@ import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
-from feapder.piplines import BasePipline
+from feapder.pipelines import BasePipeline
 from feapder.utils.log import log
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
 UPLOAD_BATCH_MAX_SIZE = 1000
 
-MYSQL_PIPLINE_PATH = "feapder.piplines.mysql_pipline.MysqlPipline"
+MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
 
 class Singleton(object):
@@ -59,34 +59,34 @@ class ItemBuffer(threading.Thread, Singleton):
                 # 'xxx:xxx_item': ['id', 'name'...] # 记录redis中item名与需要更新的key对应关系
             }
 
-            self._piplines = self.load_piplines()
+            self._pipelines = self.load_pipelines()
 
-            self._have_mysql_pipline = MYSQL_PIPLINE_PATH in setting.ITEM_PIPLINES
-            self._mysql_pipline = None
+            self._have_mysql_pipeline = MYSQL_PIPELINE_PATH in setting.ITEM_PIPELINES
+            self._mysql_pipeline = None
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 self.__class__.dedup = Dedup(to_md5=False)
 
-    def load_piplines(self):
-        piplines = []
-        for pipline_path in setting.ITEM_PIPLINES:
-            module, class_name = pipline_path.rsplit(".", 1)
-            pipline_cls = importlib.import_module(module).__getattribute__(class_name)
-            pipline = pipline_cls()
-            if not isinstance(pipline, BasePipline):
-                raise ValueError(f"{pipline_path} 需继承 feapder.piplines.BasePipline")
-            piplines.append(pipline)
+    def load_pipelines(self):
+        pipelines = []
+        for pipeline_path in setting.ITEM_PIPELINES:
+            module, class_name = pipeline_path.rsplit(".", 1)
+            pipeline_cls = importlib.import_module(module).__getattribute__(class_name)
+            pipeline = pipeline_cls()
+            if not isinstance(pipeline, BasePipeline):
+                raise ValueError(f"{pipeline_path} 需继承 feapder.pipelines.BasePipeline")
+            pipelines.append(pipeline)
 
-        return piplines
+        return pipelines
 
     @property
-    def mysql_pipline(self):
-        if not self._mysql_pipline:
-            module, class_name = MYSQL_PIPLINE_PATH.rsplit(".", 1)
-            pipline_cls = importlib.import_module(module).__getattribute__(class_name)
-            self._mysql_pipline = pipline_cls()
+    def mysql_pipeline(self):
+        if not self._mysql_pipeline:
+            module, class_name = MYSQL_PIPELINE_PATH.rsplit(".", 1)
+            pipeline_cls = importlib.import_module(module).__getattribute__(class_name)
+            self._mysql_pipeline = pipeline_cls()
 
-        return self._mysql_pipline
+        return self._mysql_pipeline
 
     def run(self):
         while not self._thread_stop:
@@ -244,24 +244,24 @@ class ItemBuffer(threading.Thread, Singleton):
         # 打点 校验
         self.check_datas(table=to_table, datas=datas)
 
-        for pipline in self._piplines:
+        for pipeline in self._pipelines:
             if is_update:
-                if not pipline.update_items(to_table, datas, update_keys=update_keys):
+                if not pipeline.update_items(to_table, datas, update_keys=update_keys):
                     log.error(
-                        f"{pipline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
                     )
                     return False
 
             else:
-                if not pipline.save_items(to_table, datas):
+                if not pipeline.save_items(to_table, datas):
                     log.error(
-                        f"{pipline.__class__.__name__} 保存数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 保存数据失败. table: {to_table}  items: {datas}"
                     )
                     return False
 
-        # 若是任务表, 且上面的pipline里没mysql，则需调用mysql更新任务
-        if not self._have_mysql_pipline and is_update and to_table.endswith("_task"):
-            self.mysql_pipline.update_items(to_table, datas, update_keys=update_keys)
+        # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
+        if not self._have_mysql_pipeline and is_update and to_table.endswith("_task"):
+            self.mysql_pipeline.update_items(to_table, datas, update_keys=update_keys)
 
     def __add_item_to_db(
         self, items, update_items, requests, callbacks, items_fingerprints

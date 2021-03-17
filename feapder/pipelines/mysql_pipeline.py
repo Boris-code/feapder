@@ -11,11 +11,11 @@ from typing import Dict, List, Tuple
 
 import feapder.utils.tools as tools
 from feapder.db.mysqldb import MysqlDB
-from feapder.piplines import BasePipline
+from feapder.pipelines import BasePipeline
 from feapder.utils.log import log
 
 
-class MysqlPipline(BasePipline):
+class MysqlPipeline(BasePipeline):
     def __init__(self):
         self._to_db = None
 

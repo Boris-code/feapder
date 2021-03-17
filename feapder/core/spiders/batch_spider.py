@@ -28,6 +28,9 @@ from feapder.network.request import Request
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
 
+CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
+MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
+
 
 class BatchSpider(BatchParser, Scheduler):
     def __init__(
@@ -1040,7 +1043,6 @@ class DebugBatchSpider(BatchSpider):
         SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
         REQUEST_TIME_OUT=600,  # 10分钟
-        ADD_ITEM_TO_MYSQL=False,
         PROXY_ENABLE=False,
         RETRY_FAILED_REQUESTS=False,
         # 保存失败的request
@@ -1050,6 +1052,7 @@ class DebugBatchSpider(BatchSpider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
+        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
     def __init__(
@@ -1077,8 +1080,10 @@ class DebugBatchSpider(BatchSpider):
             raise Exception("task_id 与 task 不能同时为null")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
-        if save_to_db:
-            self.__class__.__debug_custom_setting__.update(ADD_ITEM_TO_MYSQL=True)
+        if save_to_db and not self.__class__.__custom_setting__.get("ITEM_PIPELINES"):
+            self.__class__.__debug_custom_setting__.update(
+                ITEM_PIPELINES=[MYSQL_PIPELINE_PATH]
+            )
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
