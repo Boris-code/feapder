@@ -275,7 +275,7 @@ class Response(res):
     def text(self):
         if self._cached_text is None:
             if self.code:
-                self._encoding = self.code
+                self.encoding = self.code
                 # self._cached_text = super(Response, self).text
                 self._cached_text = self.__text
 
