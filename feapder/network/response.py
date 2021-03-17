@@ -17,16 +17,17 @@ from urllib.parse import urlparse, urlunparse, urljoin
 from bs4 import UnicodeDammit
 from requests.cookies import RequestsCookieJar
 from requests.models import Response as res
+from w3lib.encoding import http_content_type_encoding, html_body_declared_encoding
 
 from feapder.network.selector import Selector
 from feapder.utils.log import log
-from feapder.utils.tools import is_have_chinese, http_content_type_encoding, html_body_declared_encoding, memoizemethod_noargs
 
 FAIL_ENCODING = "ISO-8859-1"
 
 # html 源码中的特殊字符，需要删掉，否则会影响etree的构建
 SPECIAL_CHARACTERS = [
-    "[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]"  # 移除控制字符 全部字符列表 https://zh.wikipedia.org/wiki/%E6%8E%A7%E5%88%B6%E5%AD%97%E7%AC%A6
+    # 移除控制字符 全部字符列表 https://zh.wikipedia.org/wiki/%E6%8E%A7%E5%88%B6%E5%AD%97%E7%AC%A6
+    "[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]"
 ]
 
 SPECIAL_CHARACTER_PATTERNS = [
@@ -42,9 +43,9 @@ class Response(res):
         self._cached_selector = None
         self._cached_text = None
         self._cached_json = None
+
         self._encoding = None
 
-        self.code = None
         self.encoding_errors = "strict"  # strict / replace / ignore
 
     @classmethod
@@ -82,83 +83,53 @@ class Response(res):
 
         return response_dict
 
-    def __setattr__(self, key, value):
-        if key == "code":
-            if not self.__dict__.get("custom_text"):
-                self.__dict__["_cached_selector"] = None
-                self.__dict__["_cached_text"] = None
-                self.__dict__["_cached_json"] = None
-            self.__dict__[key] = value
-
-        elif key == "text":
-            self.__dict__["_cached_text"] = value
-            self.__dict__["_cached_selector"] = None
-            self.__dict__["custom_text"] = True
-
-        elif key == "json":
-            self.__dict__["_cached_json"] = value
-            self.__dict__["custom_text"] = True
-
-        else:
-            self.__dict__[key] = value
+    def __clear_cache(self):
+        self.__dict__["_cached_selector"] = None
+        self.__dict__["_cached_text"] = None
+        self.__dict__["_cached_json"] = None
 
     @property
     def encoding(self):
         """
-            @author: artio
-        :return:
+        编码优先级：自定义编码 > header中编码 > 页面编码 > 根据content猜测的编码
         """
-        return self._encoding or \
-               self._headers_encoding() or \
-               self._body_declared_encoding() or \
-               self.apparent_encoding
+        self._encoding = (
+            self._encoding
+            or self._headers_encoding()
+            or self._body_declared_encoding()
+            or self.apparent_encoding
+        )
+        return self._encoding
 
     @encoding.setter
     def encoding(self, val):
+        self.__clear_cache()
         self._encoding = val
 
-    @memoizemethod_noargs
+    code = encoding
+
     def _headers_encoding(self):
         """
-            从headers获取头部charset编码
-            解析charset借鉴的scrapy
-            application/json 逻辑借鉴了requests.encoding逻辑
-        :return:
+        从headers获取头部charset编码
         """
-        content_type = self.headers.get('Content-Type', '') or self.headers.get('content-type', '')
-        return http_content_type_encoding(content_type) or 'utf-8' if 'application/json' in content_type else None
+        content_type = self.headers.get("Content-Type") or self.headers.get(
+            "content-type"
+        )
+        return (
+            http_content_type_encoding(content_type) or "utf-8"
+            if "application/json" in content_type
+            else None
+        )
 
-    @memoizemethod_noargs
     def _body_declared_encoding(self):
         """
-            从html xml等获取<meta charset="编码">
-            借鉴的scrapy
-        :return:
+        从html xml等获取<meta charset="编码">
         """
 
         return html_body_declared_encoding(self.content)
 
-    def _get_html(self):
-        if self.encoding != FAIL_ENCODING:
-            # return response as a unicode string
-            # html = super(Response, self).text
-            html = self.__text
-
-        else:
-            # don't attempt decode, return response in bytes
-            html = self.content
-            html = self._get_unicode_html(html)
-            if not is_have_chinese(html):
-                self.encoding = "gb2312"
-                html = self.text
-
-        return html or ""
-
     def _get_unicode_html(self, html):
-        if isinstance(html, str):
-            return html
-
-        if not html:
+        if not html or not isinstance(html, bytes):
             return html
 
         converted = UnicodeDammit(html, is_html=True)
@@ -246,20 +217,12 @@ class Response(res):
         set ``r.encoding`` appropriately before accessing this property.
         """
 
-        # Try charset from content-type
-        content = None
-        encoding = self.encoding
-
         if not self.content:
-            return str("")
-
-        # Fallback to auto-detected encoding.
-        if self.encoding is None:
-            encoding = self.apparent_encoding
+            return ""
 
         # Decode unicode from given encoding.
         try:
-            content = str(self.content, encoding, errors=self.encoding_errors)
+            content = str(self.content, self.encoding, errors=self.encoding_errors)
         except (LookupError, TypeError):
             # A LookupError is raised if the encoding was not found which could
             # indicate a misspelling or similar mistake.
@@ -274,13 +237,10 @@ class Response(res):
     @property
     def text(self):
         if self._cached_text is None:
-            if self.code:
-                self.encoding = self.code
-                # self._cached_text = super(Response, self).text
+            if self.encoding and self.encoding.upper() != FAIL_ENCODING:
                 self._cached_text = self.__text
-
             else:
-                self._cached_text = self._get_html()
+                self._cached_text = self._get_unicode_html(self.content)
 
             self._cached_text = self._absolute_links(self._cached_text)
             self._cached_text = self._del_special_character(self._cached_text)
@@ -290,7 +250,7 @@ class Response(res):
     @property
     def json(self, **kwargs):
         if self._cached_json is None:
-            self.encoding = self.code or "utf-8"
+            self.encoding = self.encoding or "utf-8"
             self._cached_json = super(Response, self).json(**kwargs)
 
         return self._cached_json
@@ -364,7 +324,7 @@ class Response(res):
         self.close()
 
     def open(self, delete_temp_file=False):
-        with open("temp.html", "w", encoding=self.code, errors="replace") as html:
+        with open("temp.html", "w", encoding=self.encoding, errors="replace") as html:
             self.encoding_errors = "replace"
             html.write(self.text)
 
