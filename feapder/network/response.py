@@ -20,7 +20,7 @@ from requests.models import Response as res
 
 from feapder.network.selector import Selector
 from feapder.utils.log import log
-from feapder.utils.tools import is_have_chinese
+from feapder.utils.tools import is_have_chinese, http_content_type_encoding, html_body_declared_encoding, memoizemethod_noargs
 
 FAIL_ENCODING = "ISO-8859-1"
 
@@ -42,6 +42,7 @@ class Response(res):
         self._cached_selector = None
         self._cached_text = None
         self._cached_json = None
+        self._encoding = None
 
         self.code = None
         self.encoding_errors = "strict"  # strict / replace / ignore
@@ -101,8 +102,43 @@ class Response(res):
         else:
             self.__dict__[key] = value
 
-    def _get_html(self):
+    @property
+    def encoding(self):
+        """
+            @author: artio
+        :return:
+        """
+        return self._encoding or \
+               self._headers_encoding() or \
+               self._body_declared_encoding() or \
+               self.apparent_encoding
 
+    @encoding.setter
+    def encoding(self, val):
+        self._encoding = val
+
+    @memoizemethod_noargs
+    def _headers_encoding(self):
+        """
+            从headers获取头部charset编码
+            解析charset借鉴的scrapy
+            application/json 逻辑借鉴了requests.encoding逻辑
+        :return:
+        """
+        content_type = self.headers.get('Content-Type', '') or self.headers.get('content-type', '')
+        return http_content_type_encoding(content_type) or 'utf-8' if 'application/json' in content_type else None
+
+    @memoizemethod_noargs
+    def _body_declared_encoding(self):
+        """
+            从html xml等获取<meta charset="编码">
+            借鉴的scrapy
+        :return:
+        """
+
+        return html_body_declared_encoding(self.content)
+
+    def _get_html(self):
         if self.encoding != FAIL_ENCODING:
             # return response as a unicode string
             # html = super(Response, self).text
@@ -239,7 +275,7 @@ class Response(res):
     def text(self):
         if self._cached_text is None:
             if self.code:
-                self.encoding = self.code
+                self._encoding = self.code
                 # self._cached_text = super(Response, self).text
                 self._cached_text = self.__text
 
