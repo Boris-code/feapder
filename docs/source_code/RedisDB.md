@@ -27,7 +27,7 @@ db = RedisDB.from_url("redis://[[username]:[password]]@[host]:[port]/[db]")
 ```python
 from feapder.db.redisdb import RedisDB
 
-db = RedisDB(ip_ports="172.25.21.4:26379,172.25.21.5:26379,172.25.21.6:26379", db=0, user_pass=None, service_name="mymsater")
+db = RedisDB(ip_ports="172.25.21.4:26379,172.25.21.5:26379,172.25.21.6:26379", db=0, user_pass=None, service_name="my_master")
 ```
 
 注意：多个地址用逗号分隔，需传递`service_name`
@@ -38,7 +38,7 @@ db = RedisDB(ip_ports="172.25.21.4:26379,172.25.21.5:26379,172.25.21.6:26379", d
 REDISDB_IP_PORTS = "172.25.21.4:26379,172.25.21.5:26379,172.25.21.6:26379"
 REDISDB_USER_PASS = ""
 REDISDB_DB = 0
-REDISDB_SERVICE_NAME = "mymaster"
+REDISDB_SERVICE_NAME = "my_master"
 ```
 
 ### 集群模式
