@@ -64,13 +64,13 @@ class AirSpider(BaseParser, Thread):
         return True
 
     def run(self):
-        self.distribute_task()
-
         for i in range(self._thread_count):
             parser_control = AirSpiderParserControl(self._memory_db)
             parser_control.add_parser(self)
             parser_control.start()
             self._parser_controls.append(parser_control)
+
+        self.distribute_task()
 
         while True:
             if self.all_thread_is_done():
