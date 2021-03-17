@@ -21,6 +21,8 @@ from requests.models import Response as res
 from feapder.network.selector import Selector
 from feapder.utils.log import log
 from feapder.utils.tools import is_have_chinese
+import webbrowser
+import tempfile
 
 FAIL_ENCODING = "ISO-8859-1"
 
@@ -328,9 +330,7 @@ class Response(res):
         self.close()
 
     def open(self, delete_temp_file=False):
-        with open(
-            "temp.html", "w", encoding=self.code or self.encoding, errors="replace"
-        ) as html:
+        with open("temp.html", "w", encoding=self.code, errors="replace") as html:
             self.encoding_errors = "replace"
             html.write(self.text)
 
