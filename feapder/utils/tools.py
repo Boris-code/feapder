@@ -28,6 +28,7 @@ import traceback
 import urllib
 import urllib.parse
 import uuid
+import weakref
 from hashlib import md5
 from pprint import pformat
 from pprint import pprint
@@ -108,6 +109,21 @@ def run_safe_model(module_name):
             return func
 
     return inner_run_safe_model
+
+
+def memoizemethod_noargs(method):
+    """Decorator to cache the result of a method (without arguments) using a
+    weak reference to its object
+    """
+    cache = weakref.WeakKeyDictionary()
+
+    @functools.wraps(method)
+    def new_method(self, *args, **kwargs):
+        if self not in cache:
+            cache[self] = method(self, *args, **kwargs)
+        return cache[self]
+
+    return new_method
 
 
 ########################【网页解析相关】###############################
