@@ -256,10 +256,10 @@ class Request(object):
             while True:
                 proxies = self.__class__.proxies_pool.get()
                 if proxies:
+                    self.requests_kwargs.update(proxies=proxies)
                     break
                 else:
                     log.debug("暂无可用代理 ...")
-            proxies and self.requests_kwargs.update(proxies=proxies)
 
         log.debug(
             """
@@ -317,15 +317,12 @@ class Request(object):
         url = self.__dict__.get("url", "")
         # url 归一化
         url = tools.canonicalize_url(url)
-
         args = [url]
-        params = self.requests_kwargs.get("params")
-        datas = self.requests_kwargs.get("data")
-        if params:
-            args.append(str(params))
 
-        if datas:
-            args.append(str(datas))
+        for arg in ["params", "data", "files", "auth", "cert", "json"]:
+            if self.requests_kwargs.get(arg):
+                args.append(self.requests_kwargs.get(arg))
+
         return tools.get_md5(*args)
 
     @property
