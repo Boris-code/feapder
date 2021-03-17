@@ -236,19 +236,19 @@ class ItemBuffer(threading.Thread, Singleton):
                 for item in setting.ADD_ITEM_TO_MYSQL:
                     if item in item_name:
                         export_success = (
-                            self._export_data.export_items(tab_item, datas)
+                            self._export_data.export_items(to_table, datas)
                             if not is_update
                             else self._export_data.update_items(
-                                tab_item, datas, update_keys=update_keys
+                                to_table, datas, update_keys=update_keys
                             )
                         )
 
             else:
                 export_success = (
-                    self._export_data.export_items(tab_item, datas)
+                    self._export_data.export_items(to_table, datas)
                     if not is_update
                     else self._export_data.update_items(
-                        tab_item, datas, update_keys=update_keys
+                        to_table, datas, update_keys=update_keys
                     )
                 )
 
