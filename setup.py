@@ -55,7 +55,8 @@ setuptools.setup(
         "ipython>=7.14.0",
         "bitarray>=1.5.3",
         "redis-py-cluster>=1.3.4",
-        "cryptography>=3.3.2"
+        "cryptography>=3.3.2",
+        "selenium>=3.141.0"
     ],
     entry_points={"console_scripts": ["feapder = feapder.commands.cmdline:execute"]},
     url="https://github.com/Boris-code/feapder.git",

@@ -15,18 +15,6 @@ import feapder.setting as setting
 from feapder.utils.log import log
 
 
-# class Singleton(object):
-#     def __init__(self, cls):
-#         self._cls = cls
-#         self._instance = {}
-#
-#     def __call__(self, *args, **kwargs):
-#         if self._cls not in self._instance:
-#             self._instance[self._cls] = self._cls(*args, **kwargs)
-#         return self._instance[self._cls]
-#
-#
-# @Singleton
 class RedisDB:
     def __init__(
         self,
@@ -503,12 +491,6 @@ class RedisDB:
             self._redis.zrem(table, *values)
         else:
             self._redis.zrem(table, values)
-
-    def zremrangebyscore(self, table, priority_min, priority_max):
-        """
-        根据分数区间删除
-        """
-        self._redis.zremrangebyscore(table, priority_min, priority_max)
 
     def zexists(self, table, values):
         """

@@ -36,6 +36,7 @@ Request除了支持requests的所有参数外，更需要关心的是框架中�
 @param random_user_agent: 是否随机User-Agent (True/False) 当setting中的RANDOM_HEADERS设置为True时该参数生效 默认True
 @param download_midware: 下载中间件。默认为parser中的download_midware
 @param is_abandoned: 当发生异常时是否放弃重试 True/False. 默认False
+@param render: 是否用浏览器渲染
 --
 以下参数于requests参数使用方式一致
 @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断

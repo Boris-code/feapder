@@ -45,7 +45,7 @@ class Scheduler(threading.Thread):
         send_run_time=True,
         batch_interval=0,
         wait_lock=True,
-        task_table=None
+        task_table=None,
     ):
         """
         @summary: 调度器
@@ -477,6 +477,10 @@ class Scheduler(threading.Thread):
         for parser in self._parsers:
             parser.close()
             parser.end_callback()
+
+        # 关闭webdirver
+        if Request.webdriver_pool:
+            Request.webdriver_pool.close()
 
         # 计算抓取时常
         data = self._redisdb.hget(

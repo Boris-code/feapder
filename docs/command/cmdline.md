@@ -42,7 +42,7 @@
 
     optional arguments:
       -h, --help            show this help message and exit
-      -p , --project        创建项目 如 feapder create -s <project_name>
+      -p , --project        创建项目 如 feapder create -p <project_name>
       -s  [ ...], --spider  [ ...]
                             创建爬虫 如 feapder create -s <spider_name> <spider_type>
                             spider_type=1 AirSpider; spider_type=2 Spider;

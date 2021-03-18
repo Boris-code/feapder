@@ -16,7 +16,7 @@ def main():
     spider = argparse.ArgumentParser(description="生成器")
 
     spider.add_argument(
-        "-p", "--project", help="创建项目 如 feapder create -s <project_name>", metavar=""
+        "-p", "--project", help="创建项目 如 feapder create -p <project_name>", metavar=""
     )
     spider.add_argument(
         "-s",
