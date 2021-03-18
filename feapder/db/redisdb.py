@@ -492,12 +492,6 @@ class RedisDB:
         else:
             self._redis.zrem(table, values)
 
-    def zremrangebyscore(self, table, priority_min, priority_max):
-        """
-        根据分数区间删除
-        """
-        self._redis.zremrangebyscore(table, priority_min, priority_max)
-
     def zexists(self, table, values):
         """
         利用zscore判断某元素是否存在

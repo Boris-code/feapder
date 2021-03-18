@@ -28,8 +28,8 @@ class HandleFailedRequests(object):
             redis_key=redis_key
         )
 
-    def get_failed_requests(self, count=100):
-        failed_requests = self._redisdb.zget(self._table_failed_request, count=10000)
+    def get_failed_requests(self, count=10000):
+        failed_requests = self._redisdb.zget(self._table_failed_request, count=count)
         failed_requests = [eval(failed_request) for failed_request in failed_requests]
         return failed_requests
 
@@ -51,4 +51,3 @@ class HandleFailedRequests(object):
         self._request_buffer.flush()
 
         log.debug("重置%s条失败requests为待抓取requests" % total_count)
-
