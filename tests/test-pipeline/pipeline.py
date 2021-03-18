@@ -39,7 +39,7 @@ class Pipeline(BasePipeline):
         Args:
             table: 表名
             items: 数据，[{},{},...]
-            update_keys: 更新的字段字段, 如 ("title", "publish_time")
+            update_keys: 更新的字段, 如 ("title", "publish_time")
 
         Returns: 是否更新成功 True / False
                  若False，不会将本批数据入到去重库，以便再次入库
