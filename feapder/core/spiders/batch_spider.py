@@ -111,6 +111,7 @@ class BatchSpider(BatchParser, Scheduler):
             auto_start_requests=False,
             send_run_time=send_run_time,
             batch_interval=batch_interval,
+            task_table=task_table
         )
 
         self._redisdb = RedisDB()

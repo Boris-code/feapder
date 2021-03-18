@@ -45,6 +45,7 @@ class Scheduler(threading.Thread):
         send_run_time=True,
         batch_interval=0,
         wait_lock=True,
+        task_table=None
     ):
         """
         @summary: 调度器
@@ -59,6 +60,7 @@ class Scheduler(threading.Thread):
         @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
+        @param task_table: 任务表， 批次爬虫传递
         ---------
         @result:
         """
@@ -80,7 +82,7 @@ class Scheduler(threading.Thread):
             )
 
         self._request_buffer = RequestBuffer(redis_key)
-        self._item_buffer = ItemBuffer(redis_key)
+        self._item_buffer = ItemBuffer(redis_key, task_table)
 
         self._collector = Collector(redis_key)
         self._parsers = []

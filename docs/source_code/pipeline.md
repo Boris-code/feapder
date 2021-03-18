@@ -1,6 +1,6 @@
 # Pipeline
 
-Pipeline是数据入库时流经的管道，默认为使用mysql入库，用户可自定义。
+Pipeline是数据入库时流经的管道，默认为使用mysql入库，用户可自定义，以便对接其他数据库。
 
 注：AirSpider不支持
 
@@ -36,7 +36,7 @@ class Pipeline(BasePipeline):
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
         """
-        更新数据
+        更新数据, 与UpdateItem配合使用，若爬虫中没使用UpdateItem，则可不实现此接口
         Args:
             table: 表名
             items: 数据，[{},{},...]
@@ -52,12 +52,14 @@ class Pipeline(BasePipeline):
         return True
 ```
 
-`Pipeline`需继承`BasePipeline`，类名和存放位置随意，需要实现`save_items`、`update_items`两个接口。一定要有返回值，返回`False`表示数据没保存成功，数据不入去重库，以便再次入库
+`Pipeline`需继承`BasePipeline`，类名和存放位置随意，需要实现`save_items`接口。一定要有返回值，返回`False`表示数据没保存成功，数据不入去重库，以便再次入库
+
+`update_items`接口与`UpdateItem`配合使用，更新数据时使用，若爬虫中没使用UpdateItem，则可不实现此接口
 
 ### 2. 编写配置文件
 
 ```python
-# 数据入库的pipeline，可自定义，默认MysqlPipeline
+# 数据入库的pipeline，支持多个
 ITEM_PIPELINES = [
     "pipeline.Pipeline"
 ]

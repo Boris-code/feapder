@@ -18,6 +18,7 @@ from feapder.db.redisdb import RedisDB
 from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
 from feapder.pipelines import BasePipeline
+from feapder.pipelines.mysql_pipeline import MysqlPipeline
 from feapder.utils.log import log
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
@@ -37,13 +38,14 @@ class Singleton(object):
 class ItemBuffer(threading.Thread, Singleton):
     dedup = None
 
-    def __init__(self, redis_key):
+    def __init__(self, redis_key, task_table=None):
         if not hasattr(self, "_table_item"):
             super(ItemBuffer, self).__init__()
 
             self._thread_stop = False
             self._is_adding_to_db = False
             self._redis_key = redis_key
+            self._task_table = task_table
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
             self._db = RedisDB()
@@ -246,6 +248,11 @@ class ItemBuffer(threading.Thread, Singleton):
 
         for pipeline in self._pipelines:
             if is_update:
+                if to_table == self._task_table and not isinstance(
+                    pipeline, MysqlPipeline
+                ):
+                    continue
+
                 if not pipeline.update_items(to_table, datas, update_keys=update_keys):
                     log.error(
                         f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
@@ -260,7 +267,7 @@ class ItemBuffer(threading.Thread, Singleton):
                     return False
 
         # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
-        if not self._have_mysql_pipeline and is_update and to_table.endswith("_task"):
+        if not self._have_mysql_pipeline and is_update and to_table == self._task_table:
             self.mysql_pipeline.update_items(to_table, datas, update_keys=update_keys)
 
     def __add_item_to_db(

@@ -32,10 +32,9 @@ class BasePipeline(metaclass=abc.ABCMeta):
 
         return True
 
-    @abc.abstractmethod
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
         """
-        更新数据
+        更新数据, 与UpdateItem配合使用，若爬虫中没使用UpdateItem，则可不实现此接口
         Args:
             table: 表名
             items: 数据，[{},{},...]
