@@ -9,6 +9,7 @@ Created on 2018-07-25 11:49:08
 """
 
 import requests
+from feapder.utils.webdriver import WebDriverPool
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -27,6 +28,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Request(object):
     session = None
+    webdriver_pool: WebDriverPool = None
     user_agent_pool = user_agent
     proxies_pool = proxy_pool
 
@@ -68,6 +70,7 @@ class Request(object):
         random_user_agent=True,
         download_midware=None,
         is_abandoned=False,
+        render=False,
     )
 
     def __init__(
@@ -84,6 +87,7 @@ class Request(object):
         random_user_agent=True,
         download_midware=None,
         is_abandoned=False,
+        render=False,
         **kwargs,
     ):
         """
@@ -102,6 +106,7 @@ class Request(object):
         @param random_user_agent: 是否随机User-Agent (True/False) 当setting中的RANDOM_HEADERS设置为True时该参数生效 默认True
         @param download_midware: 下载中间件。默认为parser中的download_midware
         @param is_abandoned: 当发生异常时是否放弃重试 True/False. 默认False
+        @param render: 是否用浏览器渲染
         --
         以下参数于requests参数使用方式一致
         @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断
@@ -136,6 +141,7 @@ class Request(object):
         self.random_user_agent = random_user_agent
         self.download_midware = download_midware
         self.is_abandoned = is_abandoned
+        self.render = render
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
@@ -172,14 +178,19 @@ class Request(object):
         )  # self.use_session 优先级高
         if use_session and not self.__class__.session:
             self.__class__.session = requests.Session()
-            http_adapter = HTTPAdapter(
-                pool_connections=1000, pool_maxsize=1000
-            )  # pool_connections – 缓存的 urllib3 连接池个数  pool_maxsize – 连接池中保存的最大连接数
-            self.__class__.session.mount(
-                "http", http_adapter
-            )  # 任何使用该session会话的 HTTP 请求，只要其 URL 是以给定的前缀开头，该传输适配器就会被使用到。
+            # pool_connections – 缓存的 urllib3 连接池个数  pool_maxsize – 连接池中保存的最大连接数
+            http_adapter = HTTPAdapter(pool_connections=1000, pool_maxsize=1000)
+            # 任何使用该session会话的 HTTP 请求，只要其 URL 是以给定的前缀开头，该传输适配器就会被使用到。
+            self.__class__.session.mount("http", http_adapter)
 
         return self.__class__.session
+
+    @property
+    def _webdriver_pool(self):
+        if not self.__class__.webdriver_pool:
+            self.__class__.webdriver_pool = WebDriverPool(**setting.WEBDRIVER)
+
+        return self.__class__.webdriver_pool
 
     @property
     def to_dict(self):
@@ -221,9 +232,8 @@ class Request(object):
         self.requests_kwargs.setdefault("timeout", 22)  # connect=22 read=22
 
         # 设置stream
-        self.requests_kwargs.setdefault(
-            "stream", True
-        )  # 默认情况下，当你进行网络请求后，响应体会立即被下载。你可以通过 stream 参数覆盖这个行为，推迟下载响应体直到访问 Response.content 属性。此时仅有响应头被下载下来了。缺点： stream 设为 True，Requests 无法将连接释放回连接池，除非你 消耗了所有的数据，或者调用了 Response.close。 这样会带来连接效率低下的问题。
+        # 默认情况下，当你进行网络请求后，响应体会立即被下载。你可以通过 stream 参数覆盖这个行为，推迟下载响应体直到访问 Response.content 属性。此时仅有响应头被下载下来了。缺点： stream 设为 True，Requests 无法将连接释放回连接池，除非你 消耗了所有的数据，或者调用了 Response.close。 这样会带来连接效率低下的问题。
+        self.requests_kwargs.setdefault("stream", True)
 
         # 关闭证书验证
         self.requests_kwargs.setdefault("verify", False)
@@ -297,12 +307,37 @@ class Request(object):
             setting.USE_SESSION if self.use_session is None else self.use_session
         )  # self.use_session 优先级高
 
-        if use_session:
+        if self.render:
+            browser = self._webdriver_pool.get()
+
+            try:
+                browser.get(self.url)
+                html = browser.page_source
+                response = Response.from_dict(
+                    {
+                        "url": browser.current_url,
+                        "cookies": browser.cookies,
+                        "text": html,
+                        "_content": html.encode(),
+                        "status_code": 200,
+                        "elapsed": 666,
+                        "headers": {},
+                    }
+                )
+
+                response._cached_text = html
+                response.browser = browser
+            except Exception as e:
+                self._webdriver_pool.remove(browser)
+                raise e
+
+        elif use_session:
             response = self._session.request(method, self.url, **self.requests_kwargs)
+            response = Response(response)
         else:
             response = requests.request(method, self.url, **self.requests_kwargs)
+            response = Response(response)
 
-        response = Response(response)
         if save_cached:
             self.save_cached(response, expire_time=self.__class__.cached_expire_time)
 

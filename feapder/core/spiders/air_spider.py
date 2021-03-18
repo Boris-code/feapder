@@ -78,5 +78,10 @@ class AirSpider(BaseParser, Thread):
                 for parser_control in self._parser_controls:
                     parser_control.stop()
 
+                # 关闭webdirver
+                if Request.webdriver_pool:
+                    Request.webdriver_pool.close()
+
+
                 log.info("无任务，爬虫结束")
                 break

@@ -17,21 +17,31 @@ REDISDB_USER_PASS = ""
 # 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
 
-# 数据入库的pipeline，可自定义，默认MysqlPipeline
-# ITEM_PIPELINES = [
-#     "feapder.pipelines.mysql_pipeline.MysqlPipeline"
-# ]
-
+# # 数据入库的pipeline，可自定义，默认MysqlPipeline
+# ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
+#
 # # 爬虫相关
 # # COLLECTOR
-# COLLECTOR_SLEEP_TIME = 1 # 从任务队列中获取任务到内存队列的间隔
-# COLLECTOR_TASK_COUNT = 100 # 每次获取任务数量
+# COLLECTOR_SLEEP_TIME = 1  # 从任务队列中获取任务到内存队列的间隔
+# COLLECTOR_TASK_COUNT = 100  # 每次获取任务数量
 #
 # # SPIDER
-# SPIDER_THREAD_COUNT = 10 # 爬虫并发数
-# SPIDER_SLEEP_TIME = 0 # 下载时间间隔（解析完一个response后休眠时间）
-# SPIDER_MAX_RETRY_TIMES = 100 # 每个请求最大重试次数
-
+# SPIDER_THREAD_COUNT = 10  # 爬虫并发数
+# SPIDER_SLEEP_TIME = 0  # 下载时间间隔（解析完一个response后休眠时间）
+# SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
+#
+# # 浏览器渲染下载
+# WEBDRIVER = dict(
+#     pool_size=2,
+#     load_images=False,
+#     user_agent=None,  # 字符串 或 返回user_agent的函数
+#     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 返回代理的函数
+#     headless=False,
+#     driver_type="CHROME",  # CHROME 或 PHANTOMJS,
+#     timeout=30,
+#     window_size=(1024, 800),
+# )
+#
 # # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
 # RETRY_FAILED_REQUESTS = False
 # # request 超时时间，超过这个时间重新做（不是网络请求的超时时间）单位秒
@@ -60,13 +70,13 @@ REDISDB_DB = 0
 # USE_SESSION = False
 #
 # # 去重
-# ITEM_FILTER_ENABLE = False # item 去重
-# REQUEST_FILTER_ENABLE = False # request 去重
+# ITEM_FILTER_ENABLE = False  # item 去重
+# REQUEST_FILTER_ENABLE = False  # request 去重
 #
 # # 报警
-# DINGDING_WARNING_URL = "" # 钉钉机器人api
-# DINGDING_WARNING_PHONE = "" # 报警人
-# LINGXI_TOKEN = "" # 灵犀报警token
+# DINGDING_WARNING_URL = ""  # 钉钉机器人api
+# DINGDING_WARNING_PHONE = ""  # 报警人
+# LINGXI_TOKEN = ""  # 灵犀报警token
 #
 # LOG_NAME = os.path.basename(os.getcwd())
 # LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径

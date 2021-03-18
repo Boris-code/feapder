@@ -115,11 +115,12 @@ class Response(res):
         content_type = self.headers.get("Content-Type") or self.headers.get(
             "content-type"
         )
-        return (
-            http_content_type_encoding(content_type) or "utf-8"
-            if "application/json" in content_type
-            else None
-        )
+        if content_type:
+            return (
+                http_content_type_encoding(content_type) or "utf-8"
+                if "application/json" in content_type
+                else None
+            )
 
     def _body_declared_encoding(self):
         """
