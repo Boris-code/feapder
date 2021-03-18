@@ -31,6 +31,7 @@ class WebDriver:
         driver_type=PHANTOMJS,
         timeout=16,
         window_size=(1024, 800),
+        executable_path=None,
     ):
         """
 
@@ -43,6 +44,7 @@ class WebDriver:
         @param proxy xxx.xxx.xxx.xxx:xxxx 或 返回代理的函数
         @param timeout: 请求超时时间 默认16s
         @param window_size: 屏幕分辨率 (width, height)
+        @param executable_path: 浏览器路径，默认为默认路径
         """
         self._load_images = load_images
         self._user_agent = (
@@ -53,6 +55,7 @@ class WebDriver:
         self._headless = headless
         self._timeout = timeout
         self._window_size = window_size
+        self._executable_path = executable_path
 
         self.proxies = {}
         self.user_agent = None
@@ -120,7 +123,12 @@ class WebDriver:
                 "--window-size={},{}".format(self._window_size[0], self._window_size[1])
             )
 
-        driver = webdriver.Chrome(chrome_options=chrome_options)
+        if self._executable_path:
+            driver = webdriver.Chrome(
+                chrome_options=chrome_options, executable_path=self._executable_path
+            )
+        else:
+            driver = webdriver.Chrome(chrome_options=chrome_options)
 
         driver.execute_cdp_cmd(
             "Page.addScriptToEvaluateOnNewDocument",
@@ -154,9 +162,16 @@ class WebDriver:
         if not self._load_images:
             service_args.append("--load-images=no")
 
-        driver = webdriver.PhantomJS(
-            service_args=service_args, desired_capabilities=dcap
-        )
+        if self._executable_path:
+            driver = webdriver.PhantomJS(
+                service_args=service_args,
+                desired_capabilities=dcap,
+                executable_path=self._executable_path,
+            )
+        else:
+            driver = webdriver.PhantomJS(
+                service_args=service_args, desired_capabilities=dcap
+            )
 
         if self._window_size:
             driver.set_window_size(self._window_size[0], self._window_size[1])

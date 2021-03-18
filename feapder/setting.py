@@ -48,14 +48,15 @@ SPIDER_AUTO_START_REQUESTS = True
 
 # 浏览器渲染
 WEBDRIVER = dict(
-    pool_size=2,
-    load_images=False,
-    user_agent=None,  # 字符串 或 返回user_agent的函数
-    proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 返回代理的函数
-    headless=False,
+    pool_size=2,  # 浏览器的数量
+    load_images=False,  # 是否加载图片
+    user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+    headless=False,  # 是否为无头浏览器
     driver_type="CHROME",  # CHROME 或 PHANTOMJS,
-    timeout=30,
-    window_size=(1024, 800),
+    timeout=30,  # 请求超时时间
+    window_size=(1024, 800),  # 窗口大小
+    executable_path=None,  # 浏览器路径，默认为默认路径
 )
 
 # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败

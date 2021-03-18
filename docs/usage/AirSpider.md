@@ -192,6 +192,37 @@ MysqlDB 的具体使用方法见 [MysqlDB](source_code/MysqlDB.md)
 
 RedisDB 的具体使用方法见 [RedisDB](source_code/RedisDB.md)
 
-## 12. 完整的代码示例
+## 12. 浏览器渲染下载
 
-[https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py](https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py)
+采集动态页面时（Ajax渲染的页面），常用的有两种方案。一种是找接口拼参数，这种方式比较复杂但效率高，需要一定的爬虫功底；另外一种是采用浏览器渲染的方式，直接获取源码，简单方便
+
+使用方式：
+```python
+def start_requests(self):
+    yield feapder.Request("https://news.qq.com/", render=True)
+```
+在返回的Request中传递`render=True`即可
+
+框架支持`CHROME`和`PHANTOMJS`两种浏览器渲染，可通过[配置文件](source_code/配置文件)进行配置。相关配置如下：
+
+```python
+# 浏览器渲染
+# 浏览器渲染
+WEBDRIVER = dict(
+    pool_size=2,  # 浏览器的数量
+    load_images=False,  # 是否加载图片
+    user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+    headless=False,  # 是否为无头浏览器
+    driver_type="CHROME",  # CHROME 或 PHANTOMJS,
+    timeout=30,  # 请求超时时间
+    window_size=(1024, 800),  # 窗口大小
+    executable_path=None,  # 浏览器路径，默认为默认路径
+)
+```
+
+## 13. 完整的代码示例
+
+AirSpider：https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py
+
+浏览器渲染：https://github.com/Boris-code/feapder/blob/master/tests/test_rander.py
