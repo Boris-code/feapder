@@ -69,4 +69,4 @@ ITEM_PIPELINES = [
 
 ## 示例
 
-地址：
+地址：https://github.com/Boris-code/feapder/tree/master/tests/test-pipeline
