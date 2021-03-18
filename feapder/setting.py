@@ -73,7 +73,6 @@ RESPONSE_CACHED_USED = False  # 是否使用缓存 补采数据时可设置为Tr
 
 WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 
-# 爬虫初始化工作
 # redis 存放item与request的根目录
 REDIS_KEY = ""
 # 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬

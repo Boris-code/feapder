@@ -16,6 +16,8 @@ REDISDB_IP_PORTS = "xxx:6379"
 REDISDB_USER_PASS = ""
 # 默认 0 到 15 共16个数据库
 REDISDB_DB = 0
+# # 适用于redis哨兵模式
+# REDISDB_SERVICE_NAME = None
 
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
 # ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
@@ -57,7 +59,6 @@ REDISDB_DB = 0
 #
 # WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 #
-# # 爬虫初始化工作
 # # 爬虫是否自动结束，若为False，则会等待新任务下发，进程不退出
 # AUTO_STOP_WHEN_SPIDER_DONE = True
 #
