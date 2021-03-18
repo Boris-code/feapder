@@ -111,7 +111,7 @@ delete_keys 接收类型为tuple/bool/string，支持正则，拿以下的key举
 
 用于`spider.start_monitor_task()` 与 `spider.start()` 这种master、worker模式。
 
-`auto_stop_when_spider_done=True`时，爬虫做完任务后不会退出，继续等待任务。
+`auto_stop_when_spider_done=False`时，爬虫做完任务后不会退出，继续等待任务。
 
 ### 5. send_run_time
 
