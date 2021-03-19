@@ -221,6 +221,8 @@ WEBDRIVER = dict(
 )
 ```
 
+默认不加载图片，提高渲染速度
+
 ## 13. 完整的代码示例
 
 AirSpider：https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py

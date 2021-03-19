@@ -82,6 +82,5 @@ class AirSpider(BaseParser, Thread):
                 if Request.webdriver_pool:
                     Request.webdriver_pool.close()
 
-
                 log.info("无任务，爬虫结束")
                 break

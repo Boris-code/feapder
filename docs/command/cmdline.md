@@ -339,7 +339,7 @@ item = SpiderDataItem(**response_data)
 
     可以看出，我们可以直接使用response， response支持xpath表达式
 
-    若想查看都支持哪些函数，可输入`resonse.` 然后敲两次`tab键`，如下：
+    若想查看都支持哪些函数，可输入`response.` 然后敲两次`tab键`，如下：
     ![-w1738](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/06/21/15927532396490.jpg)
 
 1. 以curl为例，请求百度（通常用来测试post接口比较方便）

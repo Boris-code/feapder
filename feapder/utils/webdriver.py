@@ -8,7 +8,7 @@ Created on 2021/3/18 4:59 下午
 @email: boris_liu@foxmail.com
 """
 
-import collections
+import queue
 import threading
 
 from selenium import webdriver
@@ -201,27 +201,35 @@ class WebDriver:
 @Singleton
 class WebDriverPool:
     def __init__(self, pool_size=5, **kwargs):
-        self.queue = collections.deque(maxlen=pool_size)
+        self.queue = queue.Queue(maxsize=pool_size)
         self.kwargs = kwargs
         self.lock = threading.RLock()
+        self.driver_count = 0
+
+    @property
+    def is_full(self):
+        return self.driver_count >= self.queue.maxsize
 
     def get(self):
-        if not len(self.queue) >= self.queue.maxlen:
+        if not self.is_full:
             with self.lock:
-                if not len(self.queue) >= self.queue.maxlen:
+                if not self.is_full:
                     driver = WebDriver(**self.kwargs)
-                    self.queue.append(driver)
+                    self.queue.put(driver)
+                    self.driver_count += 1
 
-        driver = self.queue.popleft()
-        self.queue.append(driver)
-
+        driver = self.queue.get()
         return driver
+
+    def put(self, driver):
+        self.queue.put(driver)
 
     def remove(self, driver):
         driver.quit()
-        self.queue.remove(driver)
+        self.driver_count -= 1
 
     def close(self):
-        while self.queue:
-            driver = self.queue.pop()
+        while not self.queue.empty():
+            driver = self.queue.get()
             driver.quit()
+            self.driver_count -= 1

@@ -11,8 +11,8 @@ class XueQiuSpider(feapder.Spider):
             yield feapder.Request("https://news.qq.com/#{}".format(i), render=True)
 
     def parse(self, request, response):
-        print(response.browser)
-        print(response)
+        print(response.cookies.get_dict())
+        print("response.url ", response.url)
 
         article_list = response.xpath('//div[@class="detail"]')
         for article in article_list:
@@ -21,4 +21,6 @@ class XueQiuSpider(feapder.Spider):
 
 
 if __name__ == "__main__":
-    XueQiuSpider(thread_count=10, redis_key="feapter:test_rander").start()
+    XueQiuSpider(
+        thread_count=10, redis_key="feapter:test_rander", delete_keys=True
+    ).start()
