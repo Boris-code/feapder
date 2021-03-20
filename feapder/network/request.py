@@ -321,7 +321,11 @@ class Request(object):
                         "_content": html.encode(),
                         "status_code": 200,
                         "elapsed": 666,
-                        "headers": {},
+                        "headers": {
+                            "User-Agent": browser.execute_script(
+                                "return navigator.userAgent"
+                            )
+                        },
                     }
                 )
 

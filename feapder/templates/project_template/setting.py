@@ -18,7 +18,7 @@ REDISDB_USER_PASS = ""
 REDISDB_DB = 0
 # # 适用于redis哨兵模式
 # REDISDB_SERVICE_NAME = None
-
+#
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
 # ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
 #
@@ -28,9 +28,10 @@ REDISDB_DB = 0
 # COLLECTOR_TASK_COUNT = 100  # 每次获取任务数量
 #
 # # SPIDER
-# SPIDER_THREAD_COUNT = 10  # 爬虫并发数
+# SPIDER_THREAD_COUNT = 100  # 爬虫并发数
 # SPIDER_SLEEP_TIME = 0  # 下载时间间隔（解析完一个response后休眠时间）
 # SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
+# WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 #
 # # 浏览器渲染下载
 # WEBDRIVER = dict(
@@ -57,8 +58,6 @@ REDISDB_DB = 0
 # RESPONSE_CACHED_EXPIRE_TIME = 3600  # 缓存时间 秒
 # RESPONSE_CACHED_USED = False  # 是否使用缓存 补采数据时可设置为True
 #
-# WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
-#
 # # 爬虫是否自动结束，若为False，则会等待新任务下发，进程不退出
 # AUTO_STOP_WHEN_SPIDER_DONE = True
 #
@@ -78,10 +77,8 @@ REDISDB_DB = 0
 # # 报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人
-# LINGXI_TOKEN = ""  # 灵犀报警token
 #
 # LOG_NAME = os.path.basename(os.getcwd())
 # LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 # LOG_LEVEL = "DEBUG"
 # LOG_IS_WRITE_TO_FILE = False
-# OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
