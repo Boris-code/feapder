@@ -150,7 +150,7 @@ class PaserControl(threading.Thread):
                         if results and not isinstance(results, Iterable):
                             raise Exception(
                                 "%s.%s返回值必须可迭代"
-                                % (parser.name, request.callback or "parser")
+                                % (parser.name, request.callback or "parse")
                             )
 
                         # 标识上一个result是什么
@@ -229,7 +229,7 @@ class PaserControl(threading.Thread):
                                     and getattr(request.callback, "__name__")
                                     or request.callback
                                 )
-                                or "parser",
+                                or "parse",
                                 str(e),
                                 response,
                                 tools.dumps_json(request.to_dict, indent=28)
@@ -484,7 +484,7 @@ class AirSpiderParserControl(PaserControl):
                         if results and not isinstance(results, Iterable):
                             raise Exception(
                                 "%s.%s返回值必须可迭代"
-                                % (parser.name, request.callback or "parser")
+                                % (parser.name, request.callback or "parse")
                             )
 
                         # 此处判断是request 还是 item
@@ -534,7 +534,7 @@ class AirSpiderParserControl(PaserControl):
                                     and getattr(request.callback, "__name__")
                                     or request.callback
                                 )
-                                or "parser",
+                                or "parse",
                                 str(e),
                                 response,
                                 tools.dumps_json(request.to_dict, indent=28)

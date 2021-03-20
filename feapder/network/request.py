@@ -290,7 +290,7 @@ class Request(object):
                         and getattr(self.callback, "__name__")
                         or self.callback
                     )
-                    or "parser",
+                    or "parse",
                 ),
                 self.url,
                 method,

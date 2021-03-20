@@ -17,15 +17,12 @@ class TestSpiderParams(feapder.Spider):
     )
 
     def start_requests(self):
-        for i in range(100):
-            print(f"下发任务 {i}")
-            yield feapder.Request(f"https://www.baidu.com?p={i}")
+        yield feapder.Request(f"https://www.baidu.com")
 
     def parse(self, request, response):
         print(request.url)
 
 
 if __name__ == "__main__":
-    spider = TestSpiderParams(redis_key="feapder:test_spider_params", min_task_count=10)
-    spider.start_monitor_task()
-    # spider.start()
+    spider = TestSpiderParams(redis_key="feapder:test_spider_params")
+    spider.start()
