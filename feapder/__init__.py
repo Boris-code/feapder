@@ -10,7 +10,7 @@ Created on 2020/4/21 10:41 PM
 import os, sys
 import re
 
-sys.path.insert(0, re.sub(r"([\\/]items)|([\\/]spiders)", "", os.getcwd()))
+sys.path.insert(0, re.sub(r"([\\/]items$)|([\\/]spiders$)", "", os.getcwd()))
 
 __all__ = [
     "AirSpider",
