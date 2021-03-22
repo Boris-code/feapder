@@ -33,7 +33,7 @@ class SpiderDataItem(UpdateItem):
         self.url = None
 ```
 
-方式二：赋值`update_key`
+方式2：赋值`update_key`
 
 ```python
 from feapder import UpdateItem
@@ -51,7 +51,7 @@ item = SpiderDataItem()
 item.update_key = "title" # 支持列表、元组、字符串
 ```
 
-方式三：将普通的item转为UpdateItem，然后再指定更新的key
+方式3：将普通的item转为UpdateItem，然后再指定更新的key
 
 ```python
 from feapder import Item
@@ -65,6 +65,9 @@ class SpiderDataItem(Item):
         self.title = None
         self.url = None
 
-item = SpiderDataItem.to_UpdateItem()
+item = SpiderDataItem()
+item = item.to_UpdateItem()
 item.update_key = "title"
 ```
+
+**推荐方式1，直接改Item类，不用修改爬虫代码**
