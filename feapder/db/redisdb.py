@@ -325,7 +325,7 @@ class RedisDB:
 
         # 使用lua脚本， 保证操作的原子性
         lua = """
-            local key = KEYS[1]
+            -- local key = KEYS[1]
             local min_score = ARGV[2]
             local max_score = ARGV[3]
             local is_pop = ARGV[4]
@@ -334,15 +334,15 @@ class RedisDB:
             -- 取值
             local datas = nil
             if count then
-                datas = redis.call('zrangebyscore', key, min_score, max_score, 'limit', 0, count)
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score, 'limit', 0, count)
             else
-                datas = redis.call('zrangebyscore', key, min_score, max_score)
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score)
             end
 
             -- 删除redis中刚取到的值
             if (is_pop) then
                 for i=1, #datas do
-                    redis.call('zrem', key, datas[i])
+                    redis.call('zrem', KEYS[1], datas[i])
                 end
             end
 
@@ -377,7 +377,7 @@ class RedisDB:
 
         # 使用lua脚本， 保证操作的原子性
         lua = """
-            local key = KEYS[1]
+            -- local key = KEYS[1]
             local min_score = ARGV[1]
             local max_score = ARGV[2]
             local increase_score = ARGV[3]
@@ -386,14 +386,14 @@ class RedisDB:
             -- 取值
             local datas = nil
             if count then
-                datas = redis.call('zrangebyscore', key, min_score, max_score, 'limit', 0, count)
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score, 'limit', 0, count)
             else
-                datas = redis.call('zrangebyscore', key, min_score, max_score)
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score)
             end
 
             --修改优先级
             for i=1, #datas do
-                redis.call('zincrby', key, increase_score, datas[i])
+                redis.call('zincrby', KEYS[1], increase_score, datas[i])
             end
 
             return datas
@@ -426,7 +426,7 @@ class RedisDB:
 
         # 使用lua脚本， 保证操作的原子性
         lua = """
-            local key = KEYS[1]
+            -- local key = KEYS[1]
             local min_score = ARGV[1]
             local max_score = ARGV[2]
             local set_score = ARGV[3]
@@ -435,9 +435,9 @@ class RedisDB:
             -- 取值
             local datas = nil
             if count then
-                datas = redis.call('zrangebyscore', key, min_score, max_score, 'withscores','limit', 0, count)
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score, 'withscores','limit', 0, count)
             else
-                datas = redis.call('zrangebyscore', key, min_score, max_score, 'withscores')
+                datas = redis.call('zrangebyscore', KEYS[1], min_score, max_score, 'withscores')
             end
 
             local real_datas = {} -- 数据
@@ -448,7 +448,7 @@ class RedisDB:
 
                table.insert(real_datas, data) -- 添加数据
 
-               redis.call('zincrby', key, set_score - score, datas[i])
+               redis.call('zincrby', KEYS[1], set_score - score, datas[i])
             end
 
             return real_datas
@@ -641,13 +641,13 @@ class RedisDB:
             return self._redis.hget(table, key)
         else:
             lua = """
-                local key = KEYS[1]
+                -- local key = KEYS[1]
                 local field = ARGV[1]
 
                 -- 取值
-                local datas = redis.call('hget', key, field)
+                local datas = redis.call('hget', KEYS[1], field)
                 -- 删除值
-                redis.call('hdel', key, field)
+                redis.call('hdel', KEYS[1], field)
 
                 return datas
 

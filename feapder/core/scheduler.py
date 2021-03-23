@@ -332,18 +332,18 @@ class Scheduler(threading.Thread):
             else:
                 # 判断时间间隔是否超过20分钟
                 lua = """
-                    local key = KEYS[1]
+                    -- local key = KEYS[1]
                     local field = ARGV[1]
                     local current_timestamp = ARGV[2]
 
                     -- 取值
-                    local last_timestamp = redis.call('hget', key, field)
+                    local last_timestamp = redis.call('hget', KEYS[1], field)
                     if last_timestamp and current_timestamp - last_timestamp >= 1200 then
                         return current_timestamp - last_timestamp -- 返回任务停滞时间 秒
                     end
 
                     if not last_timestamp then
-                        redis.call('hset', key, field, current_timestamp)
+                        redis.call('hset', KEYS[1], field, current_timestamp)
                     end
 
                     return 0
