@@ -269,7 +269,15 @@ class ItemBuffer(threading.Thread, Singleton):
 
         # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
         if not self._have_mysql_pipeline and is_update and to_table == self._task_table:
-            self.mysql_pipeline.update_items(to_table, datas, update_keys=update_keys)
+            if not self.mysql_pipeline.update_items(
+                to_table, datas, update_keys=update_keys
+            ):
+                log.error(
+                    f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                )
+                return False
+
+        return True
 
     def __add_item_to_db(
         self, items, update_items, requests, callbacks, items_fingerprints

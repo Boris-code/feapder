@@ -41,9 +41,7 @@ class MysqlPipeline(BasePipeline):
         sql, datas = tools.make_batch_sql(table, items)
         add_count = self.to_db.add_batch(sql, datas)
         datas_size = len(datas)
-        if add_count is None:
-            log.error("导出数据到表 %s 失败" % (table))
-        else:
+        if add_count:
             log.info(
                 "共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, table, datas_size - add_count)
             )
@@ -67,9 +65,7 @@ class MysqlPipeline(BasePipeline):
             table, items, update_columns=update_keys or list(items[0].keys())
         )
         update_count = self.to_db.add_batch(sql, datas)
-        if update_count is None:
-            log.error("更新表 %s 数据失败" % (table))
-        else:
+        if update_count:
             msg = "共更新 %s 条数据 到 %s" % (update_count // 2, table)
             if update_keys:
                 msg += " 更新字段为 {}".format(update_keys)
