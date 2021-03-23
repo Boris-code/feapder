@@ -52,6 +52,7 @@ class Item(metaclass=ItemMetaclass):
                 "__table_name__",
                 "__name_underline__",
                 "__update_key__",
+                "__unique_key__",
             ):
                 if key.startswith(f"_{self.__class__.__name__}"):
                     key = key.replace(f"_{self.__class__.__name__}", "")
