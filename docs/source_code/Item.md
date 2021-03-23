@@ -83,7 +83,7 @@ class SpiderDataItem(Item):
 
 ## 入库前对item进行处理
 
-per_to_db函数为每个item入库前的回调函数，可通过此函数对数据进行处理
+pre_to_db函数为每个item入库前的回调函数，可通过此函数对数据进行处理
 
 ```python
 from feapder import Item
@@ -95,12 +95,9 @@ class SpiderDataItem(Item):
         # self.id = None
         self.title = None
 
-    def per_to_db(self):
+    def pre_to_db(self):
         """
-        @summary: 入库前的处理
-        ---------
-        ---------
-        @result:
+        入库前的处理
         """
         self.title = self.title.strip()
 ```

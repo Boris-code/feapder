@@ -37,12 +37,9 @@ class Item(metaclass=ItemMetaclass):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
-    def per_to_db(self):
+    def pre_to_db(self):
         """
-        @summary: 入库前的处理
-        ---------
-        ---------
-        @result:
+        入库前的处理
         """
         pass
 

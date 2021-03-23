@@ -227,8 +227,8 @@ class ItemBuffer(threading.Thread, Singleton):
             else:
                 tab_item = item_table.get("tab_item")
 
-            # 入库前的回调
-            item.per_to_db()
+            # # 入库前的回调
+            # item.pre_to_db()
 
             if tab_item not in datas_dict:
                 datas_dict[tab_item] = []
