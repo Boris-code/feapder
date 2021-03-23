@@ -59,7 +59,7 @@ def test_MemoryFilter():
 ```python
 from feapder.dedup import Dedup
 
-    def test_BloomFilter():
+def test_BloomFilter():
     dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0")
 
     # 逐条去重
@@ -70,7 +70,7 @@ from feapder.dedup import Dedup
     assert dedup.add(datas) == [1, 1]
     assert dedup.get(datas) == [1, 1]
 ```
-    
+
 ## 过滤数据
 
 Dedup可以通过如下方法，过滤掉已存在的数据
@@ -98,11 +98,11 @@ def test_filter():
 - **redis_url**不是必须传递的，若项目中存在setting.py文件，且已配置redis连接方式，则可以不传递redis_url
 
     ![-w294](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151133801599.jpg)
-    
+
     ```
     import feapder
     from feapder.dedup import Dedup
-    
+
     class TestSpider(feapder.Spider):
         def __init__(self, *args, **kwargs):
             self.dedup = Dedup() # 默认是永久去重
@@ -111,7 +111,7 @@ def test_filter():
 - **name**: 过滤器名称 该名称会默认以dedup作为前缀 `dedup:expire_set:[name]`或`dedup:bloomfilter:[name]`。 默认ExpireFilter name=过期时间，BloomFilter name=`dedup:bloomfilter:bloomfilter`
 
  ![-w499](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/07/16151136442498.jpg)
- 
+
  若对不同数据源去重，可通过name参数来指定不同去重库
 
 - **absolute_name**：过滤器绝对名称 不会加dedup前缀
