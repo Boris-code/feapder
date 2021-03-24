@@ -1588,7 +1588,7 @@ def get_before_date(
     return datetime.datetime.strftime(date_obj, return_date_format)
 
 
-def delay_time(sleep_time=160):
+def delay_time(sleep_time=60):
     """
     @summary: 睡眠  默认1分钟
     ---------
