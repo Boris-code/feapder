@@ -5,29 +5,29 @@ AirSpider是一款轻量爬虫，学习成本低。面对一些数据量较少�
 ## 1. 创建爬虫
 
 命令参考：[命令行工具](command/cmdline.md?id=_2-创建爬虫)
-    
+
 示例
 
     feapder create -s air_spider_test
-    
+
 生成如下
 
-    
+
     import feapder
-    
-    
+
+
     class AirSpiderTest(feapder.AirSpider):
         def start_requests(self):
             yield feapder.Request("https://www.baidu.com")
-        
+
         def parse(self, request, response):
             print(response)
-    
-    
+
+
     if __name__ == "__main__":
         AirSpiderTest().start()
-    
-    
+
+
 可直接运行
 
 ## 2. 代码讲解
@@ -64,7 +64,7 @@ AirSpider是一款轻量爬虫，学习成本低。面对一些数据量较少�
     def parse(self, request, response):
         xxx = request.xxx
         print(xxx)
-        
+
 直接在feapder.Request中携带即可，xxx为携带数据的key，可以随意写，只要不和feapder.Request默认参数冲突即可。默认参数参考[Request](source_code/Request.md)。可以携带任意类型的值，如字典、类等
 
 取值：如何携带就如何取值，如上我们携带xxx， 那么`request.xxx` 可将xxx值取出，取出的值和携带的值类型一致。
@@ -100,12 +100,12 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
     def xxx(self, request):
         """
         我是自定义的下载中间件
-        :param request: 
-        :return: 
+        :param request:
+        :return:
         """
         request.headers = {'User-Agent':"lalala"}
         return request
-        
+
 自定义的下载中间件只有指定的请求才会经过。其他未指定下载中间件的请求，还是会经过默认的下载中间件
 
 ## 8. 失败重试
@@ -115,9 +115,9 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 例如下面代码，校验了返回的code是否为200，非200抛出异常，触发重试
 
     def parse(self, request, response):
-        if response.code != 200:
+        if response.status_code != 200:
             raise Exception("非法页面")
-            
+
 默认最大重试次数为100次，我们可以引入配置文件或自定义配置来修改重试次数，详情参考[配置文件](source_code/配置文件.md)
 
 
@@ -137,7 +137,7 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
         __custom_setting__ = dict(
             PROXY_EXTRACT_API="代理提取地址",
         )
-        
+
 上例是配置代理提取地址，以便爬虫使用代理，自定义配置支持配置文件中的所有参数。
 
 配置优先级： 自定义配置 > 配置文件，即自定义配置会覆盖配置文件里的配置信息，不过自定义配置只对自己有效，配置文件可以是多个爬虫公用的
@@ -151,7 +151,7 @@ AirSpider不支持去重，因此配置文件中的去重配置无效
 
     if __name__ == "__main__":
         AirSpiderTest(thread_count=10).start()
-        
+
 ## 11. 数据入库
 
 框架内封装了`MysqlDB`、`RedisDB`，与pymysql不同的是，MysqlDB 使用了线程池，且对方法进行了封装，使用起来更方便。RedisDB 支持 哨兵模式、集群模式。使用方法如下：
@@ -160,7 +160,7 @@ AirSpider不支持去重，因此配置文件中的去重配置无效
 
     from feapder.db.mysqldb import MysqlDB
     from feapder.db.redisdb import RedisDB
-    
+
 以mysql为例，获取mysql对象
 
 方式1：若`setting.py` 或 `__custom_setting__`中指定了数据库连接信息，则可以直接以`db = MysqlDB()`方式获取
@@ -172,7 +172,7 @@ AirSpider不支持去重，因此配置文件中的去重配置无效
             MYSQL_DB = "feapder",
             MYSQL_USER_NAME = "feapder",
             MYSQL_USER_PASS = "feapder123"
-    
+
         )
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -187,7 +187,7 @@ AirSpider不支持去重，因此配置文件中的去重配置无效
             user_pass="feapder123",
             db="feapder"
         )
-        
+
 MysqlDB 的具体使用方法见 [MysqlDB](source_code/MysqlDB.md)
 
 RedisDB 的具体使用方法见 [RedisDB](source_code/RedisDB.md)
