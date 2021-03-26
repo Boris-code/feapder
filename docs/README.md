@@ -33,11 +33,15 @@
 
 From PyPi:
 
-    pip3 install feapder
+```shell
+pip3 install feapder
+```    
 
 From Git:
 
-    pip3 install git+https://github.com/Boris-code/feapder.git
+```shell
+pip3 install git+https://github.com/Boris-code/feapder.git
+```
 
 若安装出错，请参考[安装问题](question/安装问题)
 
@@ -45,36 +49,43 @@ From Git:
 
 创建爬虫
 
-    feapder create -s first_spider
+```shell
+feapder create -s first_spider
+```
 
 创建后的爬虫代码如下：
 
+```python
 
-    import feapder
-
-
-    class FirstSpider(feapder.AirSpider):
-        def start_requests(self):
-            yield feapder.Request("https://www.baidu.com")
-
-        def parse(self, request, response):
-            print(response)
+import feapder
 
 
-    if __name__ == "__main__":
-        FirstSpider().start()
+class FirstSpider(feapder.AirSpider):
+    def start_requests(self):
+        yield feapder.Request("https://www.baidu.com")
+
+    def parse(self, request, response):
+        print(response)
+
+
+if __name__ == "__main__":
+    FirstSpider().start()
+        
+```
 
 直接运行，打印如下：
 
-    Thread-2|2021-02-09 14:55:11,373|request.py|get_response|line:283|DEBUG|
-                    -------------- FirstSpider.parse request for ----------------
-                    url  = https://www.baidu.com
-                    method = GET
-                    body = {'timeout': 22, 'stream': True, 'verify': False, 'headers': {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.93 Safari/537.36'}}
+```shell
+Thread-2|2021-02-09 14:55:11,373|request.py|get_response|line:283|DEBUG|
+                -------------- FirstSpider.parse request for ----------------
+                url  = https://www.baidu.com
+                method = GET
+                body = {'timeout': 22, 'stream': True, 'verify': False, 'headers': {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.93 Safari/537.36'}}
 
-    <Response [200]>
-    Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|DEBUG| parser 等待任务 ...
-    FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，爬虫结束
+<Response [200]>
+Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|DEBUG| parser 等待任务 ...
+FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，爬虫结束
+```
 
 代码解释如下：
 
