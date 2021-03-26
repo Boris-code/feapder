@@ -186,6 +186,10 @@ if __name__ == "__main__":
 
     python3 main.py --test_spider
     
-## 8. 完整的代码示例
+## 8. 分布式
+
+分布式说白了就是启动多个进程，处理同一批任务。`Spider`支持启动多份，且不会重复发下任务，我们可以在多个服务器上部署启动，也可以在同一个机器上启动多次。
+    
+## 9. 完整的代码示例
 
 [https://github.com/Boris-code/feapder/tree/master/tests/spider](https://github.com/Boris-code/feapder/tree/master/tests/spider)
