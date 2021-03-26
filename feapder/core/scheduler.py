@@ -433,16 +433,18 @@ class Scheduler(threading.Thread):
             parser_control.stop()
 
     def send_msg(self, msg, level="debug", message_prefix=""):
-        """
-        @summary: 叮叮 发送消息
-        ---------
-        @param msg: 消息
-        @param developers: 开发者姓名
-        ---------
-        @result:
-        """
+        if setting.WARNING_LEVEL == "ERROR":
+            if level != "error":
+                return
 
-        tools.dingding_warning(msg, rate_limit=3600, message_prefix=message_prefix)
+        if setting.DINGDING_WARNING_PHONE:
+            keyword = "feapder报警系统\n"
+            tools.dingding_warning(keyword + msg, message_prefix=message_prefix)
+
+        if setting.EMAIL_RECEIVER:
+            tools.email_warning(
+                msg, message_prefix=message_prefix, title=self._spider_name
+            )
 
     def spider_begin(self):
         """
@@ -466,7 +468,7 @@ class Scheduler(threading.Thread):
             )
 
             # 发送消息
-            # self.send_msg('《%s》爬虫开始'%self._spider_name)
+            self.send_msg("《%s》爬虫开始" % self._spider_name)
 
     def spider_end(self):
         self.record_end_time()

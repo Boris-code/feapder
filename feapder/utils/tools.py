@@ -43,6 +43,7 @@ from requests.cookies import RequestsCookieJar
 from w3lib.url import canonicalize_url as _canonicalize_url
 
 import feapder.setting as setting
+from feapder.utils.email_sender import EmailSender
 from feapder.utils.log import log
 
 os.environ["EXECJS_RUNTIME"] = "Node"  # 设置使用node执行js
@@ -2197,34 +2198,81 @@ def is_in_rate_limit(rate_limit, *key):
 
 def dingding_warning(
     message,
-    rate_limit=3600,
     message_prefix=None,
+    rate_limit=setting.WARNING_INTERVAL,
     url=setting.DINGDING_WARNING_URL,
     user_phone=setting.DINGDING_WARNING_PHONE,
 ):
-    if not url:
-        log.info("未设置叮叮的地址，不支持报警")
+    if not all([url, user_phone, message]):
         return
 
     if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
+    if isinstance(user_phone, str):
+        user_phone = [user_phone]
+
     data = {
         "msgtype": "text",
         "text": {"content": message},
-        "at": {"atMobiles": [user_phone], "isAtAll": False},
+        "at": {"atMobiles": user_phone, "isAtAll": False},
     }
 
     headers = {"Content-Type": "application/json"}
 
-    response = requests.post(url, headers=headers, data=json.dumps(data).encode("utf8"))
-    return response
+    try:
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data).encode("utf8")
+        )
+        result = response.json()
+        response.close()
+        if result.get("errcode") == 0:
+            return True
+        else:
+            raise Exception(result.get("errmsg"))
+    except Exception as e:
+        log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
+        return False
 
 
-def linkedsee_warning(
-    message, rate_limit=3600, message_prefix=None, token=setting.LINGXI_TOKEN
+def email_warning(
+    message,
+    title,
+    message_prefix=None,
+    eamil_sender=setting.EAMIL_SENDER,
+    eamil_password=setting.EAMIL_PASSWORD,
+    email_receiver=setting.EMAIL_RECEIVER,
+    rate_limit=setting.WARNING_INTERVAL,
 ):
+    if not all([message, eamil_sender, eamil_password, email_receiver]):
+        return
+
+    if is_in_rate_limit(
+        rate_limit, email_receiver, eamil_sender, message_prefix or message
+    ):
+        log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
+        return
+
+    if isinstance(email_receiver, str):
+        email_receiver = [email_receiver]
+
+    with EmailSender(username=eamil_sender, password=eamil_password) as email:
+        return email.send(receivers=email_receiver, title=title, content=message)
+
+
+def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None):
+    """
+    灵犀电话报警
+    Args:
+        message:
+        rate_limit:
+        message_prefix:
+        token:
+
+    Returns:
+
+    """
     if not token:
         log.info("未设置灵犀token，不支持报警")
         return

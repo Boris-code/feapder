@@ -1018,7 +1018,7 @@ class BatchSpider(BatchParser, Scheduler):
         except Exception as e:
             msg = "《%s》主线程异常 爬虫结束 exception: %s" % (self._batch_name, e)
             log.error(msg)
-            self.send_msg(msg)
+            self.send_msg(msg, level="error")
 
             os._exit(137)  # 使退出码为35072 方便爬虫管理器重启
 
