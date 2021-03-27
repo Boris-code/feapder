@@ -45,7 +45,7 @@ pip3 install feapder
 pip3 install feapder[all]
 ``` 
 
-常用版与完整版区别：
+通用版与完整版区别：
 
 1. 完整版支持基于内存去重
 
