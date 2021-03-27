@@ -33,17 +33,23 @@
 
 From PyPi:
 
+通用版
+
 ```shell
 pip3 install feapder
 ```    
 
-From Git:
+完整版：
 
 ```shell
-pip3 install git+https://github.com/Boris-code/feapder.git
-```
+pip3 install feapder[all]
+``` 
 
-若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
+常用版与完整版区别：
+
+1. 完整版支持基于内存去重
+
+完整版可能会安装出错，若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
 
 ## 小试一下
 

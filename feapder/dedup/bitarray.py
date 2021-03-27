@@ -10,7 +10,6 @@ Created on 2018/12/14 1:05 PM
 
 from __future__ import absolute_import
 
-import bitarray
 
 from feapder.db.redisdb import RedisDB
 
@@ -45,6 +44,13 @@ class BitArray:
 
 class MemoryBitArray(BitArray):
     def __init__(self, num_bits):
+        try:
+            import bitarray
+        except Exception as e:
+            raise Exception(
+                "需要安装feapder完整版\ncommand: pip install feapder[all]\n若安装出错，参考：https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98"
+            )
+
         self.num_bits = num_bits
         self.bitarray = bitarray.bitarray(num_bits, endian="little")
 
