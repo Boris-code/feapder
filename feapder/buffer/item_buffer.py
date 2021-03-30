@@ -37,6 +37,7 @@ class Singleton(object):
 
 class ItemBuffer(threading.Thread, Singleton):
     dedup = None
+    __redis_db = None
 
     def __init__(self, redis_key, task_table=None):
         if not hasattr(self, "_table_item"):
@@ -48,7 +49,6 @@ class ItemBuffer(threading.Thread, Singleton):
             self._task_table = task_table
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
-            self._db = RedisDB()
 
             self._table_item = setting.TAB_ITEM
             self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
@@ -68,6 +68,13 @@ class ItemBuffer(threading.Thread, Singleton):
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 self.__class__.dedup = Dedup(to_md5=False)
+
+    @property
+    def redis_db(self):
+        if self.__class__.__redis_db is None:
+            self.__class__.__redis_db = RedisDB()
+
+        return self.__class__.__redis_db
 
     def load_pipelines(self):
         pipelines = []
@@ -335,7 +342,7 @@ class ItemBuffer(threading.Thread, Singleton):
 
         # 删除做过的request
         if requests:
-            self._db.zrem(self._table_request, requests)
+            self.redis_db.zrem(self._table_request, requests)
 
         # 去重入库
         if export_success and setting.ITEM_FILTER_ENABLE:

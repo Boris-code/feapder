@@ -13,6 +13,7 @@ from collections import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
+from feapder.buffer.item_buffer import ItemBuffer
 from feapder.db.memory_db import MemoryDB
 from feapder.network.item import Item
 from feapder.network.request import Request
@@ -399,12 +400,13 @@ class AirSpiderParserControl(PaserControl):
     _success_task_count = 0
     _failed_task_count = 0
 
-    def __init__(self, memory_db: MemoryDB):
+    def __init__(self, memory_db: MemoryDB, item_buffer: ItemBuffer):
         super(PaserControl, self).__init__()
         self._parsers = []
         self._memory_db = memory_db
         self._thread_stop = False
         self._wait_task_time = 0
+        self._item_buffer = item_buffer
 
     def run(self):
         while not self._thread_stop:
@@ -499,6 +501,9 @@ class AirSpiderParserControl(PaserControl):
                                 else:  # 异步
                                     # 将next_request 入库
                                     self._memory_db.add(result)
+
+                            elif isinstance(result, Item):
+                                self._item_buffer.put_item(result)
 
                     except Exception as e:
                         exception_type = (

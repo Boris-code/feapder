@@ -12,6 +12,7 @@ from threading import Thread
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
+from feapder.buffer.item_buffer import ItemBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.parser_control import AirSpiderParserControl
 from feapder.db.memory_db import MemoryDB
@@ -39,6 +40,7 @@ class AirSpider(BaseParser, Thread):
 
         self._memory_db = MemoryDB()
         self._parser_controls = []
+        self._item_buffer = ItemBuffer(redis_key="air_spider")
 
     def distribute_task(self):
         for request in self.start_requests():
@@ -59,16 +61,25 @@ class AirSpider(BaseParser, Thread):
             if not self._memory_db.empty():
                 return False
 
+            # 检测 item_buffer 状态
+            if (
+                self._item_buffer.get_items_count() > 0
+                or self._item_buffer.is_adding_to_db()
+            ):
+                return False
+
             tools.delay_time(1)
 
         return True
 
     def run(self):
         for i in range(self._thread_count):
-            parser_control = AirSpiderParserControl(self._memory_db)
+            parser_control = AirSpiderParserControl(self._memory_db, self._item_buffer)
             parser_control.add_parser(self)
             parser_control.start()
             self._parser_controls.append(parser_control)
+
+        self._item_buffer.start()
 
         self.distribute_task()
 
@@ -77,6 +88,9 @@ class AirSpider(BaseParser, Thread):
                 # 停止 parser_controls
                 for parser_control in self._parser_controls:
                     parser_control.stop()
+
+                # 关闭item_buffer
+                self._item_buffer.stop()
 
                 # 关闭webdirver
                 if Request.webdriver_pool:
