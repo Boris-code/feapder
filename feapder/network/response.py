@@ -13,8 +13,7 @@ import os
 import re
 import time
 from urllib.parse import urlparse, urlunparse, urljoin
-
-from bs4 import UnicodeDammit
+from bs4 import UnicodeDammit, BeautifulSoup
 from requests.cookies import RequestsCookieJar
 from requests.models import Response as res
 from w3lib.encoding import http_content_type_encoding, html_body_declared_encoding
@@ -274,6 +273,11 @@ class Response(res):
         if self._cached_selector is None:
             self._cached_selector = Selector(self.text)
         return self._cached_selector
+
+    @property
+    def bs4(self):
+        content = BeautifulSoup(self.text, 'lxml')
+        return content
 
     def extract(self):
         return self.selector.get()
