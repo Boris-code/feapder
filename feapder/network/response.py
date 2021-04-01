@@ -276,8 +276,8 @@ class Response(res):
 
     @property
     def bs4(self):
-        content = BeautifulSoup(self.text, 'lxml')
-        return content
+        soup = BeautifulSoup(self.text, 'html.parser')
+        return soup
 
     def extract(self):
         return self.selector.get()
