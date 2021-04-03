@@ -14,8 +14,8 @@ import redis
 import requests
 
 from feapder import setting
-from feapder.utils import log
 from feapder.utils import tools
+from feapder.utils.log import log
 
 # 建立本地缓存代理文件夹
 proxy_path = os.path.join(os.path.dirname(__file__), "proxy_file")
@@ -174,7 +174,7 @@ def check_proxy(
     type=0,
     timeout=5,
     logger=None,
-    show_error_log=False,
+    show_error_log=True,
     **kwargs,
 ):
     """
@@ -187,7 +187,7 @@ def check_proxy(
     :return:
     """
     if not logger:
-        logger = log.get_logger(__file__)
+        logger = log
     ok = 0
     if type == 0 and ip and port:
         # socket检测成功 不代表代理一定可用 Connection closed by foreign host. 这种情况就不行
@@ -207,21 +207,9 @@ def check_proxy(
                 "http": "http://{}:{}".format(ip, port),
                 "https": "https://{}:{}".format(ip, port),
             }
-        target_url = random.choice(
-            [
-                "http://www.baidu.com",
-                # "http://httpbin.org/ip",
-            ]
-        )
         try:
             r = requests.get(
-                target_url,
-                headers={
-                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
-                },
-                proxies=proxies,
-                timeout=timeout,
-                stream=True,
+                "http://www.baidu.com", proxies=proxies, timeout=timeout, stream=True
             )
             ok = 1
             r.close()
@@ -247,7 +235,6 @@ class ProxyItem(object):
         max_proxy_use_num=10000,
         delay=30,
         use_interval=None,
-        logger=None,
         **kwargs,
     ):
         """
@@ -294,7 +281,7 @@ class ProxyItem(object):
             self.proxy_id = self.proxy_ip_port
 
         # 日志处理器
-        self.logger = logger or log.get_logger(__file__)
+        self.logger = log
 
     def get_proxies(self):
         self.use_num += 1
@@ -418,7 +405,7 @@ class ProxyPool(ProxyPoolBase):
             self.proxy_source_url = list(set(self.proxy_source_url))
             kwargs.update({"proxy_source_url": self.proxy_source_url})
         # 处理日志
-        self.logger = kwargs.get("logger") or log.get_logger(__file__)
+        self.logger = kwargs.get("logger") or log
         kwargs["logger"] = self.logger
         if not self.proxy_source_url:
             self.logger.warn("need set proxy_source_url or proxy_instance")
