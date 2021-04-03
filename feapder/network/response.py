@@ -13,6 +13,7 @@ import os
 import re
 import time
 from urllib.parse import urlparse, urlunparse, urljoin
+
 from bs4 import UnicodeDammit, BeautifulSoup
 from requests.cookies import RequestsCookieJar
 from requests.models import Response as res
@@ -276,7 +277,7 @@ class Response(res):
 
     @property
     def bs4(self):
-        soup = BeautifulSoup(self.text, 'html.parser')
+        soup = BeautifulSoup(self.text, "html.parser")
         return soup
 
     def extract(self):
