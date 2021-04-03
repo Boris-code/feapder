@@ -89,15 +89,31 @@ def re_first(self, regex, default=None, replace_entities=False):
 response.re("<a.*?href='(.*?)'")
 ```
 
-### 6. 定位混用
+### 6. 支持BeautifulSoup
 
-三种定位方式可混用，如：
+默认的features为`html.parser`
+
+```python
+def bs4(self, features="html.parser"):
+    pass
+```
+
+例如获取标题：
+
+```python
+response.bs4().title
+```
+
+
+### 7. 定位混用
+
+xpath、css两种定位方式可混用，如：
 
 ```
 response.css("a").xpath("./@href").extract()
 ```
 
-### 7. 取文本
+### 8. 取文本
 
 取文本有两种方式
 
@@ -115,13 +131,13 @@ response.extract()
 
 如：网页源码`<a class='page-numbers'...`  会被处理成`<a class="page-numbers"`
 
-### 8. 取json
+### 9. 取json
 
 ```
 response.json
 ```
 
-### 9. 查看下载内容
+### 10. 查看下载内容
 
 ```
 response.open()
@@ -129,13 +145,13 @@ response.open()
 
 这个函数会打开浏览器，渲染下载内容，方便查看下载内容是否与数据源一致
 
-### 10. 将普通response转为feapder.Response
+### 11. 将普通response转为feapder.Response
 
 ```
 response = feapder.Response(response)
 ```
 
-### 11. 序列化与反序列化
+### 12. 序列化与反序列化
 
 序列化 
 
@@ -181,7 +197,7 @@ feapder.Response写法如下
 ```
 response.code="utf-8"
 ```
-做了简化
+做了简化，不过`response.enconding`也支持
 
 ### 3. 解码方式(二进制转字符串方式)
 

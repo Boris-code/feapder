@@ -26,7 +26,7 @@ class TestAirSpider(feapder.AirSpider):
         return request
 
     def parse(self, request, response):
-        print(response.bs4.title)
+        print(response.bs4().title)
         print(response.xpath("//title").extract_first())
 
 

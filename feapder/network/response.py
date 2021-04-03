@@ -275,9 +275,8 @@ class Response(res):
             self._cached_selector = Selector(self.text)
         return self._cached_selector
 
-    @property
-    def bs4(self):
-        soup = BeautifulSoup(self.text, "html.parser")
+    def bs4(self, features="html.parser"):
+        soup = BeautifulSoup(self.text, features)
         return soup
 
     def extract(self):
