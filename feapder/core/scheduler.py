@@ -150,7 +150,7 @@ class Scheduler(threading.Thread):
         if isinstance(parser, BaseParser):
             self._parsers.append(parser)
         else:
-            raise ValueError("parser 必须继承spider.core.base_parser.BaseParser")
+            raise ValueError("类型错误，爬虫需继承feapder.BaseParser或feapder.BatchParser")
 
     def run(self):
         if not self.is_reach_next_spider_time():
