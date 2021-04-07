@@ -758,6 +758,17 @@ class RedisDB:
 
         self._redis.expire(key, seconds)
 
+    def get_expire(self, key):
+        """
+        @summary: 查询过期时间
+        ---------
+        @param key:
+        @param seconds: 秒
+        ---------
+        @result:
+        """
+        return self._redis.ttl(key)
+
     def clear(self, table):
         try:
             self._redis.delete(table)
