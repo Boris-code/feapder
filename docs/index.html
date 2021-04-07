@@ -26,13 +26,13 @@
 
     <!-- 百度统计 -->
     <script>
-    var _hmt = _hmt || [];
-    (function() {
-      var hm = document.createElement("script");
-      hm.src = "https://hm.baidu.com/hm.js?f45b875b62fd14ec127215dd2057b3cd";
-      var s = document.getElementsByTagName("script")[0];
-      s.parentNode.insertBefore(hm, s);
-    })();
+        var _hmt = _hmt || [];
+        (function () {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?f45b875b62fd14ec127215dd2057b3cd";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
     </script>
 
 
@@ -88,9 +88,41 @@
             ]
         }
     </script>
+
+    <!-- 百度分享 -->
+    <script>
+        window._bd_share_config = {
+            "common": {
+                "bdSnsKey": {},
+                "bdText": "",
+                "bdMini": "2",
+                "bdMiniList": false,
+                "bdPic": "",
+                "bdStyle": "1",
+                "bdSize": "24"
+            },
+            "slide": {
+                "type": "slide",
+                "bdImg": "1",
+                "bdPos": "right",
+                "bdTop": "151.5"
+            },
+            "image": {
+                "viewList": ["weixin", "qzone", "tsina"],
+                "viewText": "分享到：",
+                "viewSize": "16"
+            },
+            "selectShare": {
+                "bdContainerClass": null,
+                "bdSelectMiniList": ["weixin", "qzone", "tsina"]
+            }
+        };
+        with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];
+    </script>
+
     <!--gitter 聊天室  -->
     <script>
-            ((window.gitter = {}).chat = {}).options = {
+        ((window.gitter = {}).chat = {}).options = {
             //需要在gitter上创建rootm
             room: 'feapder/community',
             preload: true,
