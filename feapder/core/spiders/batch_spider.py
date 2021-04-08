@@ -26,6 +26,7 @@ from feapder.network.item import Item
 from feapder.network.item import UpdateItem
 from feapder.network.request import Request
 from feapder.utils.log import log
+from feapder.utils.perfect_dict import PerfectDict
 from feapder.utils.redis_lock import RedisLock
 
 CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
@@ -111,7 +112,7 @@ class BatchSpider(BatchParser, Scheduler):
             auto_start_requests=False,
             send_run_time=send_run_time,
             batch_interval=batch_interval,
-            task_table=task_table
+            task_table=task_table,
         )
 
         self._redisdb = RedisDB()
@@ -325,6 +326,9 @@ class BatchSpider(BatchParser, Scheduler):
             for task in tasks:
                 for parser in self._parsers:  # 寻找task对应的parser
                     if parser.name in task:
+                        task = PerfectDict(
+                            _dict=dict(zip(self._task_keys, task)), _values=list(task)
+                        )
                         requests = parser.start_requests(task)
                         if requests and not isinstance(requests, Iterable):
                             raise Exception(
@@ -372,6 +376,9 @@ class BatchSpider(BatchParser, Scheduler):
         else:  # task没对应的parser 则将task下发到所有的parser
             for task in tasks:
                 for parser in self._parsers:
+                    task = PerfectDict(
+                        _dict=dict(zip(self._task_keys, task)), _values=list(task)
+                    )
                     requests = parser.start_requests(task)
                     if requests and not isinstance(requests, Iterable):
                         raise Exception(

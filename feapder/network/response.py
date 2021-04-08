@@ -243,8 +243,9 @@ class Response(res):
             else:
                 self._cached_text = self._get_unicode_html(self.content)
 
-            self._cached_text = self._absolute_links(self._cached_text)
-            self._cached_text = self._del_special_character(self._cached_text)
+            if self._cached_text:
+                self._cached_text = self._absolute_links(self._cached_text)
+                self._cached_text = self._del_special_character(self._cached_text)
 
         return self._cached_text
 
