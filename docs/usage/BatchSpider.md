@@ -128,7 +128,7 @@ def start_requests(self, task):
     pass
 ```
         
-任务拼接在`start_requests`里处理。这里的task参数为元组，值为BatchSpider启动参数中指定的`task_keys`对应的值
+任务拼接在`start_requests`里处理。这里的task参数为BatchSpider启动参数中指定的`task_keys`对应的值
 
 如表`batch_spider_task`，现有任务信息如下：
 ![-w398](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/02/22/16139773315622.jpg)
@@ -162,6 +162,19 @@ def crawl_test(args):
         yield feapder.Request(url, task_id=id)
 
 ```
+task值的获取方式，支持以下几种：
+
+```python
+# 列表方式
+id, url = task
+id = task[0]
+url = task[1]
+# 字典方式
+id, url = task.id, task.url
+id, url = task.get("id"), task.get("url")
+id, url = task["id"], task["url"]
+```
+
 
 ## 8. 更新任务状态
 

@@ -11,7 +11,6 @@ Created on 2021/4/8 11:32 上午
 
 class PerfectDict(dict):
     """
-    >>> from feapder.utils.perfect_dict import PerfectDict
     >>> data = PerfectDict(id=1, url="xxx")
     >>> data
     {'id': 1, 'url': 'xxx'}
