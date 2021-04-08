@@ -49,6 +49,4 @@ class TestSpider(feapder.BatchSpider):
         """
 
         yield request
-        yield self.update_task_batch(request.task_id, -1) # 更新任务状态为-1
-
-
+        yield self.update_task_batch(request.task_id, -1)  # 更新任务状态为-1

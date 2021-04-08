@@ -9,7 +9,6 @@ Created on 2018-07-25 11:49:08
 """
 
 import requests
-from feapder.utils.webdriver import WebDriverPool
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -21,6 +20,8 @@ from feapder.network.item import Item
 from feapder.network.proxy_pool import proxy_pool
 from feapder.network.response import Response
 from feapder.utils.log import log
+from feapder.utils.perfect_dict import PerfectDict
+from feapder.utils.webdriver import WebDriverPool
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -215,7 +216,7 @@ class Request(object):
             ):
                 continue
 
-            if callable(value) or isinstance(value, Item):  # 序列化 如item
+            if callable(value) or isinstance(value, (Item, PerfectDict)):
                 value = tools.dumps_obj(value)
 
             request_dict[key] = value
@@ -254,10 +255,7 @@ class Request(object):
                 self.requests_kwargs.update(headers=headers)
         else:
             self.requests_kwargs.setdefault(
-                "headers",
-                {
-                    "User-Agent": setting.DEFAULT_USERAGENT
-                },
+                "headers", {"User-Agent": setting.DEFAULT_USERAGENT}
             )
 
         # 代理
