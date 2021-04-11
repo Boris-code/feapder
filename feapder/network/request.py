@@ -310,6 +310,10 @@ class Request(object):
 
             try:
                 browser.get(self.url)
+                render_time = setting.WEBDRIVER.get("render_time", 0)
+                if render_time:
+                    tools.delay_time(render_time)
+
                 html = browser.page_source
                 response = Response.from_dict(
                     {
