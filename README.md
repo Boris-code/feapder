@@ -19,7 +19,8 @@
 
 读音: `[ˈfiːpdə]`
 
-- 官方文档：http://boris.org.cn/feapder/
+- 官方文档：http://feapder.com
+- 国内文档：https://boris-code.gitee.io/feapder
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 
