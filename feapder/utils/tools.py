@@ -2187,6 +2187,9 @@ def is_in_rate_limit(rate_limit, *key):
     :param key: 限制频率的key
     :return: True / False
     """
+    if rate_limit == 0:
+        return False
+
     msg_md5 = get_md5(*key)
     key = "rate_limit:{}".format(msg_md5)
     if get_redisdb().get(key):
