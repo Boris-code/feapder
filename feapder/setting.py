@@ -108,7 +108,7 @@ EAMIL_SENDER = ""  # 发件人
 EAMIL_PASSWORD = ""  # 授权码
 EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
 # 时间间隔
-WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏
+WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏， 0 支持无redis时使用 但不能邮件去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / ERROR
 
 LOG_NAME = os.path.basename(os.getcwd())
@@ -117,7 +117,7 @@ LOG_LEVEL = "DEBUG"
 LOG_IS_WRITE_TO_FILE = False
 OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
 
-############## 导入用户自定义的setting #############
+############# 导入用户自定义的setting #############
 try:
     from setting import *
 except:
