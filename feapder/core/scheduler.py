@@ -50,7 +50,7 @@ class Scheduler(threading.Thread):
         """
         @summary: 调度器
         ---------
-        @param redis_key: 爬虫request及item存放reis中的文件夹
+        @param redis_key: 爬虫request及item存放redis中的文件夹
         @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
