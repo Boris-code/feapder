@@ -40,6 +40,9 @@
 
 <body>
     <div id="app"></div>
+    <!-- docsify-edit-on-github -->
+    <script src="//cdn.jsdelivr.net/npm/docsify-edit-on-github"></script>
+
     <script>
         window.$docsify = {
             name: 'feapder-document',
@@ -84,16 +87,19 @@
                             return html;
                         }
                     });
-                }
+                },
+                // docsify-edit-on-github
+                EditOnGithubPlugin.create("https://github.com/Boris-code/feapder/tree/master/docs/",
+                    null,
+                    '修正此页'
+                )
             ]
         }
     </script>
 
-    
-
     <!--gitter 聊天室  -->
     <script>
-        ((window.gitter = {}).chat = {}).options = {
+            ((window.gitter = {}).chat = {}).options = {
             //需要在gitter上创建rootm
             room: 'feapder/community',
             preload: true,
