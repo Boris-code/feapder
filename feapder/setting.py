@@ -107,6 +107,10 @@ DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 EAMIL_SENDER = ""  # 发件人
 EAMIL_PASSWORD = ""  # 授权码
 EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
+# 企业微信报警
+WECHAT_WARNING_URL = ""  # 企业微信机器人api
+WECHAT_WARNING_PHONE = ""  # 报警人 将会在群内@此人, 支持列表，可指定多人
+WECHAT_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # 时间间隔
 WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / ERROR
