@@ -92,7 +92,7 @@ class MysqlDB:
 
     @classmethod
     def from_url(cls, url, **kwargs):
-        # mysql://username:ip:port/db?charset=utf8mb4
+        # mysql://username:password@ip:port/db?charset=utf8mb4
         url_parsed = parse.urlparse(url)
 
         db_type = url_parsed.scheme.strip()
@@ -259,7 +259,7 @@ class MysqlDB:
         @summary: 批量添加数据
         ---------
         @ param sql: insert ignore into (xxx,xxx) values (%s, %s, %s)
-        # param datas: 列表 [[..], [...]]
+        # param datas: 列表 [{}, {}, {}]
         ---------
         @result: 添加行数
         """
@@ -288,7 +288,7 @@ class MysqlDB:
         批量添加数据, 直接传递list格式的数据，不用拼sql
         Args:
             table: 表名
-            datas: 列表 [[..], [...]]
+            datas: 列表 [{}, {}, {}]
             **kwargs:
 
         Returns: 添加行数
