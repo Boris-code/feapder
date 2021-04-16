@@ -223,6 +223,14 @@ class Request(object):
 
         return request_dict
 
+    @property
+    def callback_name(self):
+        return (
+            getattr(self.callback, "__name__")
+            if callable(self.callback)
+            else self.callback
+        )
+
     def get_response(self, save_cached=False):
         """
         获取带有selector功能的response

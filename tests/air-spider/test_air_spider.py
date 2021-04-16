@@ -25,6 +25,14 @@ class TestAirSpider(feapder.AirSpider):
         # request.cookies = {}
         return request
 
+    def validate(self, request, response):
+        if response.status_code != 200:
+            raise Exception("response code not 200") # 重试
+
+        # if "哈哈" not in response.text:
+        #     return False # 或略当前请求
+
+
     def parse(self, request, response):
         print(response.bs4().title)
         print(response.xpath("//title").extract_first())

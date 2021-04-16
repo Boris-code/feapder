@@ -138,6 +138,10 @@ class PaserControl(threading.Thread):
                         else:
                             response = None
 
+                        # 校验
+                        if parser.validate(request, response) == False:
+                            continue
+
                         if request.callback:  # 如果有parser的回调函数，则用回调处理
                             callback_parser = (
                                 request.callback
@@ -472,6 +476,10 @@ class AirSpiderParserControl(PaserControl):
 
                         else:
                             response = None
+
+                        # 校验
+                        if parser.validate(request, response) == False:
+                            continue
 
                         if request.callback:  # 如果有parser的回调函数，则用回调处理
                             callback_parser = (

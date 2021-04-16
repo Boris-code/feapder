@@ -26,18 +26,6 @@ class BaseParser(object):
 
         pass
 
-    def parse(self, request, response):
-        """
-        @summary: 默认的回调函数
-        ---------
-        @param request:
-        @param response:
-        ---------
-        @result:
-        """
-
-        pass
-
     def download_midware(self, request):
         """
         @summary: 下载中间件 可修改请求的一些参数
@@ -45,6 +33,34 @@ class BaseParser(object):
         @param request:
         ---------
         @result: return request / None (不会修改原来的request)
+        """
+
+        pass
+
+    def validate(self, request, response):
+        """
+        @summary: 校验函数, 可用于校验response是否正确
+        若函数内抛出异常，则重试请求
+        若返回True 或 None，则进入解析函数
+        若返回False，则抛弃当前请求
+        可通过request.callback_name 区分不同的回调函数，编写不同的校验逻辑
+        ---------
+        @param request:
+        @param response:
+        ---------
+        @result: True / None / False
+        """
+
+        pass
+
+    def parse(self, request, response):
+        """
+        @summary: 默认的解析函数
+        ---------
+        @param request:
+        @param response:
+        ---------
+        @result:
         """
 
         pass
@@ -108,12 +124,7 @@ class BatchParser(BaseParser):
     """
 
     def __init__(
-        self,
-        task_table,
-        batch_record_table,
-        task_state,
-        date_format,
-        mysqldb=None,
+        self, task_table, batch_record_table, task_state, date_format, mysqldb=None
     ):
         self._mysqldb = mysqldb or MysqlDB()  # mysqldb
 
