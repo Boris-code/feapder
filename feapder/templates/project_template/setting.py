@@ -75,7 +75,7 @@ REDISDB_DB = 0
 # ITEM_FILTER_ENABLE = False  # item 去重
 # REQUEST_FILTER_ENABLE = False  # request 去重
 #
-# # 报警 支持钉钉及邮件，二选一即可
+# 报警 支持钉钉、企业微信、邮件
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个

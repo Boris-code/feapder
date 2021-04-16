@@ -446,6 +446,10 @@ class Scheduler(threading.Thread):
                 msg, message_prefix=message_prefix, title=self._spider_name
             )
 
+        if setting.WECHAT_WARNING_URL:
+            keyword = "feapder报警系统\n"
+            tools.wechat_warning(keyword + msg, message_prefix=message_prefix)
+
     def spider_begin(self):
         """
         @summary: start_monitor_task 方式启动，此函数与spider_end不在同一进程内，变量不可共享
