@@ -21,7 +21,7 @@ class TestSpider(feapder.Spider):
             raise Exception("response code not 200")  # 重试
 
         # if "哈哈" not in response.text:
-        #     return False # 或略当前请求
+        #     return False # 抛弃当前请求
 
     def parse(self, request, response):
         title = response.xpath("//title/text()").extract_first()  # 取标题
