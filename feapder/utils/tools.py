@@ -2291,3 +2291,47 @@ def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None)
     data = {"content": message}
     response = requests.post(url, data=json.dumps(data), headers=headers)
     return response
+
+
+def wechat_warning(
+    message,
+    message_prefix=None,
+    rate_limit=setting.WARNING_INTERVAL,
+    url=setting.WECHAT_WARNING_URL,
+    user_phone=setting.WECHAT_WARNING_PHONE,
+    all_users=setting.WECHAT_WARNING_ALL,
+):
+    """企业微信报警"""
+    if isinstance(user_phone, str):
+        user_phone = [user_phone] if user_phone else []
+
+    if all_users is True or not user_phone:
+        user_phone = ["@all"]
+
+    if not all([url, message]):
+        return
+
+    if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
+        log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
+        return
+
+    data = {
+        "msgtype": "text",
+        "text": {"content": message, "mentioned_mobile_list": user_phone},
+    }
+
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data).encode("utf8")
+        )
+        result = response.json()
+        response.close()
+        if result.get("errcode") == 0:
+            return True
+        else:
+            raise Exception(result.get("errmsg"))
+    except Exception as e:
+        log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
+        return False
