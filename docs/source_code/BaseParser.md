@@ -20,11 +20,11 @@ class BaseParser(object):
 
     def download_midware(self, request):
         """
-        @summary: 下载中间件 可修改请求的一些参数
+        @summary: 下载中间件 可修改请求的一些参数, 或可自定义下载，然后返回 request, response
         ---------
         @param request:
         ---------
-        @result: return request / None (不会修改原来的request)
+        @result: return request / request, response
         """
 
         pass
