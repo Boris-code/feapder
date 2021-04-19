@@ -13,6 +13,7 @@ import threading
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
@@ -20,7 +21,7 @@ from feapder.utils.tools import Singleton
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 
 
-class WebDriver:
+class WebDriver(RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
 
@@ -223,7 +224,7 @@ class WebDriverPool:
     def is_full(self):
         return self.driver_count >= self.queue.maxsize
 
-    def get(self, user_agent: str = None, proxy: str = None):
+    def get(self, user_agent: str = None, proxy: str = None) -> WebDriver:
         """
         获取webdriver
         当webdriver为新实例时会使用 user_agen, proxy, cookie参数来创建

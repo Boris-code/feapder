@@ -357,14 +357,14 @@ class Request(object):
                         "headers": {
                             "User-Agent": browser.execute_script(
                                 "return navigator.userAgent"
-                            )
+                            ),
+                            "Cookie": tools.cookies2str(browser.cookies),
                         },
                     }
                 )
 
                 response._cached_text = html
-                # response.browser = browser # 因为浏览器渲染完就释放了，所以不能绑定到response上
-                self._webdriver_pool.put(browser)
+                response.browser = browser
             except Exception as e:
                 self._webdriver_pool.remove(browser)
                 raise e

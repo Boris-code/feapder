@@ -367,6 +367,11 @@ class PaserControl(threading.Thread):
                                 expire_time=setting.RESPONSE_CACHED_EXPIRE_TIME,
                             )
 
+                    finally:
+                        # 释放浏览器
+                        if response and hasattr(response, "browser"):
+                            request._webdriver_pool.put(response.browser)
+
                     break
 
             # 删除正在做的request 跟随item优先
@@ -634,6 +639,11 @@ class AirSpiderParserControl(PaserControl):
                                 response=response,
                                 expire_time=setting.RESPONSE_CACHED_EXPIRE_TIME,
                             )
+
+                    finally:
+                        # 释放浏览器
+                        if response and hasattr(response, "browser"):
+                            request._webdriver_pool.put(response.browser)
 
                     break
 
