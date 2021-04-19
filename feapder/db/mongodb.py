@@ -119,7 +119,7 @@ class MongoDB:
         Returns: 添加行数
 
         """
-        affect_count = 0
+        affect_count = None
         auto_update = kwargs.get('auto_update', False)
         update_columns = kwargs.get('update_columns', ())
         insert_ignore = kwargs.get('insert_ignore', False)
@@ -131,6 +131,7 @@ class MongoDB:
             if update_columns:
                 if not isinstance(update_columns, (tuple, list)):
                     update_columns = [update_columns]
+
                 try:
                     collection.insert_one(data)
                 except pymongo.errors.DuplicateKeyError:
@@ -139,18 +140,21 @@ class MongoDB:
                         condition = {condition_field: data[condition_field] for condition_field in condition_fields}
                         doc = {key: data[key] for key in update_columns}
                         collection.update_one(condition, {'$set': doc})
+                affect_count = 1
             
             elif auto_update:
                 condition = {condition_field: data[condition_field] for condition_field in condition_fields}
                 # 替换已存在的数据
                 collection.replace_one(condition, data)
-            
+                affect_count = 1
+
             else:
                 try:
                     collection.insert_one(data)
+                    affect_count = 1
                 except pymongo.errors.DuplicateKeyError:
-                    pass
-            affect_count += 1
+                    affect_count = 0
+                    
         except Exception as e:
             log.error(
                 "error:{}".format(e)
@@ -187,7 +191,7 @@ class MongoDB:
         ---------
         @result: 添加行数
         """
-        affect_count = 0
+        affect_count = None
         auto_update = kwargs.get('auto_update', False)
         update_columns = kwargs.get('update_columns', ())
         update_columns_value = kwargs.get('update_columns_value', ())
@@ -195,6 +199,7 @@ class MongoDB:
         
         try:
             collection = self.get_collection(table)
+            affect_count = 0
             
             if update_columns:
                 if not isinstance(update_columns, (tuple, list)):

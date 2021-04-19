@@ -38,12 +38,12 @@ class MongoPipeline(BasePipeline):
         """
         add_count = self.to_db.add_batch_smart(table=table, datas=items)
         datas_size = len(items)
-        if add_count:
+        if add_count is not None:
             log.info(
                 "共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, table, datas_size - add_count)
             )
 
-        return add_count != 0
+        return add_count != None
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
         """
@@ -68,4 +68,4 @@ class MongoPipeline(BasePipeline):
                 msg += " 更新字段为 {}".format(update_keys)
             log.info(msg)
 
-        return update_count != 0
+        return update_count != None
