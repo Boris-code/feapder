@@ -2338,3 +2338,14 @@ def wechat_warning(
     except Exception as e:
         log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
         return False
+
+
+def make_item(cls, data: dict):
+    """提供Item类与原数据，快速构建Item实例
+    :param cls: Item类
+    :param data: 字典格式的数据
+    """
+    item = cls()
+    for key, val in data.items():
+        setattr(item, key, val)
+    return item
