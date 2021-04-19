@@ -17,6 +17,8 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
 
+DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
+
 
 class WebDriver:
     CHROME = "CHROME"
@@ -32,25 +34,23 @@ class WebDriver:
         timeout=16,
         window_size=(1024, 800),
         executable_path=None,
+        **kwargs
     ):
         """
-
-        @param load_images: 是否加载图片
-        @param user_agent_pool: user-agent池 为None时不使用
-        @param proxies_pool: ；代理池 为None时不使用
-        @param headless: 是否启用无头模式
-        @param driver_type: web driver 类型
-        @param user_agent: 字符串 或 返回user_agent的函数
-        @param proxy xxx.xxx.xxx.xxx:xxxx 或 返回代理的函数
-        @param timeout: 请求超时时间 默认16s
-        @param window_size: 屏幕分辨率 (width, height)
-        @param executable_path: 浏览器路径，默认为默认路径
+        webdirver 封装，支持chrome及phantomjs
+        Args:
+            load_images: 是否加载图片
+            user_agent: 字符串 或 无参函数，返回值为user_agent
+            proxy: xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+            headless: 是否启用无头模式
+            driver_type: CHROME 或 PHANTOMJS,
+            timeout: 请求超时时间
+            window_size: # 窗口大小
+            executable_path: 浏览器路径，默认为默认路径
+            **kwargs:
         """
         self._load_images = load_images
-        self._user_agent = (
-            user_agent
-            or " Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"
-        )
+        self._user_agent = user_agent or DEFAULT_USERAGENT
         self._proxy = proxy
         self._headless = headless
         self._timeout = timeout
@@ -188,6 +188,19 @@ class WebDriver:
 
         return cookies_json
 
+    @cookies.setter
+    def cookies(self, val: dict):
+        """
+        设置cookie
+        Args:
+            val: {"key":"value", "key2":"value2"}
+
+        Returns:
+
+        """
+        for key, value in val.items():
+            self.driver.add_cookie({"name": key, "value": value})
+
     def __getattr__(self, name):
         if self.driver:
             return getattr(self.driver, name)
@@ -210,11 +223,25 @@ class WebDriverPool:
     def is_full(self):
         return self.driver_count >= self.queue.maxsize
 
-    def get(self):
+    def get(self, user_agent: str = None, proxy: str = None):
+        """
+        获取webdriver
+        当webdriver为新实例时会使用 user_agen, proxy, cookie参数来创建
+        Args:
+            user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
+            proxy: xxx.xxx.xxx.xxx
+        Returns:
+
+        """
         if not self.is_full:
             with self.lock:
                 if not self.is_full:
-                    driver = WebDriver(**self.kwargs)
+                    kwargs = self.kwargs.copy()
+                    if user_agent:
+                        kwargs["user_agent"] = user_agent
+                    if proxy:
+                        kwargs["proxy"] = proxy
+                    driver = WebDriver(**kwargs)
                     self.queue.put(driver)
                     self.driver_count += 1
 

@@ -220,6 +220,27 @@ def get_cookies(response):
     return cookies
 
 
+def get_cookies_from_str(cookie_str):
+    """
+    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=")
+    "{'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}"
+
+    Args:
+        cookie_str: key=value; key2=value2; key3=; key4=
+
+    Returns:
+
+    """
+    cookies = {}
+    for cookie in cookie_str.split(";"):
+        key, value = cookie.split("=")
+        key = key.strip()
+        value = value.strip()
+        cookies[key] = value
+
+    return cookies
+
+
 def get_cookies_jar(cookies):
     """
     @summary: 适用于selenium生成的cookies转requests的cookies
