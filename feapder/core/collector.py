@@ -12,6 +12,8 @@ import collections
 import threading
 import time
 
+from bson.objectid import ObjectId
+
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
