@@ -71,7 +71,7 @@ class FirstSpider(feapder.AirSpider):
     def start_requests(self):
         yield feapder.Request("https://www.baidu.com")
 
-    def parse(self, request, response):
+    def parse(self, request, response:feapder.Response):
         print(response)
 
 
