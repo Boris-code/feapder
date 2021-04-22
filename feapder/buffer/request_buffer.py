@@ -13,6 +13,7 @@ import threading
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
+from feapder.network.request import Request
 from feapder.db.redisdb import RedisDB
 from feapder.utils.log import log
 from feapder.dedup import Dedup
@@ -68,15 +69,31 @@ class RequestBuffer(threading.Thread, Singleton):
         self._thread_stop = True
 
     def put_request(self, request):
+        """
+        将request添加至双向队列中
+        @param request:
+        @type request: Request
+        @return:
+        """
         self._requests_deque.append(request)
 
+        # 队列满时，将这一批request放入redis数据库
         if self.get_requests_count() > MAX_URL_COUNT:  # 超过最大缓存，主动调用
             self.flush()
 
     def put_del_request(self, request):
+        """
+        放入删除队列
+        @param request:
+        @return:
+        """
         self._del_requests_deque.append(request)
 
     def put_failed_request(self, request, table=None):
+        """
+        将失败的请求存入redis
+        @type request: Request
+        """
         try:
             request_dict = request.to_dict
             self._db.zadd(
@@ -86,18 +103,34 @@ class RequestBuffer(threading.Thread, Singleton):
             log.exception(e)
 
     def flush(self):
+        """
+        主动执行request放入redis数据库
+        @return:
+        """
         try:
             self.__add_request_to_db()
         except Exception as e:
             log.exception(e)
 
     def get_requests_count(self):
+        """
+        获取本地队列中已积累的request总数
+        @return: request的数量
+        """
         return len(self._requests_deque)
 
     def is_adding_to_db(self):
+        """
+        @rtype: bool
+        @return: 当前是否正在将request加入到redis
+        """
         return self._is_adding_to_db
 
     def __add_request_to_db(self):
+        """
+        将request放入redis数据库
+        @return:
+        """
         request_list = []
         prioritys = []
         callbacks = []
