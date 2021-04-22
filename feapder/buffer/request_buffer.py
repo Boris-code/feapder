@@ -96,9 +96,8 @@ class RequestBuffer(threading.Thread, Singleton):
         @type request: Request
         """
         try:
-            request_dict = request.to_dict
             self._db.zadd(
-                table or self._table_failed_request, request_dict, request.priority
+                table or self._table_failed_request, str(request.to_dict), request.priority
             )
         except Exception as e:
             log.exception(e)
