@@ -216,7 +216,7 @@ class Request(object):
             ):
                 continue
 
-            if callable(value) or isinstance(value, (Item, PerfectDict)):
+            if not isinstance(value, (str, int, float)):
                 value = tools.dumps_obj(value)
 
             request_dict[key] = value
