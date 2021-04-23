@@ -12,6 +12,7 @@ import getpass
 import os
 
 import feapder.utils.tools as tools
+from feapder import setting
 from feapder.db.mysqldb import MysqlDB
 from .create_init import CreateInit
 
@@ -30,9 +31,7 @@ class CreateItem:
 
     def select_columns(self, table_name):
         # sql = 'SHOW COLUMNS FROM ' + table_name
-        sql = "SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA, COLUMN_KEY, COLUMN_COMMENT FROM INFORMATION_SCHEMA.Columns WHERE table_name = '{}'".format(
-            table_name
-        )
+        sql = f"SELECT COLUMN_NAME, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA, COLUMN_KEY, COLUMN_COMMENT FROM INFORMATION_SCHEMA.Columns WHERE table_name = '{table_name}' and table_schema = '{setting.MYSQL_DB}'"
         columns = self._db.find(sql)
 
         return columns
@@ -45,10 +44,7 @@ class CreateItem:
         ---------
         @result:
         """
-        sql = (
-            "select table_name from information_schema.tables where table_name like '%s'"
-            % tables_name
-        )
+        sql = f"select table_name from information_schema.tables where table_name like '{tables_name}' and table_schema = '{setting.MYSQL_DB}'"
         tables_name = self._db.find(sql)
 
         return tables_name
