@@ -11,8 +11,6 @@ import threading
 import time
 from collections import Iterable
 
-from bson.objectid import ObjectId
-
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
