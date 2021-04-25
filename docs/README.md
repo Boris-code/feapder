@@ -27,7 +27,7 @@
 
 ## 环境要求：
 
-- Python 3.6.0+ 建议64位上使用
+- Python 3.6.0+
 - Works on Linux, Windows, macOS
 
 ## 安装
