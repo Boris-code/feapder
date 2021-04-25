@@ -10,6 +10,13 @@ MYSQL_DB = ""
 MYSQL_USER_NAME = ""
 MYSQL_USER_PASS = ""
 
+# MONGODB
+MONGO_IP = "localhost"
+MONGO_PORT = 27017
+MONGO_DB = ""
+MONGO_USER_NAME = ""
+MONGO_USER_PASS = ""
+
 # REDIS
 # IP:PORT
 REDISDB_IP_PORTS = "xxx:6379"
@@ -20,7 +27,10 @@ REDISDB_DB = 0
 # REDISDB_SERVICE_NAME = None
 #
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
-# ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline",
+    # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+]
 #
 # # 爬虫相关
 # # COLLECTOR
