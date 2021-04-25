@@ -18,10 +18,9 @@ webdriver_pool = WebDriverPool(
 def request():
     try:
         browser = webdriver_pool.get()
-        browser.get("https://news.qq.com/")
-        html = browser.page_source
-        print(html[:100])
-        webdriver_pool.remove(browser)
+        browser.get("https://baidu.com")
+        print(browser.title)
+        webdriver_pool.put(browser)
     except:
         print("失败")
 

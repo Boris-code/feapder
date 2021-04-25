@@ -9,6 +9,7 @@ class XueQiuSpider(feapder.AirSpider):
     def parse(self, request, response):
         print(response.cookies.get_dict())
         print(response.headers)
+        print(response.browser)
         print("response.url ", response.url)
 
         # article_list = response.xpath('//div[@class="detail"]')

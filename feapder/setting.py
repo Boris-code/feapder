@@ -58,8 +58,8 @@ SPIDER_AUTO_START_REQUESTS = True
 
 # 浏览器渲染
 WEBDRIVER = dict(
-    pool_size=2,  # 浏览器的数量
-    load_images=False,  # 是否加载图片
+    pool_size=1,  # 浏览器的数量
+    load_images=True,  # 是否加载图片
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器

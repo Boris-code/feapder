@@ -73,6 +73,8 @@ class AirSpider(BaseParser, Thread):
         return True
 
     def run(self):
+        self.start_callback()
+
         for i in range(self._thread_count):
             parser_control = AirSpiderParserControl(self._memory_db, self._item_buffer)
             parser_control.add_parser(self)
@@ -98,3 +100,5 @@ class AirSpider(BaseParser, Thread):
 
                 log.info("无任务，爬虫结束")
                 break
+
+        self.end_callback()

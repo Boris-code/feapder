@@ -94,6 +94,8 @@ class PaserControl(threading.Thread):
                         # 解析request
                         if request.auto_request:
                             request_temp = None
+                            response = None
+                            # 下载中间件
                             if request.download_midware:
                                 download_midware = (
                                     request.download_midware
@@ -106,7 +108,14 @@ class PaserControl(threading.Thread):
                             elif request.download_midware != False:
                                 request_temp = parser.download_midware(request)
 
+                            # 请求
                             if request_temp:
+                                if (
+                                    isinstance(request_temp, (tuple, list))
+                                    and len(request_temp) == 2
+                                ):
+                                    request_temp, response = request_temp
+
                                 if not isinstance(request_temp, Request):
                                     raise Exception(
                                         "download_midware need return a request, but received type: {}".format(
@@ -114,13 +123,14 @@ class PaserControl(threading.Thread):
                                         )
                                     )
                                 used_download_midware_enable = True
-                                response = (
-                                    request_temp.get_response()
-                                    if not setting.RESPONSE_CACHED_USED
-                                    else request_temp.get_response_from_cached(
-                                        save_cached=False
+                                if not response:
+                                    response = (
+                                        request_temp.get_response()
+                                        if not setting.RESPONSE_CACHED_USED
+                                        else request_temp.get_response_from_cached(
+                                            save_cached=False
+                                        )
                                     )
-                                )
                             else:
                                 response = (
                                     request.get_response()
@@ -367,6 +377,11 @@ class PaserControl(threading.Thread):
                                 expire_time=setting.RESPONSE_CACHED_EXPIRE_TIME,
                             )
 
+                    finally:
+                        # 释放浏览器
+                        if response and hasattr(response, "browser"):
+                            request._webdriver_pool.put(response.browser)
+
                     break
 
             # 删除正在做的request 跟随item优先
@@ -447,6 +462,9 @@ class AirSpiderParserControl(PaserControl):
                         # 解析request
                         if request.auto_request:
                             request_temp = None
+                            response = None
+
+                            # 下载中间件
                             if request.download_midware:
                                 download_midware = (
                                     request.download_midware
@@ -459,7 +477,14 @@ class AirSpiderParserControl(PaserControl):
                             elif request.download_midware != False:
                                 request_temp = parser.download_midware(request)
 
+                            # 请求
                             if request_temp:
+                                if (
+                                    isinstance(request_temp, (tuple, list))
+                                    and len(request_temp) == 2
+                                ):
+                                    request_temp, response = request_temp
+
                                 if not isinstance(request_temp, Request):
                                     raise Exception(
                                         "download_midware need return a request, but received type: {}".format(
@@ -468,11 +493,14 @@ class AirSpiderParserControl(PaserControl):
                                     )
                                 request = request_temp
 
-                            response = (
-                                request.get_response()
-                                if not setting.RESPONSE_CACHED_USED
-                                else request.get_response_from_cached(save_cached=False)
-                            )
+                            if not response:
+                                response = (
+                                    request.get_response()
+                                    if not setting.RESPONSE_CACHED_USED
+                                    else request.get_response_from_cached(
+                                        save_cached=False
+                                    )
+                                )
 
                         else:
                             response = None
@@ -634,6 +662,11 @@ class AirSpiderParserControl(PaserControl):
                                 response=response,
                                 expire_time=setting.RESPONSE_CACHED_EXPIRE_TIME,
                             )
+
+                    finally:
+                        # 释放浏览器
+                        if response and hasattr(response, "browser"):
+                            request._webdriver_pool.put(response.browser)
 
                     break
 
