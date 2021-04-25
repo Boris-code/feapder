@@ -36,7 +36,7 @@ class MongoPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-        add_count = self.to_db.add_batch_smart(table=table, datas=items)
+        add_count = self.to_db.add_batch(table=table, datas=items)
         datas_size = len(items)
         if add_count is not None:
             log.info(
@@ -57,7 +57,7 @@ class MongoPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-        update_count = self.to_db.add_batch_smart(
+        update_count = self.to_db.add_batch(
             table=table,
             items=items,
             update_columns=update_keys or list(items[0].keys()),

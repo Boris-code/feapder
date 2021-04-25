@@ -27,7 +27,10 @@ REDISDB_DB = 0
 # REDISDB_SERVICE_NAME = None
 #
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
-# ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline",
+    # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+]
 #
 # # 爬虫相关
 # # COLLECTOR

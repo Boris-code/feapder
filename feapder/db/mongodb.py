@@ -82,16 +82,16 @@ class MongoDB:
         cursor.close()
         return result
 
-    def add(self, table, data, **kwargs):
+    def add(self, table, data: Dict, **kwargs):
         """
 
         Args:
             table:
             data:
             kwargs:
-                auto_update: 自动更新，将替换替换重复数据，默认False
-                update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-                insert_ignore: 如果数据存在，则跳过，默认为False，即不跳过
+                auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
+                update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
+                insert_ignore: 唯一索引冲突时是否忽略，默认为False
                 condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
                 exception_callfunc: 异常回调
 
@@ -149,19 +149,6 @@ class MongoDB:
 
         return affect_count
 
-    def add_smart(self, table, data: Dict, **kwargs):
-        """
-        添加数据, 直接传递json格式的数据，不用拼sql
-        Args:
-            table: 表名
-            data: 字典 {"xxx":"xxx"}
-            **kwargs:
-
-        Returns: 添加行数
-
-        """
-        return self.add(table, data, **kwargs)
-
     def add_batch(self, table: str, datas: List[Dict], **kwargs):
         """
         @summary: 批量添加数据
@@ -169,13 +156,16 @@ class MongoDB:
         @param command: 字典
         @param datas: 列表 [[..], [...]]
         @param **kwargs:
-            auto_update: 自动更新，将替换替换重复数据，默认False
-            update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-            update_columns_value: 指定字段对应的值
+            auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
+            update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
+            update_columns_value: 指定更新的字段对应的值
             condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
         ---------
         @result: 添加行数
         """
+        if not datas:
+            return
+
         affect_count = None
         auto_update = kwargs.get("auto_update", False)
         update_columns = kwargs.get("update_columns", ())
@@ -232,25 +222,16 @@ class MongoDB:
 
         return affect_count
 
-    def add_batch_smart(self, table, datas: List[Dict], **kwargs):
+    def update(self, table, data: Dict, condition: Dict):
         """
-        批量添加数据, 直接传递list格式的数据，不用拼sql
+        更新
         Args:
             table: 表名
-            datas: 列表 [[..], [...]]
-            **kwargs:
-                auto_update: 自动更新，将替换替换重复数据，默认False
-                update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-                update_columns_value: 指定字段对应的值
-                condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
-        Returns: 添加行数
+            data: 数据 {"xxx":"xxx"}
+            condition: 更新条件 {"_id": "xxxx"}
 
+        Returns: True / False
         """
-        if not datas:
-            return
-        return self.add_batch(table, datas, **kwargs)
-
-    def update(self, table, data: Dict, condition: Dict):
         try:
             collection = self.get_collection(table)
             collection.update_one(condition, {"$set": data})
@@ -266,18 +247,6 @@ class MongoDB:
             return False
         else:
             return True
-
-    def update_smart(self, table, data: Dict, condition: Dict):
-        """
-        更新
-        Args:
-            table: 表名
-            data: 数据 {"xxx":"xxx"}
-            condition: 更新条件 {"_id": "xxxx"}
-
-        Returns: True / False
-        """
-        return self.update(table, data, condition)
 
     def delete(self, table, condition: Dict):
         """

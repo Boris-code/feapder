@@ -1,14 +1,45 @@
 # MongoDB
 
-
-
-## 使用须知
+## 数据自动入Mongo库使用须知
 
 - 使用`MongoDb`存储数据，需要使用`MongoPipeline`
-- 暂不支持批次爬虫
+
+示例:
+
+```python
+import feapder
+from feapder import Item
 
 
-## 连接
+class TestMongo(feapder.AirSpider):
+    __custom_setting__ = dict(
+        ITEM_PIPELINES=["feapder.pipelines.mongo_pipeline.MongoPipeline"],
+        MONGO_IP="localhost",
+        MONGO_PORT=27017,
+        MONGO_DB="feapder",
+        MONGO_USER_NAME="",
+        MONGO_USER_PASS="",
+    )
+
+    def start_requests(self):
+        yield feapder.Request("https://www.baidu.com")
+
+    def parse(self, request, response):
+        title = response.xpath("//title/text()").extract_first()  # 取标题
+        item = Item()  # 声明一个item
+        item.table_name = "test_mongo" # 指定存储的表名
+        item.title = title  # 给item属性赋值
+        yield item  # 返回item， item会自动批量入库
+
+
+if __name__ == "__main__":
+    TestMongo().start()
+```
+
+
+## 直接使用
+
+### 连接
 
 ```python
 from feapder.db.mongodb import MongoDB
@@ -31,11 +62,11 @@ db = MongoDB()
 db = MongoDB.from_url("mongodb://username:password@ip:port/db")
 ```
     
-## 方法
+### 方法
 
-> MysqlDB封装了增删改查等方法，方便使用
+> MongoDB封装了增删改查等方法，方便使用
 
-### 查
+#### 查
 
 ```python
 def find(self, table, limit=0) -> List[Dict]:
@@ -53,7 +84,7 @@ def find(self, table, limit=0) -> List[Dict]:
 ```
     
 
-### 增
+#### 增
 
 ```python
 def add(self, table, data, **kwargs):
@@ -63,9 +94,9 @@ def add(self, table, data, **kwargs):
         table:
         data:
         kwargs:
-            auto_update: 自动更新，将替换替换重复数据，默认False
-            update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-            insert_ignore: 如果数据存在，则跳过，默认为False，即不跳过
+            auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
+            update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
+            insert_ignore: 唯一索引冲突时是否忽略，默认为False
             condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
             exception_callfunc: 异常回调
 
@@ -75,22 +106,6 @@ def add(self, table, data, **kwargs):
 ```
 
 ```python
-def add_smart(self, table, data: Dict, **kwargs):
-    """
-    添加数据, 直接传递json格式的数据，不用拼sql
-    Args:
-        table: 表名
-        data: 字典 {"xxx":"xxx"}
-        **kwargs:
-
-    Returns: 添加行数
-
-    """
-    return self.add(table, data, **kwargs)
-```
-
-
-```python
 def add_batch(self, table: str, datas: List[Dict], **kwargs):
     """
     @summary: 批量添加数据
@@ -98,56 +113,19 @@ def add_batch(self, table: str, datas: List[Dict], **kwargs):
     @param command: 字典
     @param datas: 列表 [[..], [...]]
     @param **kwargs:
-        auto_update: 自动更新，将替换替换重复数据，默认False
-        update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-        update_columns_value: 指定字段对应的值
+        auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
+        update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
+        update_columns_value: 指定更新的字段对应的值
         condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
     ---------
     @result: 添加行数
     """
 ```
 
-```python
-def add_batch_smart(self, table, datas: List[Dict], **kwargs):
-    """
-    批量添加数据, 直接传递list格式的数据，不用拼sql
-    Args:
-        table: 表名
-        datas: 列表 [[..], [...]]
-        **kwargs:
-            auto_update: 自动更新，将替换替换重复数据，默认False
-            update_columns: 如果数据存在，更新指定字段，否则插入整条数据
-            update_columns_value: 指定字段对应的值
-            condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
-    Returns: 添加行数
-
-    """
-    if not datas:
-        return
-    return self.add_batch(table, datas, **kwargs)
-```
-
-### 更新
+#### 更新
 
 ```python
 def update(self, table, data: Dict, condition: Dict):
-    try:
-        collection = self.get_collection(table)
-        collection.update_one(condition, {'$set': data})
-    except Exception as e:
-        log.error(
-            """
-            error:{}
-            condition: {}
-        """.format(e, condition)
-        )
-        return False
-    else:
-        return True
-```
-
-```python
-def update_smart(self, table, data: Dict, condition: Dict):
     """
     更新
     Args:
@@ -157,10 +135,9 @@ def update_smart(self, table, data: Dict, condition: Dict):
 
     Returns: True / False
     """
-    return self.update(table, data, condition)
 ```
 
-### 删除
+#### 删除
 
 ```python
 def delete(self, table, condition: Dict):
@@ -170,19 +147,5 @@ def delete(self, table, condition: Dict):
         table:
         condition: 查找条件
     Returns: True / False
-
     """
-    try:
-        collection = self.get_collection(table)
-        collection.delete_one(condition)
-    except Exception as e:
-        log.error(
-            """
-            error:{}
-            condition: {}
-        """.format(e, condition)
-        )
-        return False
-    else:
-        return True
 ```
