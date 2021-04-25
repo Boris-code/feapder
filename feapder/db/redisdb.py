@@ -8,11 +8,47 @@ Created on 2016-11-16 16:25
 """
 
 import redis
+from redis._compat import unicode, long, basestring
+from redis.connection import Encoder as _Encoder
+from redis.exceptions import DataError
 from redis.sentinel import Sentinel
 from rediscluster import RedisCluster
 
 import feapder.setting as setting
 from feapder.utils.log import log
+
+
+class Encoder(_Encoder):
+    def encode(self, value):
+        "Return a bytestring or bytes-like representation of the value"
+        if isinstance(value, (bytes, memoryview)):
+            return value
+        elif isinstance(value, bool):
+            # special case bool since it is a subclass of int
+            raise DataError(
+                "Invalid input of type: 'bool'. Convert to a "
+                "bytes, string, int or float first."
+            )
+        elif isinstance(value, float):
+            value = repr(value).encode()
+        elif isinstance(value, (int, long)):
+            # python 2 repr() on longs is '123L', so use str() instead
+            value = str(value).encode()
+        elif isinstance(value, (list, dict, tuple)):
+            value = unicode(value)
+        elif not isinstance(value, basestring):
+            # a value we don't know how to deal with. throw an error
+            typename = type(value).__name__
+            raise DataError(
+                "Invalid input of type: '%s'. Convert to a "
+                "bytes, string, int or float first." % typename
+            )
+        if isinstance(value, unicode):
+            value = value.encode(self.encoding, self.encoding_errors)
+        return value
+
+
+redis.connection.Encoder = Encoder
 
 
 class RedisDB:
