@@ -62,6 +62,11 @@ WEBDRIVER = dict(
 
 # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
 RETRY_FAILED_REQUESTS = False
+
+#网络请求超时时间
+# (浮点或元组)等待服务器数据的超时限制，是一个浮点数，或是一个(connect timeout, read timeout) 元组
+REQUESTS_TIMEOUT = 22  # 22
+
 # request 超时时间，超过这个时间重新做（不是网络请求的超时时间）单位秒
 REQUEST_TIME_OUT = 600  # 10分钟
 # 保存失败的request
