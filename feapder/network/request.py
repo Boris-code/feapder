@@ -16,11 +16,9 @@ import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
-from feapder.network.item import Item
 from feapder.network.proxy_pool import proxy_pool
 from feapder.network.response import Response
 from feapder.utils.log import log
-from feapder.utils.perfect_dict import PerfectDict
 from feapder.utils.webdriver import WebDriverPool
 
 # 屏蔽warning信息
@@ -216,8 +214,14 @@ class Request(object):
             ):
                 continue
 
-            if not isinstance(value, (str, int, float)):
-                value = tools.dumps_obj(value)
+            if key in self.__class__.__REQUEST_ATTRS__:
+                if not isinstance(
+                    value, (bytes, bool, float, int, str, tuple, list, dict)
+                ):
+                    value = tools.dumps_obj(value)
+            else:
+                if not isinstance(value, (bytes, bool, float, int, str)):
+                    value = tools.dumps_obj(value)
 
             request_dict[key] = value
 
