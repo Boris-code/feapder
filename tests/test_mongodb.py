@@ -4,7 +4,7 @@ from feapder.db.mongodb import MongoDB
 
 
 db = MongoDB(
-    ip="192.168.20.241", port=27017, db="feapder"
+    ip="localhost", port=27017, db="feapder"
 )
 
 
