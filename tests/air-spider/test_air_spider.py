@@ -16,6 +16,12 @@ class TestAirSpider(feapder.AirSpider):
     #     LOG_LEVEL = "INFO"
     # )
 
+    def start_callback(self):
+        print("爬虫开始")
+
+    def end_callback(self):
+        print("爬虫结束")
+
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 
