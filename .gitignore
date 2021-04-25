@@ -14,3 +14,4 @@ dist/
 .vscode/
 media/
 .MWebMetaData/
+push.sh
