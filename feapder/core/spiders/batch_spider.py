@@ -474,8 +474,9 @@ class BatchSpider(BatchParser, Scheduler):
         """
         # TODO 分批取数据 每批最大取 1000000个，防止内存占用过大
         # 查询任务
+        task_keys = ", ".join([f"`{key}`" for key in self._task_keys])
         sql = "select %s from %s where %s = 0%s%s limit %s" % (
-            ", ".join(self._task_keys),
+            task_keys,
             self._task_table,
             self._task_state,
             self._task_condition_prefix_and,
@@ -508,8 +509,9 @@ class BatchSpider(BatchParser, Scheduler):
         """
 
         # 查询任务
+        task_keys = ", ".join([f"`{key}`" for key in self._task_keys])
         sql = "select %s from %s where %s = 2%s%s limit %s" % (
-            ", ".join(self._task_keys),
+            task_keys,
             self._task_table,
             self._task_state,
             self._task_condition_prefix_and,
@@ -1136,8 +1138,9 @@ class DebugBatchSpider(BatchSpider):
         """
 
         # 查询任务
+        task_keys = ", ".join([f"`{key}`" for key in self._task_keys])
         sql = "select %s from %s where id=%s" % (
-            ", ".join(self._task_keys),
+            task_keys,
             self._task_table,
             self._task_id,
         )
