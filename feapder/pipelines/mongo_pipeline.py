@@ -60,10 +60,10 @@ class MongoPipeline(BasePipeline):
         update_count = self.to_db.add_batch_smart(
             table=table,
             items=items,
-            update_columns=update_keys or list(items[0].keys())
+            update_columns=update_keys or list(items[0].keys()),
         )
         if update_count:
-            msg = "共更新 %s 条数据 到 %s" % (update_count // 2, table)
+            msg = "共更新 %s 条数据 到 %s" % (update_count, table)
             if update_keys:
                 msg += " 更新字段为 {}".format(update_keys)
             log.info(msg)
