@@ -55,6 +55,7 @@ class Request(object):
         "verify",
         "cert",
         "json",
+        "http2"
     ]
 
     DEFAULT_KEY_VALUE = dict(
