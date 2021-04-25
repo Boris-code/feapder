@@ -16,12 +16,11 @@ import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
-from feapder.network.item import Item
 from feapder.network.proxy_pool import proxy_pool
 from feapder.network.response import Response
 from feapder.utils.log import log
-from feapder.utils.perfect_dict import PerfectDict
 from feapder.utils.webdriver import WebDriverPool
+from requests.cookies import RequestsCookieJar
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -72,6 +71,7 @@ class Request(object):
         download_midware=None,
         is_abandoned=False,
         render=False,
+        render_time=0,
     )
 
     def __init__(
@@ -89,6 +89,7 @@ class Request(object):
         download_midware=None,
         is_abandoned=False,
         render=False,
+        render_time=0,
         **kwargs,
     ):
         """
@@ -108,6 +109,7 @@ class Request(object):
         @param download_midware: 下载中间件。默认为parser中的download_midware
         @param is_abandoned: 当发生异常时是否放弃重试 True/False. 默认False
         @param render: 是否用浏览器渲染
+        @param render_time: 渲染时长，即打开网页等待指定时间后再获取源码
         --
         以下参数于requests参数使用方式一致
         @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断
@@ -143,6 +145,7 @@ class Request(object):
         self.download_midware = download_midware
         self.is_abandoned = is_abandoned
         self.render = render
+        self.render_time = render_time or setting.WEBDRIVER.pop("render_time", 0)
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
@@ -216,12 +219,26 @@ class Request(object):
             ):
                 continue
 
-            if not isinstance(value, (str, int, float)):
-                value = tools.dumps_obj(value)
+            if key in self.__class__.__REQUEST_ATTRS__:
+                if not isinstance(
+                    value, (bytes, bool, float, int, str, tuple, list, dict)
+                ):
+                    value = tools.dumps_obj(value)
+            else:
+                if not isinstance(value, (bytes, bool, float, int, str)):
+                    value = tools.dumps_obj(value)
 
             request_dict[key] = value
 
         return request_dict
+
+    @property
+    def callback_name(self):
+        return (
+            getattr(self.callback, "__name__")
+            if callable(self.callback)
+            else self.callback
+        )
 
     def get_response(self, save_cached=False):
         """
@@ -306,13 +323,31 @@ class Request(object):
         )  # self.use_session 优先级高
 
         if self.render:
-            browser = self._webdriver_pool.get()
+            # 使用request的user_agent、cookies、proxy
+            user_agent = headers.get("User-Agent") or headers.get("user-agent")
+            cookies = self.requests_kwargs.get("cookies")
+            if cookies and isinstance(cookies, RequestsCookieJar):
+                cookies = cookies.get_dict()
+
+            if not cookies:
+                cookie_str = headers.get("Cookie") or headers.get("cookie")
+                if cookie_str:
+                    cookies = tools.get_cookies_from_str(cookie_str)
+
+            proxy = None
+            if proxies and proxies != -1:
+                proxy = proxies.get("http", "").strip("http://") or proxies.get(
+                    "https", ""
+                ).strip("https://")
+
+            browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
 
             try:
                 browser.get(self.url)
-                render_time = setting.WEBDRIVER.get("render_time", 0)
-                if render_time:
-                    tools.delay_time(render_time)
+                if cookies:
+                    browser.cookies = cookies
+                if self.render_time:
+                    tools.delay_time(self.render_time)
 
                 html = browser.page_source
                 response = Response.from_dict(
@@ -326,14 +361,14 @@ class Request(object):
                         "headers": {
                             "User-Agent": browser.execute_script(
                                 "return navigator.userAgent"
-                            )
+                            ),
+                            "Cookie": tools.cookies2str(browser.cookies),
                         },
                     }
                 )
 
                 response._cached_text = html
-                # response.browser = browser # 因为浏览器渲染完就释放了，所以不能绑定到response上
-                self._webdriver_pool.put(browser)
+                response.browser = browser
             except Exception as e:
                 self._webdriver_pool.remove(browser)
                 raise e

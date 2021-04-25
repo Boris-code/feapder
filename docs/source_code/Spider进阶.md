@@ -196,8 +196,8 @@ from feapder.buffer.request_buffer import RequestBuffer
 from feapder.buffer.item_buffer import ItemBuffer
 from feapder.dedup import Dedup
 
-RequestBuffer.dedup = Dedup(filter_type=MemoryError)
-ItemBuffer.dedup = Dedup(filter_type=MemoryError)
+RequestBuffer.dedup = Dedup(filter_type=Dedup.MemoryFilter)
+ItemBuffer.dedup = Dedup(filter_type=Dedup.MemoryFilter)
 ```
 
 RequestBuffer 为任务入库前缓冲的buffer，ItemBuffer为数据入库前缓冲的buffer

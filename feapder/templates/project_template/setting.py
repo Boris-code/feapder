@@ -27,7 +27,10 @@ REDISDB_DB = 0
 # REDISDB_SERVICE_NAME = None
 #
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
-# ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline",
+    # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+]
 #
 # # 爬虫相关
 # # COLLECTOR
@@ -42,8 +45,8 @@ REDISDB_DB = 0
 #
 # # 浏览器渲染下载
 # WEBDRIVER = dict(
-#     pool_size=2,  # 浏览器的数量
-#     load_images=False,  # 是否加载图片
+#     pool_size=1,  # 浏览器的数量
+#     load_images=True,  # 是否加载图片
 #     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
 #     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
 #     headless=False,  # 是否为无头浏览器
@@ -82,7 +85,7 @@ REDISDB_DB = 0
 # ITEM_FILTER_ENABLE = False  # item 去重
 # REQUEST_FILTER_ENABLE = False  # request 去重
 #
-# # 报警 支持钉钉及邮件，二选一即可
+# 报警 支持钉钉、企业微信、邮件
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个

@@ -16,6 +16,12 @@ class TestAirSpider(feapder.AirSpider):
     #     LOG_LEVEL = "INFO"
     # )
 
+    def start_callback(self):
+        print("爬虫开始")
+
+    def end_callback(self):
+        print("爬虫结束")
+
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com")
 
@@ -24,6 +30,14 @@ class TestAirSpider(feapder.AirSpider):
         # request.proxies = {"https":"https://12.12.12.12:6666"}
         # request.cookies = {}
         return request
+
+    def validate(self, request, response):
+        if response.status_code != 200:
+            raise Exception("response code not 200") # 重试
+
+        # if "哈哈" not in response.text:
+        #     return False # 抛弃当前请求
+
 
     def parse(self, request, response):
         print(response.bs4().title)

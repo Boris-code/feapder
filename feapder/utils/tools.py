@@ -220,6 +220,27 @@ def get_cookies(response):
     return cookies
 
 
+def get_cookies_from_str(cookie_str):
+    """
+    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=")
+    "{'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}"
+
+    Args:
+        cookie_str: key=value; key2=value2; key3=; key4=
+
+    Returns:
+
+    """
+    cookies = {}
+    for cookie in cookie_str.split(";"):
+        key, value = cookie.split("=")
+        key = key.strip()
+        value = value.strip()
+        cookies[key] = value
+
+    return cookies
+
+
 def get_cookies_jar(cookies):
     """
     @summary: 适用于selenium生成的cookies转requests的cookies
@@ -2304,7 +2325,7 @@ def wechat_warning(
     """企业微信报警"""
     if isinstance(user_phone, str):
         user_phone = [user_phone] if user_phone else []
-        
+
     if all_users is True or not user_phone:
         user_phone = ["@all"]
 
@@ -2314,13 +2335,10 @@ def wechat_warning(
     if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
-    
+
     data = {
         "msgtype": "text",
-        "text": {
-            "content": message,
-            "mentioned_mobile_list": user_phone
-        }
+        "text": {"content": message, "mentioned_mobile_list": user_phone},
     }
 
     headers = {"Content-Type": "application/json"}

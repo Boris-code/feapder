@@ -38,7 +38,10 @@ REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
 REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
 
 # 数据入库的pipeline，可自定义，默认MysqlPipeline
-ITEM_PIPELINES = ["feapder.pipelines.mysql_pipeline.MysqlPipeline"]
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline",
+    # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+]
 
 # 爬虫相关
 # COLLECTOR
@@ -55,8 +58,8 @@ SPIDER_AUTO_START_REQUESTS = True
 
 # 浏览器渲染
 WEBDRIVER = dict(
-    pool_size=2,  # 浏览器的数量
-    load_images=False,  # 是否加载图片
+    pool_size=1,  # 浏览器的数量
+    load_images=True,  # 是否加载图片
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
@@ -64,7 +67,7 @@ WEBDRIVER = dict(
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
-    render_time=0, # 渲染时长，即打开网页等待指定时间后再获取源码
+    render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
 )
 
 # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
@@ -106,7 +109,7 @@ USE_SESSION = False
 ITEM_FILTER_ENABLE = False  # item 去重
 REQUEST_FILTER_ENABLE = False  # request 去重
 
-# 报警 支持钉钉及邮件，二选一即可
+# 报警 支持钉钉、企业微信、邮件
 # 钉钉报警
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个

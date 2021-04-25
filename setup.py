@@ -46,6 +46,7 @@ requires = [
     "redis-py-cluster>=1.3.4",
     "cryptography>=3.3.2",
     "selenium>=3.141.0",
+    "pymongo>=3.10.1",
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]

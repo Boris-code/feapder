@@ -108,7 +108,37 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 
 自定义的下载中间件只有指定的请求才会经过。其他未指定下载中间件的请求，还是会经过默认的下载中间件
 
-## 8. 失败重试
+## 8. 校验
+
+```python
+def validate(self, request, response):
+    """
+    @summary: 校验函数, 可用于校验response是否正确
+    若函数内抛出异常，则重试请求
+    若返回True 或 None，则进入解析函数
+    若返回False，则抛弃当前请求
+    可通过request.callback_name 区分不同的回调函数，编写不同的校验逻辑
+    ---------
+    @param request:
+    @param response:
+    ---------
+    @result: True / None / False
+    """
+    pass
+```
+
+例如：
+
+```python
+def validate(self, request, response):
+    if response.status_code != 200:
+        raise Exception("response code not 200") # 重试
+
+    # if "哈哈" not in response.text:
+    #     return False # 抛弃当前请求
+```
+
+## 9. 失败重试
 
 框架支持重试机制，下载失败或解析函数抛出异常会自动重试请求。
 
@@ -121,7 +151,7 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 默认最大重试次数为100次，我们可以引入配置文件或自定义配置来修改重试次数，详情参考[配置文件](source_code/配置文件.md)
 
 
-## 9. 爬虫配置
+## 10. 爬虫配置
 
 爬虫配置支持自定义配置或引入配置文件`setting.py`的方式。
 
@@ -144,7 +174,7 @@ request.参数， 这里的参数支持requests所有参数，同时也可携带
 
 AirSpider不支持去重，因此配置文件中的去重配置无效
 
-## 10. 加快采集速度
+## 11. 加快采集速度
 
 默认爬虫为1线程，我们可通过修改线程数来加快采集速度。除了在配置文件中修改或使用自定义配置外，可以在启动函数中传递线程数
 
@@ -152,7 +182,7 @@ AirSpider不支持去重，因此配置文件中的去重配置无效
     if __name__ == "__main__":
         AirSpiderTest(thread_count=10).start()
 
-## 11. 数据入库
+## 12. 数据入库
 
 框架内封装了`MysqlDB`、`RedisDB`，与pymysql不同的是，MysqlDB 使用了线程池，且对方法进行了封装，使用起来更方便。RedisDB 支持 哨兵模式、集群模式。使用方法如下：
 
@@ -192,7 +222,9 @@ MysqlDB 的具体使用方法见 [MysqlDB](source_code/MysqlDB.md)
 
 RedisDB 的具体使用方法见 [RedisDB](source_code/RedisDB.md)
 
-## 12. 浏览器渲染下载
+框架也支持数据自动入库，详见[数据自动入库](usage/Spider?id=_5-数据自动入库)
+
+## 13. 浏览器渲染下载
 
 采集动态页面时（Ajax渲染的页面），常用的有两种方案。一种是找接口拼参数，这种方式比较复杂但效率高，需要一定的爬虫功底；另外一种是采用浏览器渲染的方式，直接获取源码，简单方便
 
@@ -207,10 +239,9 @@ def start_requests(self):
 
 ```python
 # 浏览器渲染
-# 浏览器渲染
 WEBDRIVER = dict(
-    pool_size=2,  # 浏览器的数量
-    load_images=False,  # 是否加载图片
+    pool_size=1,  # 浏览器的数量
+    load_images=True,  # 是否加载图片
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
@@ -218,12 +249,12 @@ WEBDRIVER = dict(
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
+    render_time=0, # 渲染时长，即打开网页等待指定时间后再获取源码
 )
 ```
 
-默认不加载图片，提高渲染速度
 
-## 13. 完整的代码示例
+## 14. 完整的代码示例
 
 AirSpider：https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py
 

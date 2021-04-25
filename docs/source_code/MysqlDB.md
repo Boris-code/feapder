@@ -22,7 +22,7 @@ db = MysqlDB()
 或者可以根据url连接
 
 ```python
-db = MysqlDB.from_url("mysql://username:ip:port/db?charset=utf8mb4")
+db = MysqlDB.from_url("mysql://username:password@ip:port/db?charset=utf8mb4")
 ```
     
 ## 方法
@@ -82,8 +82,8 @@ def add_batch(self, sql, datas: List[Dict]):
     """
     @summary: 批量添加数据
     ---------
-    @ param sql: insert ignore into (xxx,xxx) values (%s, %s, %s)
-    # param datas: 列表 [[..], [...]]
+    @ param sql: insert ignore into (xxx, xxx) values (%s, %s, %s)
+    @ param datas: 列表 [{}, {}, {}]
     ---------
     @result:添加行数
     """
@@ -95,7 +95,7 @@ def add_batch_smart(self, table, datas: List[Dict], **kwargs):
     批量添加数据, 直接传递list格式的数据，不用拼sql
     Args:
         table: 表名
-        datas: 列表 [[..], [...]]
+        datas: 列表 [{}, {}, {}]
         **kwargs:
 
     Returns: 添加行数
