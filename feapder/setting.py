@@ -21,6 +21,13 @@ MYSQL_DB = os.getenv("MYSQL_DB")
 MYSQL_USER_NAME = os.getenv("MYSQL_USER_NAME")
 MYSQL_USER_PASS = os.getenv("MYSQL_USER_PASS")
 
+# MONGODB
+MONGO_IP = "localhost"
+MONGO_PORT = 27017
+MONGO_DB = ""
+MONGO_USER_NAME = ""
+MONGO_USER_PASS = ""
+
 # REDIS
 # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
 REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
