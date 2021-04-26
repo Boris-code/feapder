@@ -14,6 +14,7 @@ import threading
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
@@ -24,30 +25,33 @@ DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit
 class WebDriver(RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
+    FIREFOX = 'FIREFOX'
 
     def __init__(
-        self,
-        load_images=True,
-        user_agent=None,
-        proxy=None,
-        headless=False,
-        driver_type=PHANTOMJS,
-        timeout=16,
-        window_size=(1024, 800),
-        executable_path=None,
-        **kwargs
+            self,
+            load_images=True,
+            user_agent=None,
+            proxy=None,
+            headless=False,
+            driver_type=PHANTOMJS,
+            timeout=16,
+            window_size=(1024, 800),
+            executable_path=None,
+            user_data_dir=None,
+            **kwargs
     ):
         """
-        webdirver 封装，支持chrome及phantomjs
+        webdirver 封装，支持chrome及phantomjs 和firefox
         Args:
             load_images: 是否加载图片
             user_agent: 字符串 或 无参函数，返回值为user_agent
             proxy: xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
             headless: 是否启用无头模式
-            driver_type: CHROME 或 PHANTOMJS,
+            driver_type: CHROME 或 PHANTOMJS,FIREFOX
             timeout: 请求超时时间
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
+            user_data_dir: 浏览器用户目录，只支持chrome 和 firefox
             **kwargs:
         """
         self._load_images = load_images
@@ -61,15 +65,20 @@ class WebDriver(RemoteWebDriver):
         self.proxies = {}
         self.user_agent = None
 
+        self._user_data_dir = user_data_dir
+
         if driver_type == WebDriver.CHROME:
             self.driver = self.chrome_driver()
 
         elif driver_type == WebDriver.PHANTOMJS:
             self.driver = self.phantomjs_driver()
 
+        elif driver_type == WebDriver.FIREFOX:
+            self.driver = self.firefox_driver()
+
         else:
             raise TypeError(
-                "dirver_type must be one of CHROME or PHANTOMJS, but received {}".format(
+                "dirver_type must be one of CHROME or PHANTOMJS or FIREFOX, but received {}".format(
                     type(driver_type)
                 )
             )
@@ -92,12 +101,64 @@ class WebDriver(RemoteWebDriver):
     def get_driver(self):
         return self.driver
 
+    def firefox_driver(self):
+        if self._user_data_dir:
+            firefox_profile = webdriver.FirefoxProfile(profile_directory=self._user_data_dir)
+        else:
+            firefox_profile = webdriver.FirefoxProfile()
+
+        firefox_options = webdriver.FirefoxOptions()
+        firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
+
+        if self._user_agent:
+            firefox_profile.set_preference("general.useragent.override", self._user_agent()
+            if callable(self._user_agent)
+            else self._user_agent)
+
+        if not self._load_images:
+            firefox_profile.set_preference('permissions.default.image', 2)
+
+        if self._proxy:
+            firefox_capabilities['marionette'] = True
+            firefox_capabilities['proxy'] = {
+                "proxyType": "MANUAL",
+                "httpProxy": self._proxy,
+                "ftpProxy": self._proxy,
+                "sslProxy": self._proxy
+            }
+
+        if self._headless:
+            firefox_options.add_argument('--headless')
+            firefox_options.add_argument('--disable-gpu')
+
+        if self._window_size:
+            firefox_options.add_argument(
+                "--window-size={},{}".format(self._window_size[0], self._window_size[1])
+            )
+
+        if self._executable_path:
+            driver = webdriver.Firefox(
+                capabilities=firefox_capabilities,
+                options=firefox_options,
+                firefox_profile=firefox_profile,
+                executable_path=self._executable_path
+            )
+        else:
+            driver = webdriver.Firefox(
+                capabilities=firefox_capabilities,
+                options=firefox_options,
+                firefox_profile=firefox_profile)
+
+        return driver
+
     def chrome_driver(self):
         chrome_options = webdriver.ChromeOptions()
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option("useAutomationExtension", False)
 
+        if self._user_data_dir:
+            chrome_options.add_argument(f"--user-data-dir={self._user_data_dir}")
         if self._proxy:
             chrome_options.add_argument(
                 "--proxy-server={}".format(
@@ -129,7 +190,7 @@ class WebDriver(RemoteWebDriver):
                 chrome_options=chrome_options, executable_path=self._executable_path
             )
         else:
-            driver = webdriver.Chrome(chrome_options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
 
         driver.execute_cdp_cmd(
             "Page.addScriptToEvaluateOnNewDocument",
