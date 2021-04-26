@@ -1,0 +1,36 @@
+# -*- coding:utf-8
+import feapder
+from feapder.utils.webdriver import WebDriver
+import  time
+
+class TestFirefox(feapder.AirSpider):
+    __custom_setting__ = dict(
+
+        # 浏览器渲染下载
+        WEBDRIVER=dict(
+            pool_size=2,  # 浏览器的数量
+            load_images=False,  # 是否加载图片
+            user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+            proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+            headless=False,  # 是否为无头浏览器
+            driver_type="FIREFOX",  # CHROME 或 PHANTOMJS 或 FIREFOX
+            timeout=30,  # 请求超时时间
+            window_size=(1024, 800),  # 窗口大小
+            executable_path=None,  # 浏览器路径，默认为默认路径
+            render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+        )
+    )
+
+    def start_requests(self):
+        yield feapder.Request("http://www.baidu.com", render=True)
+
+    def parse(self, request, response):
+        browser: WebDriver = response.browser
+        browser.find_element_by_id("kw").send_keys("feapder")
+        browser.find_element_by_id("su").click()
+        time.sleep(5)
+        print(browser.page_source)
+
+
+if __name__ == "__main__":
+    TestFirefox().start()
