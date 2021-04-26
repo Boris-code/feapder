@@ -40,7 +40,7 @@ class WebDriver(RemoteWebDriver):
             **kwargs
     ):
         """
-        webdirver 封装，支持chrome及phantomjs 和frifox
+        webdirver 封装，支持chrome及phantomjs 和firefox
         Args:
             load_images: 是否加载图片
             user_agent: 字符串 或 无参函数，返回值为user_agent
