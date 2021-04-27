@@ -145,7 +145,7 @@ class Request(object):
         self.download_midware = download_midware
         self.is_abandoned = is_abandoned
         self.render = render
-        self.render_time = render_time or setting.WEBDRIVER.pop("render_time", 0)
+        self.render_time = render_time or setting.WEBDRIVER.get("render_time", 0)
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
