@@ -68,6 +68,7 @@ WEBDRIVER = dict(
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+    custom_argument=['--ignore-certificate-errors']  # 自定义浏览器渲染参数
 )
 
 # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
