@@ -126,13 +126,15 @@ class BatchParser(BaseParser):
     def __init__(
         self, task_table, batch_record_table, task_state, date_format, mysqldb=None
     ):
-        self._mysqldb = mysqldb or MysqlDB()  # mysqldb
-
+        self._db = self.connect_db(mysqldb)
         self._task_table = task_table  # mysql中的任务表
         self._batch_record_table = batch_record_table  # mysql 中的批次记录表
         self._task_state = task_state  # mysql中任务表的state字段名
         self._date_format = date_format  # 批次日期格式
-
+    
+    def connect_db(self, db):
+        return db or MysqlDB()  # mysqldb
+    
     def add_task(self):
         """
         @summary: 添加任务, 每次启动start_monitor 都会调用，且在init_task之前调用
@@ -168,7 +170,7 @@ class BatchParser(BaseParser):
             self._task_table, kwargs, condition="id = {task_id}".format(task_id=task_id)
         )
 
-        if self._mysqldb.update(sql):
+        if self._db.update(sql):
             log.debug("置任务%s状态成功" % task_id)
         else:
             log.error("置任务%s状态失败  sql=%s" % (task_id, sql))
