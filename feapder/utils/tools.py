@@ -233,7 +233,7 @@ def get_cookies_from_str(cookie_str):
     """
     cookies = {}
     for cookie in cookie_str.split(";"):
-        key, value = cookie.split("=")
+        key, value = cookie.split("=", 1)
         key = key.strip()
         value = value.strip()
         cookies[key] = value

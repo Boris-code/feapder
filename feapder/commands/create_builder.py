@@ -46,6 +46,7 @@ def main():
     )
     spider.add_argument("-j", "--json", help="创建json", action="store_true")
     spider.add_argument("-sj", "--sort_json", help="创建有序json", action="store_true")
+    spider.add_argument("-c", "--cookies", help="创建cookie", action="store_true")
 
     # 指定数据库
     spider.add_argument("--host", type=str, help="mysql 连接地址", metavar="")
@@ -98,6 +99,9 @@ def main():
 
     elif args.sort_json:
         CreateJson().create(sort_keys=True)
+
+    elif args.cookies:
+        CreateCookies().create()
 
 
 if __name__ == "__main__":
