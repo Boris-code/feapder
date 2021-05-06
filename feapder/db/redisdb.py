@@ -7,9 +7,12 @@ Created on 2016-11-16 16:25
 @author: Boris
 """
 
+import time
+
 import redis
 from redis._compat import unicode, long, basestring
 from redis.connection import Encoder as _Encoder
+from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
 from redis.sentinel import Sentinel
 from rediscluster import RedisCluster
@@ -61,7 +64,7 @@ class RedisDB:
         decode_responses=True,
         service_name=None,
         max_connections=32,
-        **kwargs
+        **kwargs,
     ):
         """
         redis的封装
@@ -86,74 +89,16 @@ class RedisDB:
 
         self._is_redis_cluster = False
 
-        try:
-            if not url:
-                if not ip_ports:
-                    raise Exception("未设置redis连接信息")
-
-                ip_ports = (
-                    ip_ports if isinstance(ip_ports, list) else ip_ports.split(",")
-                )
-                if len(ip_ports) > 1:
-                    startup_nodes = []
-                    for ip_port in ip_ports:
-                        ip, port = ip_port.split(":")
-                        startup_nodes.append({"host": ip, "port": port})
-
-                    if service_name:
-                        # log.debug("使用redis哨兵模式")
-                        hosts = [(node["host"], node["port"]) for node in startup_nodes]
-                        sentinel = Sentinel(hosts, socket_timeout=3, **kwargs)
-                        self._redis = sentinel.master_for(
-                            service_name,
-                            password=user_pass,
-                            db=db,
-                            redis_class=redis.StrictRedis,
-                            decode_responses=decode_responses,
-                            max_connections=max_connections,
-                            **kwargs
-                        )
-
-                    else:
-                        # log.debug("使用redis集群模式")
-                        self._redis = RedisCluster(
-                            startup_nodes=startup_nodes,
-                            decode_responses=decode_responses,
-                            password=user_pass,
-                            max_connections=max_connections,
-                            **kwargs
-                        )
-
-                    self._is_redis_cluster = True
-                else:
-                    ip, port = ip_ports[0].split(":")
-                    self._redis = redis.StrictRedis(
-                        host=ip,
-                        port=port,
-                        db=db,
-                        password=user_pass,
-                        decode_responses=decode_responses,
-                        max_connections=max_connections,
-                        **kwargs
-                    )
-            else:
-                self._redis = redis.StrictRedis.from_url(
-                    url, decode_responses=decode_responses
-                )
-
-        except Exception as e:
-            raise
-        else:
-            # if not url:
-            #     log.debug("连接到redis数据库 %s db%s" % (ip_ports, db))
-            # else:
-            #     log.debug("连接到redis数据库 %s" % (url))
-            pass
-
+        self.__redis = None
+        self._url = url
         self._ip_ports = ip_ports
         self._db = db
         self._user_pass = user_pass
-        self._url = url
+        self._decode_responses = decode_responses
+        self._service_name = service_name
+        self._max_connections = max_connections
+        self._kwargs = kwargs
+        self.get_connect()
 
     def __repr__(self):
         if self._url:
@@ -162,6 +107,92 @@ class RedisDB:
         return "<Redisdb ip_ports: {} db:{} user_pass:{}>".format(
             self._ip_ports, self._db, self._user_pass
         )
+
+    @property
+    def _redis(self):
+        try:
+            if not self.__redis.ping():
+                raise ConnectionError("unable to connect to redis")
+        except:
+            self._reconnect()
+
+        return self.__redis
+
+    @_redis.setter
+    def _redis(self, val):
+        self.__redis = val
+
+    def get_connect(self):
+        # 获取数据库连接
+        try:
+            if not self._url:
+                if not self._ip_ports:
+                    raise Exception("未设置 redis 连接信息")
+
+                ip_ports = (
+                    self._ip_ports
+                    if isinstance(self._ip_ports, list)
+                    else self._ip_ports.split(",")
+                )
+                if len(ip_ports) > 1:
+                    startup_nodes = []
+                    for ip_port in ip_ports:
+                        ip, port = ip_port.split(":")
+                        startup_nodes.append({"host": ip, "port": port})
+
+                    if self._service_name:
+                        # log.debug("使用redis哨兵模式")
+                        hosts = [(node["host"], node["port"]) for node in startup_nodes]
+                        sentinel = Sentinel(hosts, socket_timeout=3, **self._kwargs)
+                        self._redis = sentinel.master_for(
+                            self._service_name,
+                            password=self._user_pass,
+                            db=self._db,
+                            redis_class=redis.StrictRedis,
+                            decode_responses=self._decode_responses,
+                            max_connections=self._max_connections,
+                            **self._kwargs,
+                        )
+
+                    else:
+                        # log.debug("使用redis集群模式")
+                        self._redis = RedisCluster(
+                            startup_nodes=startup_nodes,
+                            decode_responses=self._decode_responses,
+                            password=self._user_pass,
+                            max_connections=self._max_connections,
+                            **self._kwargs,
+                        )
+
+                    self._is_redis_cluster = True
+                else:
+                    ip, port = ip_ports[0].split(":")
+                    self._redis = redis.StrictRedis(
+                        host=ip,
+                        port=port,
+                        db=self._db,
+                        password=self._user_pass,
+                        decode_responses=self._decode_responses,
+                        max_connections=self._max_connections,
+                        **self._kwargs,
+                    )
+                    self._is_redis_cluster = False
+            else:
+                self._redis = redis.StrictRedis.from_url(
+                    self._url, decode_responses=self._decode_responses
+                )
+                self._is_redis_cluster = False
+
+        except Exception as e:
+            raise
+        else:
+            # if not self._url:
+            #     log.debug("连接到redis数据库 %s db%s" % (self._ip_ports, self._db))
+            # else:
+            #     log.debug("连接到redis数据库 %s" % (self._url))
+            pass
+
+        return self.__redis.ping()  # 不要写成self._redis.ping() 否则循环调用了
 
     @classmethod
     def from_url(cls, url):
@@ -207,6 +238,7 @@ class RedisDB:
         @param is_pop:
         @return:
         """
+
         datas = []
         if is_pop:
             count = count if count <= self.sget_count(table) else self.sget_count(table)
@@ -240,6 +272,7 @@ class RedisDB:
         ---------
         @result:
         """
+
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
@@ -266,6 +299,7 @@ class RedisDB:
         ---------
         @result:
         """
+
         # 当 SCAN 命令的游标参数被设置为 0 时， 服务器将开始一次新的迭代， 而当服务器向用户返回值为 0 的游标时， 表示迭代已结束
         cursor = "0"
         while cursor != 0:
@@ -321,6 +355,7 @@ class RedisDB:
         ---------
         @result: 列表
         """
+
         start_pos = 0  # 包含
         end_pos = count - 1 if count > 0 else count
 
@@ -523,6 +558,7 @@ class RedisDB:
         ---------
         @result:
         """
+
         if isinstance(values, list):
             self._redis.zrem(table, *values)
         else:
@@ -534,6 +570,7 @@ class RedisDB:
         @param values:
         @return:
         """
+
         is_exists = []
 
         if isinstance(values, list):
@@ -557,6 +594,7 @@ class RedisDB:
         return is_exists
 
     def lpush(self, table, values):
+
         if isinstance(values, list):
             pipe = self._redis.pipeline(
                 transaction=True
@@ -580,6 +618,7 @@ class RedisDB:
         ---------
         @result: count>1时返回列表
         """
+
         datas = None
 
         count = count if count <= self.lget_count(table) else self.lget_count(table)
@@ -631,7 +670,6 @@ class RedisDB:
         ---------
         @result: 删除的条数
         """
-
         return self._redis.lrem(table, num, value)
 
     def lrange(self, table, start=0, end=-1):
@@ -649,7 +687,6 @@ class RedisDB:
         ---------
         @result: 1 新插入； 0 覆盖
         """
-
         return self._redis.hset(table, key, value)
 
     def hset_batch(self, table, datas):
@@ -708,7 +745,6 @@ class RedisDB:
         ---------
         @result:
         """
-
         self._redis.hdel(table, *keys)
 
     def hget_count(self, table):
@@ -791,7 +827,6 @@ class RedisDB:
         ---------
         @result:
         """
-
         self._redis.expire(key, seconds)
 
     def get_expire(self, key):
@@ -813,3 +848,18 @@ class RedisDB:
 
     def get_redis_obj(self):
         return self._redis
+
+    def _reconnect(self):
+        # 检测连接状态, 当数据库重启或设置 timeout 导致断开连接时自动重连
+        retry_count = 0
+        while True:
+            try:
+                retry_count += 1
+                log.error(f"redis 连接断开, 重新连接 {retry_count}")
+                if self.get_connect():
+                    log.info(f"redis 连接成功")
+                    return True
+            except (ConnectionError, TimeoutError) as e:
+                log.error(f"连接失败 e: {e}")
+
+            time.sleep(2)

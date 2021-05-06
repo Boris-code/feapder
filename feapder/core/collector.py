@@ -153,7 +153,7 @@ class Collector(threading.Thread):
         return requests
 
     def get_requests_count(self):
-        return len(self._todo_requests) or self._db.zget_count(self._tab_requests)
+        return len(self._todo_requests) or self._db.zget_count(self._tab_requests) or 0
 
     def is_collector_task(self):
         return self._is_collector_task
