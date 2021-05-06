@@ -89,7 +89,7 @@ class RedisDB:
 
         self._is_redis_cluster = False
 
-        self._redis = None
+        self.__redis = None
         self._url = url
         self._ip_ports = ip_ports
         self._db = db
@@ -107,6 +107,20 @@ class RedisDB:
         return "<Redisdb ip_ports: {} db:{} user_pass:{}>".format(
             self._ip_ports, self._db, self._user_pass
         )
+
+    @property
+    def _redis(self):
+        try:
+            if not self.__redis.ping():
+                raise ConnectionError("unable to connect to redis")
+        except:
+            self._reconnect()
+
+        return self.__redis
+
+    @_redis.setter
+    def _redis(self, val):
+        self.__redis = val
 
     def get_connect(self):
         # 获取数据库连接
@@ -178,6 +192,7 @@ class RedisDB:
             #     log.debug("连接到redis数据库 %s" % (self._url))
             pass
 
+        return self.__redis.ping()  # 不要写成self._redis.ping() 否则循环调用了
 
     @classmethod
     def from_url(cls, url):
@@ -836,26 +851,15 @@ class RedisDB:
 
     def _reconnect(self):
         # 检测连接状态, 当数据库重启或设置 timeout 导致断开连接时自动重连
-        retry_count = 10
-        retry_interval = 2
-        for i in range(retry_count):
+        retry_count = 0
+        while True:
             try:
-                if self._redis.ping():
-                    if i == 0:
-                        # 正常连接
-                        pass
-                    else:
-                        # 重新连接
-                        log.info("redis 重新连接成功")
+                retry_count += 1
+                log.error(f"redis 连接断开, 重新连接 {retry_count}")
+                if self.get_connect():
+                    log.info(f"redis 连接成功")
                     return True
-                else:
-                    raise ConnectionError("unable to connect to redis")
-            except Exception as e:
-                log.error(f"redis 连接断开, 重新连接 {i+1}/{retry_count}")
-                try:
-                    self.get_connect()
-                except Exception as e:
-                    pass
-            time.sleep(retry_interval)
+            except (ConnectionError, TimeoutError) as e:
+                log.error(f"连接失败 e: {e}")
 
-        raise ConnectionError("unable to connect to redis")
+            time.sleep(2)
