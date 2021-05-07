@@ -7,12 +7,12 @@ Created on 2021-04-18 14:12:21
 @author: Mkdir700
 @email:  mkdir700@gmail.com
 """
-from typing import List, Dict
 from urllib import parse
+from typing import List, Dict, Optional
 
-import pymongo.errors
 from pymongo import MongoClient
 from pymongo.collection import Collection
+from pymongo.errors import DuplicateKeyError
 
 import feapder.setting as setting
 from feapder.utils.log import log
@@ -60,68 +60,85 @@ class MongoDB:
 
         connect_params.update(kwargs)
         return cls(**connect_params)
-
-    def get_collection(self, collection_name) -> Collection:
-        return self.db.get_collection(collection_name)
-
-    def find(self, table, condition=None, limit=0) -> List[Dict]:
+    
+    def get_collection(self, coll_name) -> Collection:
+        """
+        根据集合名获取集合对象
+        @param coll_name: 集合名
+        @return:
+        """
+        return self.db.get_collection(coll_name)
+    
+    def find(self,
+             coll_name: str,
+             condition: Optional[Dict] = None,
+             limit: int = 0,
+             **kwargs) -> List[Dict]:
         """
         @summary:
         无数据： 返回[]
         有数据： [{'_id': 'xx', ...}, ...]
         ---------
-        @param filter:
-        @param limit:
+        @param coll_name: 集合名(表名)
+        @param condition: 查询条件
+        @param limit: 结果数量
+        @param kwargs:
+            更多参数 https://docs.mongodb.com/manual/reference/command/find/#command-fields
+
         ---------
         @result:
         """
         condition = {} if condition is None else condition
-        collection = self.db.get_collection(table)
-        cursor = collection.find(condition)
-        result = list(cursor.limit(limit))
-        cursor.close()
-        return result
-
-    def add(self, table, data: Dict, **kwargs):
+        command = {
+            'find': coll_name,
+            'filter': condition,
+            'limit': limit,
+            'singleBatch': True
+        }
+        command.update(kwargs)
+        result = self.run_command(command)
+        cursor = result['cursor']
+        dataset = cursor['firstBatch']
+        return dataset
+    
+    def add(self, coll_name, data: Dict, **kwargs):
         """
-
+        添加单条数据
         Args:
-            table:
-            data:
-            kwargs:
-                auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
-                update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
-                insert_ignore: 唯一索引冲突时是否忽略，默认为False
-                condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
-                exception_callfunc: 异常回调
-
-        Returns: 添加行数
-
+        @param coll_name: 集合名
+        @param data: 单条数据
+        @param kwargs:
+            update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
+            insert_ignore: 唯一索引冲突时是否忽略，默认为False
+            condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
+            exception_callfunc: 异常回调
+        @return: 插入成功的行数
         """
         affect_count = 1
-        auto_update = kwargs.get("auto_update", False)
-        update_columns = kwargs.get("update_columns", ())
-        insert_ignore = kwargs.get("insert_ignore", False)
-        condition_fields = kwargs.get("condition_fields", ["_id"])
-        exception_callfunc = kwargs.get("exception_callfunc", None)
+        auto_update = kwargs.pop("auto_update", False)
+        update_columns = kwargs.pop("update_columns", ())
+        insert_ignore = kwargs.pop("insert_ignore", False)
+        condition_fields = kwargs.pop("condition_fields", ["_id"])
+        exception_callfunc = kwargs.pop("exception_callfunc", None)
+        
         try:
-            collection = self.get_collection(table)
-
+            collection = self.get_collection(coll_name)
+            
             # 存在则更新
             if update_columns:
                 if not isinstance(update_columns, (tuple, list)):
                     update_columns = [update_columns]
-
+                
                 try:
                     collection.insert_one(data)
-                except pymongo.errors.DuplicateKeyError:
+                except DuplicateKeyError:
                     condition = {
                         condition_field: data[condition_field]
                         for condition_field in condition_fields
                     }
                     doc = {key: data[key] for key in update_columns}
                     collection.update_one(condition, {"$set": doc})
-
+            
             # 覆盖更新
             elif auto_update:
                 condition = {
@@ -130,60 +147,60 @@ class MongoDB:
                 }
                 # 替换已存在的数据
                 collection.replace_one(condition, data)
-
+            
             else:
                 try:
                     collection.insert_one(data)
-                except pymongo.errors.DuplicateKeyError as e:
+                except DuplicateKeyError as e:
                     if not insert_ignore:
                         raise e
                     else:
                         affect_count = 0
-
+        
         except Exception as e:
             log.error("error: {}".format(e))
             if exception_callfunc:
                 exception_callfunc(e)
-
+            
             affect_count = 0
-
+        
         return affect_count
-
-    def add_batch(self, table: str, datas: List[Dict], **kwargs):
+    
+    def add_batch(self, coll_name: str, datas: List[Dict], **kwargs):
         """
         @summary: 批量添加数据
         ---------
-        @param command: 字典
-        @param datas: 列表 [[..], [...]]
-        @param **kwargs:
+        @param coll_name: 集合名
+        @param datas: 列表 [{'_id': 'xx'}, ... ]
+        @param kwargs:
             auto_update: 覆盖更新，将替换唯一索引重复的数据，默认False
             update_columns: 更新指定的列（如果数据的唯一索引存在，则更新指定字段，如 update_columns = ["name", "title"]
             update_columns_value: 指定更新的字段对应的值
             condition_fields: 用于条件查找的字段，默认以`_id`作为查找条件，默认：['_id']
         ---------
-        @result: 添加行数
+        @return: 添加行数
         """
         if not datas:
             return
-
+        
         affect_count = None
-        auto_update = kwargs.get("auto_update", False)
-        update_columns = kwargs.get("update_columns", ())
-        update_columns_value = kwargs.get("update_columns_value", ())
-        condition_fields = kwargs.get("condition_fields", ["_id"])
-
+        auto_update = kwargs.pop("auto_update", False)
+        update_columns = kwargs.pop("update_columns", ())
+        update_columns_value = kwargs.pop("update_columns_value", ())
+        condition_fields = kwargs.pop("condition_fields", ["_id"])
+        
         try:
-            collection = self.get_collection(table)
+            collection = self.get_collection(coll_name)
             affect_count = 0
-
+            
             if update_columns:
                 if not isinstance(update_columns, (tuple, list)):
                     update_columns = [update_columns]
-
+                
                 for data in datas:
                     try:
                         collection.insert_one(data)
-                    except pymongo.errors.DuplicateKeyError:
+                    except DuplicateKeyError:
                         # 数据冲突，只更新指定字段
                         condition = {
                             condition_field: data[condition_field]
@@ -195,45 +212,59 @@ class MongoDB:
                         }
                         collection.update_one(condition, {"$set": doc})
                     affect_count += 1
-
+            
             elif auto_update:
+                # 覆盖更新
+                updates = []
+                command = {
+                    'update': coll_name,
+                    'updates': updates,
+                    'ordered': False
+                }
+                
                 for data in datas:
                     condition = {
                         condition_field: data[condition_field]
                         for condition_field in condition_fields
                     }
-                    # 如果找到就替换，否则插入
-                    result = collection.find_one_and_replace(
-                        condition, data, upsert=True
-                    )
-                    affect_count += 1
-
+                    updates.append({
+                        'q': condition,
+                        'u': data,
+                        'upsert': True
+                    })
+                
+                write_result = self.run_command(command)
+                affect_count += write_result['n']
+            
             else:
-                for data in datas:
-                    try:
-                        collection.insert_one(data)  # TODO 实现真正的批量插入
-                    except pymongo.errors.DuplicateKeyError:
-                        # 忽略冲突
-                        continue
-                    affect_count += 1
-
+                command = {
+                    'insert': coll_name,
+                    'documents': datas,
+                    'ordered': False
+                }
+                write_result = self.run_command(command)
+                affect_count += write_result['n']
+                write_errors = write_result.get('writeErrors', None)
+                if write_errors:
+                    log.error("error:{}".format(write_errors))
+        
         except Exception as e:
             log.error("error:{}".format(e))
-
+        
         return affect_count
-
-    def update(self, table, data: Dict, condition: Dict):
+    
+    def update(self, coll_name, data: Dict, condition: Dict):
         """
         更新
         Args:
-            table: 表名
-            data: 数据 {"xxx":"xxx"}
+            coll_name: 集合名
+            data: 单条数据 {"xxx":"xxx"}
             condition: 更新条件 {"_id": "xxxx"}
 
         Returns: True / False
         """
         try:
-            collection = self.get_collection(table)
+            collection = self.get_collection(coll_name)
             collection.update_one(condition, {"$set": data})
         except Exception as e:
             log.error(
@@ -247,18 +278,18 @@ class MongoDB:
             return False
         else:
             return True
-
-    def delete(self, table, condition: Dict):
+    
+    def delete(self, coll_name, condition: Dict) -> bool:
         """
         删除
         Args:
-            table:
+            coll_name: 集合名
             condition: 查找条件
         Returns: True / False
 
         """
         try:
-            collection = self.get_collection(table)
+            collection = self.get_collection(coll_name)
             collection.delete_one(condition)
         except Exception as e:
             log.error(
@@ -272,3 +303,12 @@ class MongoDB:
             return False
         else:
             return True
+    
+    def run_command(self, command: Dict):
+        """
+        运行指令
+        参考文档 https://www.geek-book.com/src/docs/mongodb/mongodb/docs.mongodb.com/manual/reference/command/index.html
+        @param command:
+        @return:
+        """
+        return self.db.command(command)
