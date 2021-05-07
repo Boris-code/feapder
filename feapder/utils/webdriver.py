@@ -14,7 +14,6 @@ import threading
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
-from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
@@ -25,22 +24,22 @@ DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit
 class WebDriver(RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
-    FIREFOX = 'FIREFOX'
+    FIREFOX = "FIREFOX"
 
     def __init__(
-            self,
-            load_images=True,
-            user_agent=None,
-            proxy=None,
-            headless=False,
-            driver_type=PHANTOMJS,
-            timeout=16,
-            window_size=(1024, 800),
-            executable_path=None,
-            **kwargs
+        self,
+        load_images=True,
+        user_agent=None,
+        proxy=None,
+        headless=False,
+        driver_type=PHANTOMJS,
+        timeout=16,
+        window_size=(1024, 800),
+        executable_path=None,
+        **kwargs
     ):
         """
-        webdirver 封装，支持chrome及phantomjs 和firefox
+        webdirver 封装，支持chrome、phantomjs 和 firefox
         Args:
             load_images: 是否加载图片
             user_agent: 字符串 或 无参函数，返回值为user_agent
@@ -98,49 +97,49 @@ class WebDriver(RemoteWebDriver):
         return self.driver
 
     def firefox_driver(self):
-
         firefox_profile = webdriver.FirefoxProfile()
         firefox_options = webdriver.FirefoxOptions()
         firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
 
-        if self._user_agent:
-            firefox_profile.set_preference("general.useragent.override", self._user_agent()
-            if callable(self._user_agent)
-            else self._user_agent)
-
-        if not self._load_images:
-            firefox_profile.set_preference('permissions.default.image', 2)
-
         if self._proxy:
-            firefox_capabilities['marionette'] = True
-            firefox_capabilities['proxy'] = {
+            proxy = self._proxy() if callable(self._proxy) else self._proxy
+            firefox_capabilities["marionette"] = True
+            firefox_capabilities["proxy"] = {
                 "proxyType": "MANUAL",
-                "httpProxy": self._proxy,
-                "ftpProxy": self._proxy,
-                "sslProxy": self._proxy
+                "httpProxy": proxy,
+                "ftpProxy": proxy,
+                "sslProxy": proxy,
             }
 
-        if self._headless:
-            firefox_options.add_argument('--headless')
-            firefox_options.add_argument('--disable-gpu')
-
-        if self._window_size:
-            firefox_options.add_argument(
-                "--window-size={},{}".format(self._window_size[0], self._window_size[1])
+        if self._user_agent:
+            firefox_profile.set_preference(
+                "general.useragent.override",
+                self._user_agent() if callable(self._user_agent) else self._user_agent,
             )
+
+        if not self._load_images:
+            firefox_profile.set_preference("permissions.default.image", 2)
+
+        if self._headless:
+            firefox_options.add_argument("--headless")
+            firefox_options.add_argument("--disable-gpu")
 
         if self._executable_path:
             driver = webdriver.Firefox(
                 capabilities=firefox_capabilities,
                 options=firefox_options,
                 firefox_profile=firefox_profile,
-                executable_path=self._executable_path
+                executable_path=self._executable_path,
             )
         else:
             driver = webdriver.Firefox(
                 capabilities=firefox_capabilities,
                 options=firefox_options,
-                firefox_profile=firefox_profile)
+                firefox_profile=firefox_profile,
+            )
+
+        if self._window_size:
+            driver.set_window_size(*self._window_size)
 
         return driver
 
