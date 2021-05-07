@@ -24,6 +24,7 @@ DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit
 class WebDriver(RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
+    FIREFOX = "FIREFOX"
 
     def __init__(
         self,
@@ -38,13 +39,13 @@ class WebDriver(RemoteWebDriver):
         **kwargs
     ):
         """
-        webdirver 封装，支持chrome及phantomjs
+        webdirver 封装，支持chrome、phantomjs 和 firefox
         Args:
             load_images: 是否加载图片
             user_agent: 字符串 或 无参函数，返回值为user_agent
             proxy: xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
             headless: 是否启用无头模式
-            driver_type: CHROME 或 PHANTOMJS,
+            driver_type: CHROME 或 PHANTOMJS,FIREFOX
             timeout: 请求超时时间
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
@@ -67,9 +68,12 @@ class WebDriver(RemoteWebDriver):
         elif driver_type == WebDriver.PHANTOMJS:
             self.driver = self.phantomjs_driver()
 
+        elif driver_type == WebDriver.FIREFOX:
+            self.driver = self.firefox_driver()
+
         else:
             raise TypeError(
-                "dirver_type must be one of CHROME or PHANTOMJS, but received {}".format(
+                "dirver_type must be one of CHROME or PHANTOMJS or FIREFOX, but received {}".format(
                     type(driver_type)
                 )
             )
@@ -91,6 +95,53 @@ class WebDriver(RemoteWebDriver):
 
     def get_driver(self):
         return self.driver
+
+    def firefox_driver(self):
+        firefox_profile = webdriver.FirefoxProfile()
+        firefox_options = webdriver.FirefoxOptions()
+        firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
+
+        if self._proxy:
+            proxy = self._proxy() if callable(self._proxy) else self._proxy
+            firefox_capabilities["marionette"] = True
+            firefox_capabilities["proxy"] = {
+                "proxyType": "MANUAL",
+                "httpProxy": proxy,
+                "ftpProxy": proxy,
+                "sslProxy": proxy,
+            }
+
+        if self._user_agent:
+            firefox_profile.set_preference(
+                "general.useragent.override",
+                self._user_agent() if callable(self._user_agent) else self._user_agent,
+            )
+
+        if not self._load_images:
+            firefox_profile.set_preference("permissions.default.image", 2)
+
+        if self._headless:
+            firefox_options.add_argument("--headless")
+            firefox_options.add_argument("--disable-gpu")
+
+        if self._executable_path:
+            driver = webdriver.Firefox(
+                capabilities=firefox_capabilities,
+                options=firefox_options,
+                firefox_profile=firefox_profile,
+                executable_path=self._executable_path,
+            )
+        else:
+            driver = webdriver.Firefox(
+                capabilities=firefox_capabilities,
+                options=firefox_options,
+                firefox_profile=firefox_profile,
+            )
+
+        if self._window_size:
+            driver.set_window_size(*self._window_size)
+
+        return driver
 
     def chrome_driver(self):
         chrome_options = webdriver.ChromeOptions()
