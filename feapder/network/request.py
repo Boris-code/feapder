@@ -247,7 +247,7 @@ class Request(object):
         @return:
         """
         # 设置超时默认时间
-        self.requests_kwargs.setdefault("timeout", 22)  # connect=22 read=22
+        self.requests_kwargs.setdefault("timeout", setting.REQUEST_TIMEOUT)  # connect=22 read=22
 
         # 设置stream
         # 默认情况下，当你进行网络请求后，响应体会立即被下载。你可以通过 stream 参数覆盖这个行为，推迟下载响应体直到访问 Response.content 属性。此时仅有响应头被下载下来了。缺点： stream 设为 True，Requests 无法将连接释放回连接池，除非你 消耗了所有的数据，或者调用了 Response.close。 这样会带来连接效率低下的问题。
