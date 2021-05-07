@@ -42,7 +42,7 @@ class BatchDBMixinBase(object):
         @return:
         """
         pass
-
+    
     def _update_batch_record_done_cache_date(self):
         pass
     
@@ -158,7 +158,7 @@ class BatchMysqlDBMixin(BatchDBMixinBase):
         )
         total_task_count = self._db.find(sql)[0][0]
         return total_task_count
-
+    
     def _get_todo_task(self) -> List[Tuple]:
         """
         从数据库从取出代执行的任务
@@ -175,7 +175,7 @@ class BatchMysqlDBMixin(BatchDBMixinBase):
         )
         tasks = self._db.find(sql)
         return tasks
-
+    
     def _get_doing_task(self):
         # 查询任务
         task_keys = ", ".join([f"`{key}`" for key in self._task_keys])
@@ -189,7 +189,7 @@ class BatchMysqlDBMixin(BatchDBMixinBase):
         )
         tasks = self._db.find(sql)
         return tasks
-
+    
     def _get_done_or_doing_tasks(self, limit=0) -> List:
         sql = "select 1 from %s where (%s = 0 or %s=2)%s limit %" % (
             self._task_table,
@@ -220,21 +220,18 @@ class BatchMysqlDBMixin(BatchDBMixinBase):
         ---------
         @result:
         """
-        self._mongodb.update(
+        sql = "update {} set done_count = {}, total_count = {}, fail_count = {}, update_time = CURRENT_TIME, is_done=0, `interval` = {}, interval_unit = '{}' where batch_date = '{}'".format(
             self._batch_record_table,
-            data={
-                'done_count': task_state.get('done_count'),
-                'total_count': task_state.get('total_count'),
-                'failed_count': task_state.get('failed_count'),
-                'update_time': datetime.datetime.now(),
-                'is_done': 0,
-                'interval': self._batch_interval if self._batch_interval >= 1 else self._batch_interval * 24,
-                'interval_unit': "day" if self._batch_interval >= 1 else "hour",
-            },
-            condition={
-                'batch_date': self.batch_date
-            }
+            task_state.get("done_count"),
+            task_state.get("total_count"),
+            task_state.get("failed_count"),
+            self._batch_interval
+            if self._batch_interval >= 1
+            else self._batch_interval * 24,
+            "day" if self._batch_interval >= 1 else "hour",
+            self.batch_date,
         )
+        self._mysqldb.update(sql)
     
     def _update_batch_record_done(self):
         """
