@@ -90,12 +90,12 @@ class Collector(threading.Thread):
         if not request_count:
             return
 
-        # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_TIME_OUT
+        # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_LOST_TIMEOUT
         requests_list = self._db.zrangebyscore_set_score(
             self._tab_requests,
             priority_min="-inf",
             priority_max=current_timestamp,
-            score=current_timestamp + setting.REQUEST_TIME_OUT,
+            score=current_timestamp + setting.REQUEST_LOST_TIMEOUT,
             count=request_count,
         )
 

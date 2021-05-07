@@ -235,7 +235,7 @@ class DebugSpider(Spider):
         SPIDER_SLEEP_TIME=0,
         SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
-        REQUEST_TIME_OUT=600,  # 10分钟
+        REQUEST_LOST_TIMEOUT=600,  # 10分钟
         PROXY_ENABLE=False,
         RETRY_FAILED_REQUESTS=False,
         # 保存失败的request

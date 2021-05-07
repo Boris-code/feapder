@@ -35,7 +35,7 @@ ITEM_PIPELINES = [
 # # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
 # RETRY_FAILED_REQUESTS = False
 # # request 超时时间，超过这个时间重新做（不是网络请求的超时时间）单位秒
-# REQUEST_TIME_OUT = 600  # 10分钟
+# REQUEST_LOST_TIMEOUT = 600  # 10分钟
 # # 保存失败的request
 # SAVE_FAILED_REQUEST = True
 #
