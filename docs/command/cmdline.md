@@ -55,6 +55,7 @@
       -init                 创建__init__.py 如 feapder create -init
       -j, --json            创建json
       -sj, --sort_json      创建有序json
+      --setting             创建全局配置文件 feapder create -setting
       --host                mysql 连接地址
       --port                mysql 端口
       --username            mysql 用户名

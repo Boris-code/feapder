@@ -3,26 +3,26 @@
 import os
 
 
-# MYSQL
-MYSQL_IP = ""
-MYSQL_PORT = 3306
-MYSQL_DB = ""
-MYSQL_USER_NAME = ""
-MYSQL_USER_PASS = ""
-
-# MONGODB
-MONGO_IP = "localhost"
-MONGO_PORT = 27017
-MONGO_DB = ""
-MONGO_USER_NAME = ""
-MONGO_USER_PASS = ""
-
-# REDIS
-# IP:PORT
-REDISDB_IP_PORTS = "xxx:6379"
-REDISDB_USER_PASS = ""
-# 默认 0 到 15 共16个数据库
-REDISDB_DB = 0
+# # MYSQL
+# MYSQL_IP = ""
+# MYSQL_PORT = 3306
+# MYSQL_DB = ""
+# MYSQL_USER_NAME = ""
+# MYSQL_USER_PASS = ""
+#
+# # MONGODB
+# MONGO_IP = ""
+# MONGO_PORT = 27017
+# MONGO_DB = ""
+# MONGO_USER_NAME = ""
+# MONGO_USER_PASS = ""
+#
+# # REDIS
+# # IP:PORT
+# REDISDB_IP_PORTS = "xxx:6379"
+# REDISDB_USER_PASS = ""
+# # 默认 0 到 15 共16个数据库
+# REDISDB_DB = 0
 # # 适用于redis哨兵模式
 # REDISDB_SERVICE_NAME = None
 #
