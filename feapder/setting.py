@@ -53,8 +53,8 @@ SPIDER_THREAD_COUNT = 1  # 爬虫并发数
 SPIDER_SLEEP_TIME = 0  # 下载时间间隔（解析完一个response后休眠时间）
 SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
-# 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
-SPIDER_AUTO_START_REQUESTS = True
+SPIDER_AUTO_START_REQUESTS = True # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
+AUTO_STOP_WHEN_SPIDER_DONE = True # 爬虫是否自动结束
 
 # 浏览器渲染
 WEBDRIVER = dict(
@@ -70,29 +70,22 @@ WEBDRIVER = dict(
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
 )
 
-# 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败
+# 爬虫启动时，重新抓取失败的requests
 RETRY_FAILED_REQUESTS = False
-# request 超时时间，超过这个时间重新做（不是网络请求的超时时间）单位秒
+# request防丢机制。（指定的REQUEST_TIME_OUT时间内request还没做完，会重新下发 重做）
 REQUEST_TIME_OUT = 600  # 10分钟
 # 保存失败的request
 SAVE_FAILED_REQUEST = True
 
-# 下载缓存 利用redis缓存，由于内存小，所以仅供测试时使用
+# 下载缓存 利用redis缓存，但由于内存大小限制，所以建议仅供开发调试代码时使用，防止每次debug都需要网络请求
 RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True
 RESPONSE_CACHED_EXPIRE_TIME = 3600  # 缓存时间 秒
 RESPONSE_CACHED_USED = False  # 是否使用缓存 补采数据时可设置为True
-
-WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 
 # redis 存放item与request的根目录
 REDIS_KEY = ""
 # 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
 DELETE_KEYS = []
-# 爬虫做完request后是否自动结束或者等待任务
-AUTO_STOP_WHEN_SPIDER_DONE = True
-
-# PROCESS 进程数 未用
-PROCESS_COUNT = 1
 
 # 设置代理
 PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n
@@ -124,6 +117,7 @@ WECHAT_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # 时间间隔
 WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / ERROR
+WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 
 LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
