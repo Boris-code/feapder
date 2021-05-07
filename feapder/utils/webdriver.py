@@ -167,9 +167,11 @@ class WebDriver(RemoteWebDriver):
             chrome_options.add_experimental_option(
                 "prefs", {"profile.managed_default_content_settings.images": 2}
             )
+
         if self._headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
+
         if self._window_size:
             chrome_options.add_argument(
                 "--window-size={},{}".format(self._window_size[0], self._window_size[1])
