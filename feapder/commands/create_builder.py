@@ -47,6 +47,9 @@ def main():
     spider.add_argument("-j", "--json", help="创建json", action="store_true")
     spider.add_argument("-sj", "--sort_json", help="创建有序json", action="store_true")
     spider.add_argument("-c", "--cookies", help="创建cookie", action="store_true")
+    spider.add_argument(
+        "--setting", help="创建全局配置文件" "feapder create --setting", action="store_true"
+    )
 
     # 指定数据库
     spider.add_argument("--host", type=str, help="mysql 连接地址", metavar="")
@@ -54,7 +57,6 @@ def main():
     spider.add_argument("--username", type=str, help="mysql 用户名", metavar="")
     spider.add_argument("--password", type=str, help="mysql 密码", metavar="")
     spider.add_argument("--db", type=str, help="mysql 数据库名", metavar="")
-
     args = spider.parse_args()
 
     if args.host:
@@ -102,6 +104,9 @@ def main():
 
     elif args.cookies:
         CreateCookies().create()
+
+    elif args.setting:
+        CreateSetting().create()
 
 
 if __name__ == "__main__":
