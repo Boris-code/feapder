@@ -36,6 +36,7 @@ class WebDriver(RemoteWebDriver):
         timeout=16,
         window_size=(1024, 800),
         executable_path=None,
+        custom_argument=None,
         **kwargs
     ):
         """
@@ -58,6 +59,7 @@ class WebDriver(RemoteWebDriver):
         self._timeout = timeout
         self._window_size = window_size
         self._executable_path = executable_path
+        self._custom_argument = custom_argument
 
         self.proxies = {}
         self.user_agent = None
@@ -124,6 +126,11 @@ class WebDriver(RemoteWebDriver):
             firefox_options.add_argument("--headless")
             firefox_options.add_argument("--disable-gpu")
 
+        # 添加自定义的配置参数
+        if self._custom_argument:
+            for arg in self._custom_argument:
+                firefox_options.add_argument(arg)
+
         if self._executable_path:
             driver = webdriver.Firefox(
                 capabilities=firefox_capabilities,
@@ -167,13 +174,20 @@ class WebDriver(RemoteWebDriver):
             chrome_options.add_experimental_option(
                 "prefs", {"profile.managed_default_content_settings.images": 2}
             )
+
         if self._headless:
             chrome_options.add_argument("--headless")
             chrome_options.add_argument("--disable-gpu")
+
         if self._window_size:
             chrome_options.add_argument(
                 "--window-size={},{}".format(self._window_size[0], self._window_size[1])
             )
+
+        # 添加自定义的配置参数
+        if self._custom_argument:
+            for arg in self._custom_argument:
+                chrome_options.add_argument(arg)
 
         if self._executable_path:
             driver = webdriver.Chrome(
@@ -213,6 +227,11 @@ class WebDriver(RemoteWebDriver):
             )
         if not self._load_images:
             service_args.append("--load-images=no")
+
+        # 添加自定义的配置参数
+        if self._custom_argument:
+            for arg in self._custom_argument:
+                service_args.append(arg)
 
         if self._executable_path:
             driver = webdriver.PhantomJS(
