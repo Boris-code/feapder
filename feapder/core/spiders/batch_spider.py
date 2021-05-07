@@ -42,7 +42,6 @@ class BatchMetaclass(type):
             pass
             # return type.__new__(mcs, name, (MongoBatchParser, bases[1], BatchMongoDBMixin), attrs)
         else: # 默认使用mysql
-            print(attrs)
             return type.__new__(mcs, name, (*bases[0:2], BatchMysqlDBMixin), attrs)
 
 
@@ -908,7 +907,7 @@ class BatchSpider(BatchParser, Scheduler, BatchDBMixinBase, metaclass=BatchMetac
         return DebugBatchSpider(*args, **kwargs)
 
 
-class DebugBatchSpider(BatchSpider):
+class DebugBatchSpider(BatchSpider, BatchDBMixinBase, metaclass=BatchMetaclass):
     """
     Debug批次爬虫
     """
