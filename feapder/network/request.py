@@ -449,8 +449,7 @@ class BaseRequest(object):
             log.info("无response缓存  重新下载")
             response_obj = self.get_response(save_cached=save_cached)
         else:
-            # 避免注入攻击  提高安全性
-            response_dict = ast.literal_eval(response_dict)
+            response_dict = eval(response_dict)
             response_obj = Response.from_dict(response_dict)
         return response_obj
 
