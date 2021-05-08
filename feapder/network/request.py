@@ -7,9 +7,11 @@ Created on 2018-07-25 11:49:08
 @author: Boris
 @email:  boris_liu@foxmail.com
 """
+import ast
 
 import requests
 from requests.adapters import HTTPAdapter
+from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import feapder.setting as setting
@@ -20,13 +22,12 @@ from feapder.network.proxy_pool import proxy_pool
 from feapder.network.response import Response
 from feapder.utils.log import log
 from feapder.utils.webdriver import WebDriverPool
-from requests.cookies import RequestsCookieJar
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-class Request(object):
+class BaseRequest(object):
     session = None
     webdriver_pool: WebDriverPool = None
     user_agent_pool = user_agent
@@ -39,7 +40,8 @@ class Request(object):
     local_filepath = None
     oss_handler = None
 
-    __REQUEST_ATTRS__ = [
+    # 数据结构使用set类似  降低 key in __REQUEST_ATTRS__ 的时间复杂度为O(1)
+    __REQUEST_ATTRS__ = {
         # 'method', 'url', 必须传递 不加入**kwargs中
         "params",
         "data",
@@ -55,7 +57,7 @@ class Request(object):
         "verify",
         "cert",
         "json",
-    ]
+    }
 
     DEFAULT_KEY_VALUE = dict(
         url="",
@@ -75,22 +77,22 @@ class Request(object):
     )
 
     def __init__(
-        self,
-        url="",
-        retry_times=0,
-        priority=300,
-        parser_name=None,
-        callback=None,
-        filter_repeat=True,
-        auto_request=True,
-        request_sync=False,
-        use_session=None,
-        random_user_agent=True,
-        download_midware=None,
-        is_abandoned=False,
-        render=False,
-        render_time=0,
-        **kwargs,
+            self,
+            url="",
+            retry_times=0,
+            priority=300,
+            parser_name=None,
+            callback=None,
+            filter_repeat=True,
+            auto_request=True,
+            request_sync=False,
+            use_session=None,
+            random_user_agent=True,
+            download_midware=None,
+            is_abandoned=False,
+            render=False,
+            render_time=0,
+            **kwargs,
     ):
         """
         @summary: Request参数
@@ -149,7 +151,7 @@ class Request(object):
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
-            if key in self.__class__.__REQUEST_ATTRS__:  # 取requests参数
+            if value is not None and key in self.__class__.__REQUEST_ATTRS__:  # 取requests参数
                 self.requests_kwargs[key] = value
 
             self.__dict__[key] = value
@@ -213,15 +215,15 @@ class Request(object):
 
         for key, value in self.__dict__.items():
             if (
-                key in self.__class__.DEFAULT_KEY_VALUE
-                and self.__class__.DEFAULT_KEY_VALUE.get(key) == value
-                or key == "requests_kwargs"
+                    key in self.__class__.DEFAULT_KEY_VALUE
+                    and self.__class__.DEFAULT_KEY_VALUE.get(key) == value
+                    or key == "requests_kwargs"
             ):
                 continue
 
             if key in self.__class__.__REQUEST_ATTRS__:
                 if not isinstance(
-                    value, (bytes, bool, float, int, str, tuple, list, dict)
+                        value, (bytes, bool, float, int, str, tuple, list, dict)
                 ):
                     value = tools.dumps_obj(value)
             else:
@@ -297,16 +299,16 @@ class Request(object):
                 ""
                 if not self.parser_name
                 else "%s.%s "
-                % (
-                    self.parser_name,
-                    (
-                        self.callback
-                        and callable(self.callback)
-                        and getattr(self.callback, "__name__")
-                        or self.callback
-                    )
-                    or "parse",
-                ),
+                     % (
+                         self.parser_name,
+                         (
+                                 self.callback
+                                 and callable(self.callback)
+                                 and getattr(self.callback, "__name__")
+                                 or self.callback
+                         )
+                         or "parse",
+                     ),
                 self.url,
                 method,
                 self.requests_kwargs,
@@ -447,7 +449,8 @@ class Request(object):
             log.info("无response缓存  重新下载")
             response_obj = self.get_response(save_cached=save_cached)
         else:
-            response_dict = eval(response_dict)
+            # 避免注入攻击  提高安全性
+            response_dict = ast.literal_eval(response_dict)
             response_obj = Response.from_dict(response_dict)
         return response_obj
 
@@ -464,3 +467,68 @@ class Request(object):
 
     def copy(self):
         return self.__class__.from_dict(self.to_dict)
+
+
+class Request(BaseRequest):
+    """兼容原来的Request对象 增加requests参数支持  方便编写 """
+
+    def __init__(self,
+                 url="",
+                 retry_times=0,
+                 priority=300,
+                 parser_name=None,
+                 callback=None,
+                 filter_repeat=True,
+                 auto_request=True,
+                 request_sync=False,
+                 use_session=None,
+                 random_user_agent=True,
+                 download_midware=None,
+                 is_abandoned=False,
+                 render=False,
+                 render_time=0,
+                 params=None,
+                 data=None,
+                 headers=None,
+                 cookies=None,
+                 files=None,
+                 auth=None,
+                 timeout=None,
+                 allow_redirects=True,
+                 proxies=None,
+                 hooks=None,
+                 stream=None,
+                 verify=None,
+                 cert=None,
+                 json=None,
+                 **kwargs,
+                 ):
+        super(Request, self).__init__(url,
+                                      retry_times=retry_times,
+                                      priority=priority,
+                                      parser_name=parser_name,
+                                      callback=callback,
+                                      filter_repeat=filter_repeat,
+                                      auto_request=auto_request,
+                                      request_sync=request_sync,
+                                      use_session=use_session,
+                                      random_user_agent=random_user_agent,
+                                      download_midware=download_midware,
+                                      is_abandoned=is_abandoned,
+                                      render=render,
+                                      render_time=render_time,
+                                      params=params,
+                                      data=data,
+                                      headers=headers,
+                                      cookies=cookies,
+                                      files=files,
+                                      auth=auth,
+                                      timeout=timeout,
+                                      allow_redirects=allow_redirects,
+                                      proxies=proxies,
+                                      hooks=hooks,
+                                      stream=stream,
+                                      verify=verify,
+                                      cert=cert,
+                                      json=json,
+                                      **kwargs)
