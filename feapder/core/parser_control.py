@@ -272,7 +272,7 @@ class PaserControl(threading.Thread):
                                 continue
 
                             if not isinstance(request, Request):
-                                raise Exception("exception_request 需return request")
+                                raise Exception("exception_request 需 yield request")
 
                             if (
                                 request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
@@ -599,7 +599,7 @@ class AirSpiderParserControl(PaserControl):
                             )
                         for request in requests:
                             if not isinstance(request, Request):
-                                raise Exception("exception_request 需return request")
+                                raise Exception("exception_request 需 yield request")
 
                             if (
                                 request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
