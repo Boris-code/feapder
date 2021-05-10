@@ -28,8 +28,7 @@ class EmailSender(object):
 
         self.smtpserver = EmailSender.SMTPSERVER
         self.sender = EmailSender.SENDER
-
-        self.smtp_client = smtplib.SMTP_SSL()
+        self.smtp_client = smtplib.SMTP_SSL(self.SMTPSERVER)
 
     def __enter__(self):
         self.login()
