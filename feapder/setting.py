@@ -115,6 +115,7 @@ DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 EAMIL_SENDER = ""  # 发件人
 EAMIL_PASSWORD = ""  # 授权码
 EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
+EMAIL_SMTPSERVER = "smtp.163.com" # 邮件服务器 默认为163邮箱
 # 企业微信报警
 WECHAT_WARNING_URL = ""  # 企业微信机器人api
 WECHAT_WARNING_PHONE = ""  # 报警人 将会在群内@此人, 支持列表，可指定多人

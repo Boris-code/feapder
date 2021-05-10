@@ -20,15 +20,13 @@ from feapder.utils.log import log
 
 class EmailSender(object):
     SENDER = "feapder报警系统"
-    SMTPSERVER = "smtp.163.com"
 
-    def __init__(self, username, password):
+    def __init__(self, username, password, smtpserver="smtp.163.com"):
         self.username = username
         self.password = password
-
-        self.smtpserver = EmailSender.SMTPSERVER
+        self.smtpserver = smtpserver
+        self.smtp_client = smtplib.SMTP_SSL(smtpserver)
         self.sender = EmailSender.SENDER
-        self.smtp_client = smtplib.SMTP_SSL(self.SMTPSERVER)
 
     def __enter__(self):
         self.login()

@@ -2267,6 +2267,7 @@ def email_warning(
     eamil_sender=setting.EAMIL_SENDER,
     eamil_password=setting.EAMIL_PASSWORD,
     email_receiver=setting.EMAIL_RECEIVER,
+    email_smtpserver=setting.EMAIL_SMTPSERVER,
     rate_limit=setting.WARNING_INTERVAL,
 ):
     if not all([message, eamil_sender, eamil_password, email_receiver]):
@@ -2281,7 +2282,9 @@ def email_warning(
     if isinstance(email_receiver, str):
         email_receiver = [email_receiver]
 
-    with EmailSender(username=eamil_sender, password=eamil_password) as email:
+    with EmailSender(
+        username=eamil_sender, password=eamil_password, smtpserver=email_smtpserver
+    ) as email:
         return email.send(receivers=email_receiver, title=title, content=message)
 
 
