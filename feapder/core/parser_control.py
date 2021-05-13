@@ -407,6 +407,7 @@ class PaserControl(threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._started.clear()
 
     def add_parser(self, parser):
         self._parsers.append(parser)

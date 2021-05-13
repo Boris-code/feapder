@@ -102,3 +102,4 @@ class AirSpider(BaseParser, Thread):
                 break
 
         self.end_callback()
+        self._started.clear()

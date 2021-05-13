@@ -432,6 +432,8 @@ class Scheduler(threading.Thread):
         for parser_control in self._parser_controls:
             parser_control.stop()
 
+        self._started.clear()
+
     def send_msg(self, msg, level="debug", message_prefix=""):
         if setting.WARNING_LEVEL == "ERROR":
             if level != "error":

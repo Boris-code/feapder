@@ -106,6 +106,7 @@ class ItemBuffer(threading.Thread, Singleton):
 
     def stop(self):
         self._thread_stop = True
+        self._started.clear()
 
     def put_item(self, item):
         if isinstance(item, Item):

@@ -61,6 +61,7 @@ class Collector(threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._started.clear()
 
     def __input_data(self):
         current_timestamp = tools.get_current_timestamp()

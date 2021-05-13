@@ -66,6 +66,7 @@ class RequestBuffer(threading.Thread, Singleton):
 
     def stop(self):
         self._thread_stop = True
+        self._started.clear()
 
     def put_request(self, request):
         self._requests_deque.append(request)
