@@ -354,7 +354,6 @@ class Request(object):
                     {
                         "url": browser.current_url,
                         "cookies": browser.cookies,
-                        "text": html,
                         "_content": html.encode(),
                         "status_code": 200,
                         "elapsed": 666,
@@ -367,7 +366,6 @@ class Request(object):
                     }
                 )
 
-                response._cached_text = html
                 response.browser = browser
             except Exception as e:
                 self._webdriver_pool.remove(browser)
