@@ -132,7 +132,7 @@ def update(self, coll_name, data: Dict, condition: Dict, upsert: bool = False):
         coll_name: 集合名
         data: 单条数据 {"xxx":"xxx"}
         condition: 更新条件 {"_id": "xxxx"}
-        upsert: 数据不存在则更新,默认为 False
+        upsert: 数据不存在则插入,默认为 False
 
     Returns: True / False
     """
