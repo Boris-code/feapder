@@ -125,13 +125,14 @@ def add_batch(self, table: str, datas: List[Dict], **kwargs):
 #### 更新
 
 ```python
-def update(self, table, data: Dict, condition: Dict):
+def update(self, coll_name, data: Dict, condition: Dict, upsert: bool = False):
     """
     更新
     Args:
-        table: 表名
-        data: 数据 {"xxx":"xxx"}
+        coll_name: 集合名
+        data: 单条数据 {"xxx":"xxx"}
         condition: 更新条件 {"_id": "xxxx"}
+        upsert: 数据不存在则插入,默认为 False
 
     Returns: True / False
     """
