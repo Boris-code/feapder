@@ -260,6 +260,7 @@ class MongoDB:
             coll_name: 集合名
             data: 单条数据 {"xxx":"xxx"}
             condition: 更新条件 {"_id": "xxxx"}
+            upsert: 数据不存在则插入,默认为 False
 
         Returns: True / False
         """
