@@ -47,6 +47,7 @@ requires = [
     "cryptography>=3.3.2",
     "selenium>=3.141.0",
     "pymongo>=3.10.1",
+    "urllib3>=1.25.8"
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]
