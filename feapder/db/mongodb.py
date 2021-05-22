@@ -253,19 +253,20 @@ class MongoDB:
         
         return affect_count
     
-    def update(self, coll_name, data: Dict, condition: Dict):
+    def update(self, coll_name, data: Dict, condition: Dict, upsert: bool = False):
         """
         更新
         Args:
             coll_name: 集合名
             data: 单条数据 {"xxx":"xxx"}
             condition: 更新条件 {"_id": "xxxx"}
+            upsert: 数据不存在则插入,默认为 False
 
         Returns: True / False
         """
         try:
             collection = self.get_collection(coll_name)
-            collection.update_one(condition, {"$set": data})
+            collection.update_one(condition, {"$set": data}, upsert=upsert)
         except Exception as e:
             log.error(
                 """
