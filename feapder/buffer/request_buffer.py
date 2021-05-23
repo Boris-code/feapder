@@ -14,21 +14,13 @@ import threading
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
-from feapder.utils.log import log
 from feapder.dedup import Dedup
+from feapder.utils.log import log
 
 MAX_URL_COUNT = 1000  # 缓存中最大request数
 
 
-class Singleton(object):
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, "_inst"):
-            cls._inst = super(Singleton, cls).__new__(cls)
-
-        return cls._inst
-
-
-class RequestBuffer(threading.Thread, Singleton):
+class RequestBuffer(threading.Thread):
     dedup = None
 
     def __init__(self, redis_key):

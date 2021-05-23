@@ -17,7 +17,6 @@ from collections import Iterable
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import MAX_ITEM_COUNT
-from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.base_parser import BatchParser
 from feapder.core.scheduler import Scheduler
 from feapder.db.mysqldb import MysqlDB
@@ -117,8 +116,6 @@ class BatchSpider(BatchParser, Scheduler):
 
         self._redisdb = RedisDB()
         self._mysqldb = MysqlDB()
-
-        self._request_buffer = RequestBuffer(self._redis_key)
 
         self._task_table = task_table  # mysql中的任务表
         self._batch_record_table = batch_record_table  # mysql 中的批次记录表
@@ -1072,7 +1069,7 @@ class DebugBatchSpider(BatchSpider):
         save_to_db=False,
         update_stask=False,
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         @param task_id:  任务id

@@ -27,15 +27,7 @@ UPLOAD_BATCH_MAX_SIZE = 1000
 MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
 
-class Singleton(object):
-    def __new__(cls, *args, **kwargs):
-        if not hasattr(cls, "_inst"):
-            cls._inst = super(Singleton, cls).__new__(cls)
-
-        return cls._inst
-
-
-class ItemBuffer(threading.Thread, Singleton):
+class ItemBuffer(threading.Thread):
     dedup = None
     __redis_db = None
 
