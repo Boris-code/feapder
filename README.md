@@ -15,7 +15,7 @@
 
 - `BatchSpider`是一款分布式批次爬虫，对于需要周期性采集的数据，优先考虑使用本爬虫。
 
-**feapder**除了支持**断点续爬**、**数据防丢**、**监控报警**外，还支持**浏览器渲染下载**，自定义入库**pipeline**，方便对接其他数据库（默认数据库为Mysql，数据可自动入库，无需编写pipeline）
+**feapder**支持**断点续爬**、**数据防丢**、**监控报警**、**浏览器渲染下载**、数据自动入库**Mysql**或**Mongo**，还可通过编写[pipeline](source_code/pipeline)对接其他存储
 
 读音: `[ˈfiːpdə]`
 
@@ -106,8 +106,6 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 [爬虫 | 如何快速的将请求头转为json格式](https://mp.weixin.qq.com/s/BgAGo7HwlHxL8jDL5TSuHQ)
 
-
-
 ## 学习交流
 
 知识星球：
@@ -116,8 +114,16 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 星球会不定时分享爬虫技术干货，涉及的领域包括但不限于js逆向技巧、爬虫框架刨析、爬虫技术分享等
 
-## 赞赏
 
-搞个**微信**赞赏码，不知道屏幕前的你愿不愿意请我喝杯咖啡，让我激动激动🥺
+## 微信赞赏
+
+如果您觉得这个项目帮助到了您，您可以帮作者买一杯咖啡表示鼓励 🍹
+
+也可和作者交个朋友，解决您在使用过程中遇到的问题
+
+作者微信：**boris_tm**
+
+加好友备注：feapder
 
 ![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png)
+
