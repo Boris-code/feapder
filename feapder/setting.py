@@ -50,7 +50,7 @@ COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
 
 # SPIDER
 SPIDER_THREAD_COUNT = 1  # 爬虫并发数
-SPIDER_SLEEP_TIME = 0  # 下载时间间隔（解析完一个response后休眠时间）
+SPIDER_SLEEP_TIME = 0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 SPIDER_AUTO_START_REQUESTS = (
