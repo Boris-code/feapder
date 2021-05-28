@@ -5,7 +5,7 @@ Created on 2016-11-16 16:25
 @summary: 操作oracle数据库
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import datetime
 import json

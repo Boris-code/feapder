@@ -5,7 +5,7 @@ Created on 2020/4/22 10:45 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 from os.path import dirname, join

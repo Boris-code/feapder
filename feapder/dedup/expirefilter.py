@@ -5,7 +5,7 @@ Created on 2018/12/13 9:44 PM
 @summary: 带有有效期的去重集合
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import time

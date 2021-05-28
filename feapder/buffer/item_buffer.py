@@ -5,7 +5,7 @@ Created on 2018-06-19 17:17
 @summary: item 管理器， 负责缓冲添加到数据库中的item， 由该manager统一添加。防止多线程同时访问数据库
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import importlib

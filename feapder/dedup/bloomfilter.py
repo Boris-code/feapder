@@ -5,7 +5,7 @@ Created on 2018/12/13 4:11 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import hashlib

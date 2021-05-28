@@ -5,7 +5,7 @@ Created on 2017-01-03 16:06
 @summary: parser 控制类
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import random
 import threading

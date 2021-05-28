@@ -5,7 +5,7 @@ Created on 2018-12-08 16:50
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import logging

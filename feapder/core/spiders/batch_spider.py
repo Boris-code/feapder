@@ -5,7 +5,7 @@ Created on 2020/4/22 12:06 AM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import datetime

@@ -5,7 +5,7 @@ Created on 2019/11/5 5:25 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import time
 

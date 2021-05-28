@@ -5,7 +5,7 @@ Created on 2020/5/9 12:37 AM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import json

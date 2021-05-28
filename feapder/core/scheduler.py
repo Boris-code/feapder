@@ -5,7 +5,7 @@ Created on 2017-01-09 10:38
 @summary: 组装parser、 parser_control 和 collector
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import threading
 import time
