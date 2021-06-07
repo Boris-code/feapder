@@ -253,6 +253,36 @@ class MongoDB:
         
         return affect_count
     
+    def count(self, coll_name, condition: Optional[Dict], limit=0, **kwargs):
+        """
+        计数
+        @param coll_name: 集合名
+        @param condition: 查询条件
+        @param limit: 限制数量
+        @param kwargs:
+        ----
+        command = {
+          count: <collection or view>,
+          query: <document>,
+          limit: <integer>,
+          skip: <integer>,
+          hint: <hint>,
+          readConcern: <document>,
+          collation: <document>,
+          comment: <any>
+        }
+        https://docs.mongodb.com/manual/reference/command/count/#mongodb-dbcommand-dbcmd.count
+        @return: 数据数量
+        """
+        command = {
+            'count': coll_name,
+            'query': condition,
+            'limit': limit,
+            **kwargs
+        }
+        result = self.run_command(command)
+        return result['n']
+    
     def update(self, coll_name, data: Dict, condition: Dict, upsert: bool = False):
         """
         更新

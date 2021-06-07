@@ -7,6 +7,7 @@ Created on 2017-01-03 16:06
 @author: Boris
 @email: boris@bzkj.tech
 """
+import random
 import threading
 import time
 from collections import Iterable
@@ -396,7 +397,16 @@ class PaserControl(threading.Thread):
                     self._request_buffer.put_del_request(request_redis)
 
         if setting.SPIDER_SLEEP_TIME:
-            time.sleep(setting.SPIDER_SLEEP_TIME)
+            if (
+                isinstance(setting.SPIDER_SLEEP_TIME, (tuple, list))
+                and len(setting.SPIDER_SLEEP_TIME) == 2
+            ):
+                sleep_time = random.randint(
+                    int(setting.SPIDER_SLEEP_TIME[0]), int(setting.SPIDER_SLEEP_TIME[1])
+                )
+                time.sleep(sleep_time)
+            else:
+                time.sleep(setting.SPIDER_SLEEP_TIME)
 
     def record_download_status(self, status, spider):
         """
@@ -672,4 +682,13 @@ class AirSpiderParserControl(PaserControl):
                     break
 
         if setting.SPIDER_SLEEP_TIME:
-            time.sleep(setting.SPIDER_SLEEP_TIME)
+            if (
+                isinstance(setting.SPIDER_SLEEP_TIME, (tuple, list))
+                and len(setting.SPIDER_SLEEP_TIME) == 2
+            ):
+                sleep_time = random.randint(
+                    int(setting.SPIDER_SLEEP_TIME[0]), int(setting.SPIDER_SLEEP_TIME[1])
+                )
+                time.sleep(sleep_time)
+            else:
+                time.sleep(setting.SPIDER_SLEEP_TIME)
