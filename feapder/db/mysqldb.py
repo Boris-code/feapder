@@ -44,16 +44,11 @@ class MysqlDB:
         self, ip=None, port=None, db=None, user_name=None, user_pass=None, **kwargs
     ):
         # 可能会改setting中的值，所以此处不能直接赋值为默认值，需要后加载赋值
-        if not ip:
-            ip = setting.MYSQL_IP
-        if not port:
-            port = setting.MYSQL_PORT
-        if not db:
-            db = setting.MYSQL_DB
-        if not user_name:
-            user_name = setting.MYSQL_USER_NAME
-        if not user_pass:
-            user_pass = setting.MYSQL_USER_PASS
+        ip = ip or setting.MYSQL_IP
+        port = port or setting.MYSQL_PORT
+        db = db or setting.MYSQL_DB
+        user_name = user_name or setting.MYSQL_USER_NAME
+        user_pass = user_pass or setting.MYSQL_USER_PASS
 
         try:
 
