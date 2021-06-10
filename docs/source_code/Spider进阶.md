@@ -218,8 +218,6 @@ COLLECTOR_TASK_COUNT = 10 # 每次获取任务数量
 SPIDER_THREAD_COUNT = 1 # 爬虫并发数
 SPIDER_SLEEP_TIME = 0 # 下载时间间隔（解析完一个response后休眠时间）
 SPIDER_MAX_RETRY_TIMES = 100 # 每个请求最大重试次数
-# 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
-
 ```
 
 COLLECTOR 为从任务队列中取任务到内存队列的线程，SPIDER为实际采集的线程
