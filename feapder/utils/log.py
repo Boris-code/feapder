@@ -13,6 +13,7 @@ import os
 import sys
 from logging.handlers import BaseRotatingHandler
 
+import loguru
 from better_exceptions import format_exception
 
 import feapder.setting as setting
@@ -21,26 +22,31 @@ LOG_FORMAT = "%(threadName)s|%(asctime)s|%(filename)s|%(funcName)s|line:%(lineno
 PRINT_EXCEPTION_DETAILS = True
 
 
+class InterceptHandler(logging.Handler):
+    def emit(self, record):
+        # Retrieve context where the logging call occurred, this happens to be in the 6th frame upward
+        logger_opt = loguru.logger.opt(depth=6, exception=record.exc_info)
+        logger_opt.log(record.levelname, record.getMessage())
+
+
 # 重写 RotatingFileHandler 自定义log的文件名
 # 原来 xxx.log xxx.log.1 xxx.log.2 xxx.log.3 文件由近及远
-# 现在 xxx.log xxx1.log xxx2.log  如果backupCount 是2位数时  则 01  02  03 三位数 001 002 .. 文件由近及远
+# 现在 xxx.log xxx1.log xxx2.log  如果backup_count 是2位数时  则 01  02  03 三位数 001 002 .. 文件由近及远
 class RotatingFileHandler(BaseRotatingHandler):
     def __init__(
-        self, filename, mode="a", maxBytes=0, backupCount=0, encoding=None, delay=0
+        self, filename, mode="a", max_bytes=0, backup_count=0, encoding=None, delay=0
     ):
-        # if maxBytes > 0:
-        #    mode = 'a'
         BaseRotatingHandler.__init__(self, filename, mode, encoding, delay)
-        self.maxBytes = maxBytes
-        self.backupCount = backupCount
-        self.placeholder = str(len(str(backupCount)))
+        self.max_bytes = max_bytes
+        self.backup_count = backup_count
+        self.placeholder = str(len(str(backup_count)))
 
     def doRollover(self):
         if self.stream:
             self.stream.close()
             self.stream = None
-        if self.backupCount > 0:
-            for i in range(self.backupCount - 1, 0, -1):
+        if self.backup_count > 0:
+            for i in range(self.backup_count - 1, 0, -1):
                 sfn = ("%0" + self.placeholder + "d.") % i  # '%2d.'%i -> 02
                 sfn = sfn.join(self.baseFilename.split("."))
                 # sfn = "%d_%s" % (i, self.baseFilename)
@@ -67,16 +73,25 @@ class RotatingFileHandler(BaseRotatingHandler):
 
         if self.stream is None:  # delay was set...
             self.stream = self._open()
-        if self.maxBytes > 0:  # are we rolling over?
+        if self.max_bytes > 0:  # are we rolling over?
             msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  # due to non-posix-compliant Windows feature
-            if self.stream.tell() + len(msg) >= self.maxBytes:
+            if self.stream.tell() + len(msg) >= self.max_bytes:
                 return 1
         return 0
 
 
 def get_logger(
-    name, path="", log_level="DEBUG", is_write_to_file=False, is_write_to_stdout=True
+    name=None,
+    path=None,
+    log_level=None,
+    is_write_to_console=None,
+    is_write_to_file=None,
+    color=None,
+    mode=None,
+    max_bytes=None,
+    backup_count=None,
+    encoding=None,
 ):
     """
     @summary: 获取log
@@ -84,10 +99,37 @@ def get_logger(
     @param name: log名
     @param path: log文件存储路径 如 D://xxx.log
     @param log_level: log等级 CRITICAL/ERROR/WARNING/INFO/DEBUG
+    @param is_write_to_console: 是否输出到控制台
     @param is_write_to_file: 是否写入到文件 默认否
+    @param color：是否有颜色
+    @param mode：写文件模式
+    @param max_bytes： 每个日志文件的最大字节数
+    @param backup_count：日志文件保留数量
+    @param encoding：日志文件编码
     ---------
     @result:
     """
+    # 加载setting里最新的值
+    name = name or setting.LOG_NAME
+    path = path or setting.LOG_PATH
+    log_level = log_level or setting.LOG_LEVEL
+    is_write_to_console = (
+        is_write_to_console
+        if is_write_to_console is not None
+        else setting.LOG_IS_WRITE_TO_CONSOLE
+    )
+    is_write_to_file = (
+        is_write_to_file
+        if is_write_to_file is not None
+        else setting.LOG_IS_WRITE_TO_FILE
+    )
+    color = color if color is not None else setting.LOG_COLOR
+    mode = mode or setting.LOG_MODE
+    max_bytes = max_bytes or setting.LOG_MAX_BYTES
+    backup_count = backup_count or setting.LOG_BACKUP_COUNT
+    encoding = encoding or setting.LOG_ENCODING
+
+    # logger 配置
     name = name.split(os.sep)[-1].split(".")[0]  # 取文件名
 
     logger = logging.getLogger(name)
@@ -103,11 +145,20 @@ def get_logger(
             os.makedirs(os.path.dirname(path))
 
         rf_handler = RotatingFileHandler(
-            path, mode="w", maxBytes=10 * 1024 * 1024, backupCount=20, encoding="utf8"
+            path,
+            mode=mode,
+            max_bytes=max_bytes,
+            backup_count=backup_count,
+            encoding=encoding,
         )
         rf_handler.setFormatter(formatter)
         logger.addHandler(rf_handler)
-    if is_write_to_stdout:
+    if color and is_write_to_console:
+        loguru_handler = InterceptHandler()
+        loguru_handler.setFormatter(formatter)
+        # logging.basicConfig(handlers=[loguru_handler], level=0)
+        logger.addHandler(loguru_handler)
+    elif is_write_to_console:
         stream_handler = logging.StreamHandler()
         stream_handler.stream = sys.stdout
         stream_handler.setFormatter(formatter)
@@ -171,23 +222,17 @@ for STOP_LOG in STOP_LOGS:
 
 # print(logging.Logger.manager.loggerDict) # 取使用debug模块的name
 
-# 日志级别大小关系为：critical > error > warning > info > debug
-log = get_logger(
-    name=setting.LOG_NAME,
-    path=setting.LOG_PATH,
-    log_level=setting.LOG_LEVEL,
-    is_write_to_file=setting.LOG_IS_WRITE_TO_FILE,
-)
+# 日志级别大小关系为：CRITICAL > ERROR > WARNING > INFO > DEBUG
 
 
-def reload():
-    global log
-    log = get_logger(
-        name=setting.LOG_NAME,
-        path=setting.LOG_PATH,
-        log_level=setting.LOG_LEVEL,
-        is_write_to_file=setting.LOG_IS_WRITE_TO_FILE,
-    )
+class Log:
+    log = None
+
+    def __getattr__(self, name):
+        # 调用log时再初始化，为了加载最新的setting
+        if self.__class__.log is None:
+            self.__class__.log = get_logger()
+        return getattr(self.__class__.log, name)
 
 
-log.reload = reload
+log = Log()

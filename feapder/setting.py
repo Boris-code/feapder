@@ -50,7 +50,9 @@ COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
 
 # SPIDER
 SPIDER_THREAD_COUNT = 1  # 爬虫并发数
-SPIDER_SLEEP_TIME = 0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+SPIDER_SLEEP_TIME = (
+    0
+)  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 SPIDER_AUTO_START_REQUESTS = (
@@ -115,7 +117,7 @@ DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 EAMIL_SENDER = ""  # 发件人
 EAMIL_PASSWORD = ""  # 授权码
 EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
-EMAIL_SMTPSERVER = "smtp.163.com" # 邮件服务器 默认为163邮箱
+EMAIL_SMTPSERVER = "smtp.163.com"  # 邮件服务器 默认为163邮箱
 # 企业微信报警
 WECHAT_WARNING_URL = ""  # 企业微信机器人api
 WECHAT_WARNING_PHONE = ""  # 报警人 将会在群内@此人, 支持列表，可指定多人
@@ -128,7 +130,13 @@ WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报�
 LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 LOG_LEVEL = "DEBUG"
-LOG_IS_WRITE_TO_FILE = False
+LOG_COLOR = True  # 是否带有颜色
+LOG_IS_WRITE_TO_CONSOLE = True # 是否打印到控制台
+LOG_IS_WRITE_TO_FILE = False  # 是否写文件
+LOG_MODE = "w"  # 写文件的模式
+LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
+LOG_BACKUP_COUNT = 20  # 日志文件保留数量
+LOG_ENCODING = "utf8"  # 日志文件编码
 OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
 
 ############# 导入用户自定义的setting #############
