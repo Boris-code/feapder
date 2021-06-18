@@ -1513,6 +1513,13 @@ def transform_lower_num(data_str: str):
         '九': '9',
         '十': '0',
     }
+    pattern = f'[{"|".join(num_map.keys())}|零]'
+    res = re.search(pattern, data_str)
+    if not res:
+        #  如果字符串中没有包含中文数字 不做处理 直接返回
+        return data_str
+
+    data_str = data_str.replace('0', '零')
     for n in num_map:
         data_str = data_str.replace(n, num_map[n])
 
@@ -1537,7 +1544,7 @@ def transform_lower_num(data_str: str):
 @run_safe_model("format_time")
 def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
     release_time = transform_lower_num(release_time)
-    release_time = release_time.replace('日','天')
+    release_time = release_time.replace('日', '天').replace(' ', '')
 
     if "年前" in release_time:
         years = re.compile("(\d+)年前").findall(release_time)
