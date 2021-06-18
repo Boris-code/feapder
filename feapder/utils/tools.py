@@ -1534,6 +1534,13 @@ def transform_lower_num(data_str: str):
         "九": "9",
         "十": "0",
     }
+    pattern = f'[{"|".join(num_map.keys())}|零]'
+    res = re.search(pattern, data_str)
+    if not res:
+        #  如果字符串中没有包含中文数字 不做处理 直接返回
+        return data_str
+
+    data_str = data_str.replace("0", "零")
     for n in num_map:
         data_str = data_str.replace(n, num_map[n])
 
@@ -1561,36 +1568,36 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
     release_time = release_time.replace("日", "天")
 
     if "年前" in release_time:
-        years = re.compile("(\d+)年前").findall(release_time)
+        years = re.compile("(\d+)\s*年前").findall(release_time)
         years_ago = datetime.datetime.now() - datetime.timedelta(
             days=int(years[0]) * 365
         )
         release_time = years_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "月前" in release_time:
-        months = re.compile("(\d+)月前").findall(release_time)
+        months = re.compile("(\d+)\s*月前").findall(release_time)
         months_ago = datetime.datetime.now() - datetime.timedelta(
             days=int(months[0]) * 30
         )
         release_time = months_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "周前" in release_time:
-        weeks = re.compile("(\d+)周前").findall(release_time)
+        weeks = re.compile("(\d+)\s*周前").findall(release_time)
         weeks_ago = datetime.datetime.now() - datetime.timedelta(days=int(weeks[0]) * 7)
         release_time = weeks_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "天前" in release_time:
-        ndays = re.compile("(\d+)天前").findall(release_time)
+        ndays = re.compile("(\d+)\s*天前").findall(release_time)
         days_ago = datetime.datetime.now() - datetime.timedelta(days=int(ndays[0]))
         release_time = days_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "小时前" in release_time:
-        nhours = re.compile("(\d+)小时前").findall(release_time)
+        nhours = re.compile("(\d+)\s*小时前").findall(release_time)
         hours_ago = datetime.datetime.now() - datetime.timedelta(hours=int(nhours[0]))
         release_time = hours_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "分钟前" in release_time:
-        nminutes = re.compile("(\d+)分钟前").findall(release_time)
+        nminutes = re.compile("(\d+)\s*分钟前").findall(release_time)
         minutes_ago = datetime.datetime.now() - datetime.timedelta(
             minutes=int(nminutes[0])
         )
@@ -1622,7 +1629,7 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         else:
             release_time = str(int(get_current_date("%Y")) - 1) + "-" + release_time
 
-    template = re.compile("(\d{4}-\d{2}-\d{2})(\d.*)")
+    template = re.compile("(\d{4}-\d{1,2}-\d{1,2})(\d.*)")
     release_time = re.sub(template, r"\1 \2", release_time)
     release_time = format_date(release_time, new_format=date_format)
 
