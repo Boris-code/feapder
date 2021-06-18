@@ -12,8 +12,11 @@ for i in times:
 
 
 
-# date = tools.format_time(time)
-# print(date)
+date = tools.format_time("昨天3:10")
+print(date)
 # assert date == "2021-03-15 00:00:00"
 
 
+
+date = tools.format_time("昨天 3:10")
+print(date)
