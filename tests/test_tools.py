@@ -20,3 +20,10 @@ print(date)
 
 date = tools.format_time("昨天 3:10")
 print(date)
+
+date = tools.format_time("2021-11-5 14:18:10")
+print(date)
+
+
+date = tools.format_time("1 年前")
+print(date)
