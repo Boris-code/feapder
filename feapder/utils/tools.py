@@ -1521,8 +1521,45 @@ def format_date(date, old_format="", new_format="%Y-%m-%d %H:%M:%S"):
     return date_str
 
 
+def transform_lower_num(data_str: str):
+    num_map = {
+        '一': '1',
+        '二': '2',
+        '三': '3',
+        '四': '4',
+        '五': '5',
+        '六': '6',
+        '七': '7',
+        '八': '8',
+        '九': '9',
+        '十': '0',
+    }
+    for n in num_map:
+        data_str = data_str.replace(n, num_map[n])
+
+    re_data_str = re.findall('\d+', data_str)
+    for i in re_data_str:
+        if len(i) == 3:
+            new_i = i.replace('0', '')
+            data_str = data_str.replace(i, new_i, 1)
+        elif len(i) == 4:
+            new_i = i.replace('10', '')
+            data_str = data_str.replace(i, new_i, 1)
+        elif len(i) == 2 and int(i) < 10:
+            new_i = int(i) + 10
+            data_str = data_str.replace(i, str(new_i), 1)
+        elif len(i) == 1 and int(i) == 0:
+            new_i = int(i) + 10
+            data_str = data_str.replace(i, str(new_i), 1)
+
+    return data_str.replace('零', '0')
+
+
 @run_safe_model("format_time")
 def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
+    release_time = transform_lower_num(release_time)
+    release_time = release_time.replace('日','天')
+
     if "年前" in release_time:
         years = re.compile("(\d+)年前").findall(release_time)
         years_ago = datetime.datetime.now() - datetime.timedelta(
@@ -1559,7 +1596,12 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         )
         release_time = minutes_ago.strftime("%Y-%m-%d %H:%M:%S")
 
-    elif "昨天" in release_time or "昨日" in release_time:
+    elif "前天" in release_time:
+        today = datetime.date.today()
+        yesterday = today - datetime.timedelta(days=2)
+        release_time = release_time.replace("前天", str(yesterday))
+
+    elif "昨天" in release_time:
         today = datetime.date.today()
         yesterday = today - datetime.timedelta(days=1)
         release_time = release_time.replace("昨天", str(yesterday))
@@ -1580,6 +1622,8 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         else:
             release_time = str(int(get_current_date("%Y")) - 1) + "-" + release_time
 
+    template = re.compile('(\d{4}-\d{2}-\d{2})(\d.*)')
+    release_time = re.sub(template, r"\1 \2", release_time)
     release_time = format_date(release_time, new_format=date_format)
 
     return release_time
