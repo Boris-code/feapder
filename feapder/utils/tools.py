@@ -1565,7 +1565,7 @@ def transform_lower_num(data_str: str):
 @run_safe_model("format_time")
 def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
     release_time = transform_lower_num(release_time)
-    release_time = release_time.replace("日", "天")
+    release_time = release_time.replace("日", "天").replace("/", "-")
 
     if "年前" in release_time:
         years = re.compile("(\d+)\s*年前").findall(release_time)
@@ -1629,7 +1629,7 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         else:
             release_time = str(int(get_current_date("%Y")) - 1) + "-" + release_time
 
-    template = re.compile("(\d{4}-\d{1,2}-\d{1,2})(\d.*)")
+    template = re.compile("(\d{4}-\d{1,2}-\d{1,2}) ?(\d.*)")
     release_time = re.sub(template, r"\1 \2", release_time)
     release_time = format_date(release_time, new_format=date_format)
 
