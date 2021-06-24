@@ -1488,7 +1488,7 @@ def format_date(date, old_format="", new_format="%Y-%m-%d %H:%M:%S"):
         %S 秒（00-59）
     @param new_format: 输出的日期格式
     ---------
-    @result: 格式化后的日期，类型为字符串 如2017-4-17 3:27:12
+    @result: 格式化后的日期，类型为字符串 如2017-4-17 03:27:12
     """
     if not date:
         return ""
@@ -1629,7 +1629,8 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         else:
             release_time = str(int(get_current_date("%Y")) - 1) + "-" + release_time
 
-    template = re.compile("(\d{4}-\d{1,2}-\d{1,2}) ?(\d.*)")
+    # 把日和小时粘在一起的拆开
+    template = re.compile("(\d{4}-\d{1,2}-\d{2})(\d{1,2})")
     release_time = re.sub(template, r"\1 \2", release_time)
     release_time = format_date(release_time, new_format=date_format)
 
