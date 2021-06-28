@@ -549,7 +549,7 @@ class AirSpiderParserControl(PaserControl):
                                     # 将next_request 入库
                                     self._memory_db.add(result)
 
-                            elif isinstance(result, Item):
+                            elif isinstance(result, (Item, list)):
                                 self._item_buffer.put_item(result)
 
                     except Exception as e:
