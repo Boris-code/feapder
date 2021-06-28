@@ -104,8 +104,17 @@ class ItemBuffer(threading.Thread):
         if isinstance(item, Item):
             # 入库前的回调
             item.pre_to_db()
+            self._items_queue.put(item)
+        elif isinstance(item, list):
+            items_fingerprints = []
 
-        self._items_queue.put(item)
+            for data in item:
+                data.pre_to_db()
+                if setting.ITEM_FILTER_ENABLE:
+                    items_fingerprints.append(data.fingerprint)
+            self.__add_item_to_db(
+                item, [], [], [], items_fingerprints
+            )
 
     def flush(self):
         try:
