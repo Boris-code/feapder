@@ -2273,12 +2273,13 @@ def is_in_rate_limit(rate_limit, *key):
 
 
 def dingding_warning(
-    message,
-    message_prefix=None,
-    rate_limit=setting.WARNING_INTERVAL,
-    url=setting.DINGDING_WARNING_URL,
-    user_phone=setting.DINGDING_WARNING_PHONE,
+    message, message_prefix=None, rate_limit=None, url=None, user_phone=None
 ):
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.DINGDING_WARNING_URL
+    user_phone = user_phone or setting.DINGDING_WARNING_PHONE
+
     if not all([url, user_phone, message]):
         return
 
@@ -2316,17 +2317,24 @@ def email_warning(
     message,
     title,
     message_prefix=None,
-    eamil_sender=setting.EAMIL_SENDER,
-    eamil_password=setting.EAMIL_PASSWORD,
-    email_receiver=setting.EMAIL_RECEIVER,
-    email_smtpserver=setting.EMAIL_SMTPSERVER,
-    rate_limit=setting.WARNING_INTERVAL,
+    email_sender=None,
+    email_password=None,
+    email_receiver=None,
+    email_smtpserver=None,
+    rate_limit=None,
 ):
-    if not all([message, eamil_sender, eamil_password, email_receiver]):
+    # 为了加载最新的配置
+    email_sender = email_sender or setting.EMAIL_SENDER
+    email_password = email_password or setting.EMAIL_PASSWORD
+    email_receiver = email_receiver or setting.EMAIL_RECEIVER
+    email_smtpserver = email_smtpserver or setting.EMAIL_SMTPSERVER
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+
+    if not all([message, email_sender, email_password, email_receiver]):
         return
 
     if is_in_rate_limit(
-        rate_limit, email_receiver, eamil_sender, message_prefix or message
+        rate_limit, email_receiver, email_sender, message_prefix or message
     ):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
@@ -2335,7 +2343,7 @@ def email_warning(
         email_receiver = [email_receiver]
 
     with EmailSender(
-        username=eamil_sender, password=eamil_password, smtpserver=email_smtpserver
+        username=email_sender, password=email_password, smtpserver=email_smtpserver
     ) as email:
         return email.send(receivers=email_receiver, title=title, content=message)
 
@@ -2372,12 +2380,19 @@ def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None)
 def wechat_warning(
     message,
     message_prefix=None,
-    rate_limit=setting.WARNING_INTERVAL,
-    url=setting.WECHAT_WARNING_URL,
-    user_phone=setting.WECHAT_WARNING_PHONE,
-    all_users=setting.WECHAT_WARNING_ALL,
+    rate_limit=None,
+    url=None,
+    user_phone=None,
+    all_users: bool = None,
 ):
     """企业微信报警"""
+
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.WECHAT_WARNING_URL
+    user_phone = user_phone or setting.WECHAT_WARNING_PHONE
+    all_users = all_users if all_users is not None else setting.WECHAT_WARNING_ALL
+
     if isinstance(user_phone, str):
         user_phone = [user_phone] if user_phone else []
 
