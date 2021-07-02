@@ -5,7 +5,7 @@ Created on 2018-12-13 21:08
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import copy

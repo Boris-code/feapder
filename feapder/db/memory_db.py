@@ -5,7 +5,7 @@ Created on 2020/4/21 11:42 PM
 @summary: 基于内存的队列，代替redis
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 from queue import PriorityQueue
 

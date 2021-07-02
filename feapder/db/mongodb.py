@@ -93,12 +93,23 @@ class MongoDB:
             'find': coll_name,
             'filter': condition,
             'limit': limit,
-            'singleBatch': True
         }
         command.update(kwargs)
         result = self.run_command(command)
         cursor = result['cursor']
+        cursor_id = cursor['id']
         dataset = cursor['firstBatch']
+        while True:
+            if cursor_id == 0:
+                break
+            result = self.run_command({
+                'getMore': cursor_id,
+                'collection': coll_name,
+                'batchSize': kwargs.get("batchSize", 100)
+            })
+            cursor = result['cursor']
+            cursor_id = cursor['id']
+            dataset.extend(cursor['nextBatch'])
         return dataset
     
     def add(self, coll_name, data: Dict, **kwargs):

@@ -5,7 +5,7 @@ Created on 2020/4/21 10:41 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import os, sys
 import re

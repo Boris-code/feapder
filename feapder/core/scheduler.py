@@ -5,7 +5,7 @@ Created on 2017-01-09 10:38
 @summary: 组装parser、 parser_control 和 collector
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 import threading
 import time
@@ -69,7 +69,6 @@ class Scheduler(threading.Thread):
 
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
-            log.reload()
 
         self._redis_key = redis_key or setting.REDIS_KEY
         if not self._redis_key:

@@ -5,7 +5,7 @@ Created on 2020/4/22 12:05 AM
 @summary: 基于内存队列的爬虫，不支持分布式
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 from threading import Thread
@@ -32,7 +32,6 @@ class AirSpider(BaseParser, Thread):
 
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
-            log.reload()
 
         self._thread_count = (
             setting.SPIDER_THREAD_COUNT if not thread_count else thread_count

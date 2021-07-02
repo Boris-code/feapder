@@ -93,8 +93,8 @@
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 # # 邮件报警
-# EAMIL_SENDER = ""  # 发件人
-# EAMIL_PASSWORD = ""  # 授权码
+# EMAIL_SENDER = ""  # 发件人
+# EMAIL_PASSWORD = ""  # 授权码
 # EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
 # EMAIL_SMTPSERVER = "smtp.163.com" # 邮件服务器 默认为163邮箱
 # # 企业微信报警
@@ -109,7 +109,13 @@
 # LOG_NAME = os.path.basename(os.getcwd())
 # LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 # LOG_LEVEL = "DEBUG"
-# LOG_IS_WRITE_TO_FILE = False
+# LOG_COLOR = True  # 是否带有颜色
+# LOG_IS_WRITE_TO_CONSOLE = True # 是否打印到控制台
+# LOG_IS_WRITE_TO_FILE = False  # 是否写文件
+# LOG_MODE = "w"  # 写文件的模式
+# LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
+# LOG_BACKUP_COUNT = 20  # 日志文件保留数量
+# LOG_ENCODING = "utf8"  # 日志文件编码
 # OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
 #
 # # 切换工作路径为当前项目路径

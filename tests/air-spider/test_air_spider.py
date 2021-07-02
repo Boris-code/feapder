@@ -5,7 +5,7 @@ Created on 2020/4/22 10:41 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import feapder

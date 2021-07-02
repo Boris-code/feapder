@@ -5,7 +5,7 @@ Created on 2018/12/14 1:05 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 from __future__ import absolute_import

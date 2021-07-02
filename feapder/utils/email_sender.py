@@ -5,7 +5,7 @@ Created on 2020/2/19 12:57 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import os

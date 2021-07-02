@@ -5,7 +5,7 @@ Created on 2018/12/13 9:44 PM
 @summary: 带有有效期的去重集合
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import time
@@ -30,6 +30,7 @@ class ExpireFilter:
         self.name = name
         self.expire_time = expire_time
         self.expire_time_record_key = expire_time_record_key
+        self.del_expire_key_time = None
 
         self.record_expire_time()
 
@@ -47,6 +48,9 @@ class ExpireFilter:
         @param keys: 检查关键词在zset中是否存在，支持列表批量
         @return: list / 单个值
         """
+        if self.current_timestamp - self.del_expire_key_time > self.expire_time:
+            self.del_expire_key()
+
         is_added = self.redis_db.zadd(self.name, keys, self.current_timestamp)
         return is_added
 
@@ -57,6 +61,7 @@ class ExpireFilter:
         self.redis_db.zremrangebyscore(
             self.name, "-inf", self.current_timestamp - self.expire_time
         )
+        self.del_expire_key_time = self.current_timestamp
 
     def record_expire_time(self):
         if self.expire_time_record_key:

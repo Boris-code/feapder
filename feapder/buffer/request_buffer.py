@@ -5,7 +5,7 @@ Created on 2018-06-19 17:17
 @summary: request 管理器， 负责缓冲添加到数据库中的request
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import collections

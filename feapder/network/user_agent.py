@@ -5,7 +5,7 @@ Created on 2016-12-28 17:55
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import random

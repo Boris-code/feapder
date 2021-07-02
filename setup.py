@@ -5,7 +5,7 @@ Created on 2020/4/22 10:45 PM
 @summary:
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 from os.path import dirname, join
@@ -43,11 +43,12 @@ requires = [
     "requests>=2.22.0",
     "bs4>=0.0.1",
     "ipython>=7.14.0",
-    "redis-py-cluster>=1.3.4",
+    "redis-py-cluster>=2.1.0",
     "cryptography>=3.3.2",
     "selenium>=3.141.0",
     "pymongo>=3.10.1",
-    "urllib3>=1.25.8"
+    "urllib3>=1.25.8",
+    "loguru>=0.5.3"
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]

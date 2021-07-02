@@ -5,7 +5,7 @@ Created on 2016-12-23 11:24
 @summary: request 管理
 ---------
 @author: Boris
-@email: boris@bzkj.tech
+@email: boris_liu@foxmail.com
 """
 
 import collections
