@@ -33,6 +33,10 @@
   * [海量数据去重-dedup](source_code/dedup.md)
   * [报警及监控](source_code/报警及监控.md)
 
+* 爬虫管理系统
+  * [简介及部署](feapder_platform/爬虫管理系统.md)
+
+
 * 常见问题
   * [安装问题](question/安装问题.md)
   * [运行问题](question/运行问题.md)
