@@ -26,12 +26,12 @@ class Encoder(_Encoder):
         "Return a bytestring or bytes-like representation of the value"
         if isinstance(value, (bytes, memoryview)):
             return value
-        elif isinstance(value, bool):
-            # special case bool since it is a subclass of int
-            raise DataError(
-                "Invalid input of type: 'bool'. Convert to a "
-                "bytes, string, int or float first."
-            )
+        # elif isinstance(value, bool):
+        #     # special case bool since it is a subclass of int
+        #     raise DataError(
+        #         "Invalid input of type: 'bool'. Convert to a "
+        #         "bytes, string, int or float first."
+        #     )
         elif isinstance(value, float):
             value = repr(value).encode()
         elif isinstance(value, (int, long)):
@@ -411,7 +411,7 @@ class RedisDB:
             end
 
             -- 删除redis中刚取到的值
-            if (is_pop) then
+            if (is_pop=='True' or is_pop=='1') then
                 for i=1, #datas do
                     redis.call('zrem', KEYS[1], datas[i])
                 end
