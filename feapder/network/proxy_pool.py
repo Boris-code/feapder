@@ -36,13 +36,6 @@ def get_proxies_by_id(proxy_id):
     return proxies
 
 
-# 代理类型定义
-class LimitProxy(object):
-    """提取次数有限制的代理"""
-
-    pass
-
-
 def get_proxy_from_url(**kwargs):
     """
     获取指定url的代理
@@ -710,9 +703,3 @@ class ProxyPool(ProxyPoolBase):
         :return:
         """
         return get_proxy_from_url(**self.kwargs)
-
-
-if not setting.PROXY_ENABLE or not setting.PROXY_EXTRACT_API:
-    proxy_pool = None
-else:
-    proxy_pool = ProxyPool()
