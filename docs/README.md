@@ -23,6 +23,7 @@
 - 国内文档：https://boris-code.gitee.io/feapder
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
+- 爬虫管理系统：https://boris.org.cn/feapder/#/feapder_platform/爬虫管理系统
 
 
 ## 环境要求：
