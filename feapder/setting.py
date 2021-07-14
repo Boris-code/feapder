@@ -100,6 +100,8 @@ PROXY_ENABLE = True
 
 # 随机headers
 RANDOM_HEADERS = True
+# UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，若不指定则随机类型
+USER_AGENT_TYPE = "chrome"
 # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 # requests 使用session
@@ -131,7 +133,7 @@ LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 LOG_LEVEL = "DEBUG"
 LOG_COLOR = True  # 是否带有颜色
-LOG_IS_WRITE_TO_CONSOLE = True # 是否打印到控制台
+LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 LOG_IS_WRITE_TO_FILE = False  # 是否写文件
 LOG_MODE = "w"  # 写文件的模式
 LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数

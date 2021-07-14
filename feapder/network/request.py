@@ -277,7 +277,13 @@ class Request(object):
         headers = self.requests_kwargs.get("headers", {})
         if "user-agent" not in headers and "User-Agent" not in headers:
             if self.random_user_agent and setting.RANDOM_HEADERS:
-                headers.update({"User-Agent": self.__class__.user_agent_pool.get()})
+                headers.update(
+                    {
+                        "User-Agent": self.__class__.user_agent_pool.get(
+                            setting.USER_AGENT_TYPE
+                        )
+                    }
+                )
                 self.requests_kwargs.update(headers=headers)
         else:
             self.requests_kwargs.setdefault(
