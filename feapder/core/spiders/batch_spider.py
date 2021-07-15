@@ -690,8 +690,21 @@ class BatchSpider(BatchParser, Scheduler):
                             self.record_batch()
                         )  # 有可能插入不成功，但是任务表已经重置了，不过由于当前时间为下一批次的时间，检查批次是否结束时不会检查任务表，所以下次执行时仍然会重置
                         if is_success:
-                            log.info("插入新批次记录成功 1分钟后开始下发任务")  # 防止work批次时间没来得及更新
-                            tools.delay_time(60)
+                            # 看是否有等待任务的worker，若有则需要等会再下发任务，防止work批次时间没来得及更新
+                            current_timestamp = tools.get_current_timestamp()
+                            spider_count = self._redisdb.zget_count(
+                                self._tab_spider_status,
+                                priority_min=current_timestamp
+                                - (setting.COLLECTOR_SLEEP_TIME + 10),
+                                priority_max=current_timestamp,
+                            )
+                            if spider_count:
+                                log.info(
+                                    f"插入新批次记录成功，检测到有{spider_count}个爬虫进程在等待任务，本批任务1分钟后开始下发, 防止爬虫端缓存的批次时间没来得及更新"
+                                )
+                                tools.delay_time(60)
+                            else:
+                                log.info("插入新批次记录成功")
 
                             return False  # 下一批次开始
 
