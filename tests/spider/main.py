@@ -18,7 +18,7 @@ def spider_test():
 
 
 def spider2_test():
-    spider = test_spider.TestSpider2(redis_key="feapder:test_spider2")
+    spider = test_spider2.TestSpider2(redis_key="feapder:test_spider2")
     spider.start()
 
 
