@@ -44,6 +44,7 @@ class Collector(threading.Thread):
         self._interval = setting.COLLECTOR_SLEEP_TIME
         self._request_count = setting.COLLECTOR_TASK_COUNT
         self._is_collector_task = False
+        self._first_get_task = True
 
         self.__delete_dead_node()
 
@@ -70,17 +71,17 @@ class Collector(threading.Thread):
 
         request_count = self._request_count  # 先赋值
         # 查询最近有心跳的节点数量
-        spider_wait_count = self._db.zget_count(
+        spider_count = self._db.zget_count(
             self._tab_spider_status,
             priority_min=current_timestamp - (self._interval + 10),
             priority_max=current_timestamp,
         )
         # 根据等待节点数量，动态分配request
-        if spider_wait_count:
+        if spider_count:
             # 任务数量
             task_count = self._db.zget_count(self._tab_requests)
             # 动态分配的数量 = 任务数量 / 休息的节点数量 + 1
-            request_count = task_count // spider_wait_count + 1
+            request_count = task_count // spider_count + 1
 
         request_count = (
             request_count
@@ -90,6 +91,20 @@ class Collector(threading.Thread):
 
         if not request_count:
             return
+
+        # 当前无其他节点，并且是首次取任务，则重置丢失的任务
+        if self._first_get_task and spider_count <= 1:
+            datas = self._db.zrangebyscore_set_score(
+                self._tab_requests,
+                priority_min=current_timestamp,
+                priority_max=current_timestamp + setting.REQUEST_LOST_TIMEOUT,
+                score=300,
+                count=None,
+            )
+            self._first_get_task = False
+            lose_count = len(datas)
+            if lose_count:
+                log.info("重置丢失任务完毕，共{}条".format(len(datas)))
 
         # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_LOST_TIMEOUT
         requests_list = self._db.zrangebyscore_set_score(

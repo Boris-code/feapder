@@ -195,7 +195,7 @@ class Scheduler(threading.Thread):
         # 判断任务池中属否还有任务，若有接着抓取
         todo_task_count = self._collector.get_requests_count()
         if todo_task_count:
-            log.info("检查到有待做任务 %s 条，不重下发新任务。将接着上回异常终止处继续抓取" % todo_task_count)
+            log.info("检查到有待做任务 %s 条，不重下发新任务，将接着上回异常终止处继续抓取" % todo_task_count)
         else:
             for parser in self._parsers:
                 results = parser.start_requests()
@@ -489,7 +489,7 @@ class Scheduler(threading.Thread):
         if Request.webdriver_pool:
             Request.webdriver_pool.close()
 
-        # 计算抓取时常
+        # 计算抓取时长
         data = self._redisdb.hget(
             self._tab_spider_time, SPIDER_START_TIME_KEY, is_pop=True
         )
