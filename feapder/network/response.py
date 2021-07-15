@@ -239,7 +239,10 @@ class Response(res):
     def text(self):
         if self._cached_text is None:
             if self.encoding and self.encoding.upper() != FAIL_ENCODING:
-                self._cached_text = self.__text
+                try:
+                    self._cached_text = self.__text
+                except UnicodeDecodeError:
+                    self._cached_text = self._get_unicode_html(self.content)
             else:
                 self._cached_text = self._get_unicode_html(self.content)
 
