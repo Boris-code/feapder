@@ -946,10 +946,7 @@ class BatchSpider(BatchParser, Scheduler):
         if is_done:  # 检查任务表中是否有没做的任务 若有则is_done 为 False
             # 比较耗时 加锁防止多进程同时查询
             with RedisLock(
-                key=self._spider_name,
-                timeout=3600,
-                wait_timeout=0,
-                redis_cli=RedisDB().get_redis_obj(),
+                key=self._spider_name, redis_cli=RedisDB().get_redis_obj()
             ) as lock:
                 if lock.locked:
                     log.info("批次表标记已完成，正在检查任务表是否有未完成的任务")

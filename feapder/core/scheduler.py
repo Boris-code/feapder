@@ -263,10 +263,7 @@ class Scheduler(threading.Thread):
             if self.wait_lock:
                 # 将添加任务处加锁，防止多进程之间添加重复的任务
                 with RedisLock(
-                    key=self._spider_name,
-                    timeout=3600,
-                    wait_timeout=60,
-                    redis_cli=RedisDB().get_redis_obj(),
+                    key=self._spider_name, redis_cli=RedisDB().get_redis_obj()
                 ) as lock:
                     if lock.locked:
                         self.__add_task()

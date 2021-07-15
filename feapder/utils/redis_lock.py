@@ -14,13 +14,13 @@ from feapder.utils.log import log
 
 
 class RedisLock(object):
-    def __init__(self, key, redis_cli, wait_timeout=0, lock_timeout=0):
+    def __init__(self, key, redis_cli, wait_timeout=0, lock_timeout=86400):
         """
         redis超时锁
         :param key: 存储锁的key redis_lock:[key]
         :param redis_cli: redis客户端对象
         :param wait_timeout: 等待加锁超时时间，为0时则不等待加锁，加锁失败
-        :param lock_timeout: 锁超时时间 为0时则不会超时，直到锁释放或意外退出
+        :param lock_timeout: 锁超时时间 为0时则不会超时，直到锁释放或意外退出，默认超时为1天
 
         用法示例:
         with RedisLock(key="test", redis_cli=redis_obj) as _lock:

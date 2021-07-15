@@ -205,6 +205,8 @@ class ScalableBloomFilter(object):
     BASE_MEMORY = BloomFilter.BASE_MEMORY
     BASE_REDIS = BloomFilter.BASE_REDIS
 
+    __redis_cli = None
+
     def __init__(
         self,
         initial_capacity: int = 100000000,
@@ -237,6 +239,13 @@ class ScalableBloomFilter(object):
     def __repr__(self):
         return "<ScalableBloomFilter: {}>".format(self.filters[-1].bitarray)
 
+    @property
+    def _redis_cli(self):
+        if self.__class__.__redis_cli is None:
+            self.__class__.__redis_cli = RedisDB(url=self.redis_url).get_redis_obj()
+
+        return self.__class__.__redis_cli
+
     def create_filter(self):
         filter = BloomFilter(
             capacity=self.initial_capacity,
@@ -267,12 +276,13 @@ class ScalableBloomFilter(object):
 
                     self._check_capacity_time = time.time()
             else:
-                with RedisLock(
-                    key="ScalableBloomFilter",
-                    timeout=300,
-                    wait_timeout=300,
-                    redis_cli=RedisDB(url=self.redis_url).get_redis_obj(),
-                ) as lock:  # 全局锁 同一时间只有一个进程在真正的创建新的filter，等这个进程创建完，其他进程只是把刚创建的filter append进来
+                # 全局锁 同一时间只有一个进程在真正的创建新的filter，等这个进程创建完，其他进程只是把刚创建的filter append进来
+                key = (
+                    f"ScalableBloomFilter:{self.name}"
+                    if self.name
+                    else "ScalableBloomFilter"
+                )
+                with RedisLock(key=key, redis_cli=self._redis_cli) as lock:
                     if lock.locked:
                         while True:
                             if self.filters[-1].is_at_capacity:
