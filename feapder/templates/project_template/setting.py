@@ -94,6 +94,7 @@
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
+# DINGDING_WARNING_ALL = False # 是否提示所有人， 默认为False
 # # 邮件报警
 # EMAIL_SENDER = ""  # 发件人
 # EMAIL_PASSWORD = ""  # 授权码

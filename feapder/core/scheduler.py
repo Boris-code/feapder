@@ -431,11 +431,12 @@ class Scheduler(threading.Thread):
         self._started.clear()
 
     def send_msg(self, msg, level="debug", message_prefix=""):
+        # log.debug("发送报警 level:{} msg{}".format(level, msg))
         if setting.WARNING_LEVEL == "ERROR":
             if level != "error":
                 return
 
-        if setting.DINGDING_WARNING_PHONE:
+        if setting.DINGDING_WARNING_URL:
             keyword = "feapder报警系统\n"
             tools.dingding_warning(keyword + msg, message_prefix=message_prefix)
 

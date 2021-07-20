@@ -2280,7 +2280,7 @@ def dingding_warning(
     url = url or setting.DINGDING_WARNING_URL
     user_phone = user_phone or setting.DINGDING_WARNING_PHONE
 
-    if not all([url, user_phone, message]):
+    if not all([url, message]):
         return
 
     if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
@@ -2288,12 +2288,12 @@ def dingding_warning(
         return
 
     if isinstance(user_phone, str):
-        user_phone = [user_phone]
+        user_phone = [user_phone] if user_phone else []
 
     data = {
         "msgtype": "text",
         "text": {"content": message},
-        "at": {"atMobiles": user_phone, "isAtAll": False},
+        "at": {"atMobiles": user_phone, "isAtAll": setting.DINGDING_WARNING_ALL},
     }
 
     headers = {"Content-Type": "application/json"}
