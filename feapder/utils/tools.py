@@ -1987,7 +1987,7 @@ def make_update_sql(table, data, condition):
     for key, value in data.items():
         value = format_sql_value(value)
         if isinstance(value, str):
-            key_values.append("`{}`='{}'".format(key, value))
+            key_values.append("`{}`={}".format(key, repr(value)))
         elif value is None:
             key_values.append("`{}`={}".format(key, "null"))
         else:
