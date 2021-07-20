@@ -36,6 +36,7 @@ from urllib import request
 from urllib.parse import urljoin
 
 import execjs  # pip install PyExecJS
+import pymysql
 import redis
 import requests
 import six
@@ -1564,6 +1565,10 @@ def transform_lower_num(data_str: str):
 
 @run_safe_model("format_time")
 def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
+    timestamp_int = re.compile("\d{10}").findall(release_time)
+    if timestamp_int:
+        return timestamp_to_date(timestamp_int[0])
+
     release_time = transform_lower_num(release_time)
     release_time = release_time.replace("日", "天").replace("/", "-")
 
@@ -1904,6 +1909,9 @@ def witch_workspace(project_path):
 ############### 数据库相关 #######################
 def format_sql_value(value):
     if isinstance(value, str):
+        if '"' in value or "'" in value:
+            value = pymysql.escape_string(value)
+        value = value.strip()
         value = value.strip()
 
     elif isinstance(value, (list, dict)):
