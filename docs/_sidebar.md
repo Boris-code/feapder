@@ -17,6 +17,7 @@
 * 使用进阶
   * [请求-Request](source_code/Request.md)
   * [响应-Response](source_code/Response.md)
+  * [代理使用说明](source_code/proxy.md)
   * [浏览器渲染](source_code/浏览器渲染.md)
   * [解析器-BaseParser](source_code/BaseParser.md)
   * [批次解析器-BatchParser](source_code/BatchParser.md)
