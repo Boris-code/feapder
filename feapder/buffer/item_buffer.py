@@ -20,6 +20,7 @@ from feapder.network.item import Item, UpdateItem
 from feapder.pipelines import BasePipeline
 from feapder.pipelines.mysql_pipeline import MysqlPipeline
 from feapder.utils.log import log
+from feapder.utils import metrics
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
 UPLOAD_BATCH_MAX_SIZE = 1000
@@ -351,7 +352,9 @@ class ItemBuffer(threading.Thread):
         @param datas: 数据 列表
         @return:
         """
-        pass
+        for data in datas:
+            for k, v in data.items():
+                metrics.emit_counter(k, int(bool(v)), classify=table)
 
     def close(self):
         pass

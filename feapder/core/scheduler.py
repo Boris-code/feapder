@@ -24,6 +24,7 @@ from feapder.network.item import Item
 from feapder.network.request import Request
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
+from feapder.utils import metrics
 
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
@@ -143,6 +144,14 @@ class Scheduler(threading.Thread):
 
         self._last_check_task_status_time = 0
         self.wait_lock = wait_lock
+
+        self.init_metrics()
+
+    def init_metrics(self):
+        """
+        初始化打点系统
+        """
+        metrics.init(**setting.METRICS_OTHER_ARGS)
 
     def add_parser(self, parser):
         parser = parser()  # parser 实例化
@@ -473,19 +482,26 @@ class Scheduler(threading.Thread):
             # 发送消息
             self.send_msg("《%s》爬虫开始" % self._spider_name)
 
-    def spider_end(self):
+    def spider_end(self, close=True):
         self.record_end_time()
 
         if self._end_callback:
             self._end_callback()
 
         for parser in self._parsers:
-            parser.close()
+            if close:
+                parser.close()
             parser.end_callback()
 
-        # 关闭webdirver
-        if Request.webdriver_pool:
-            Request.webdriver_pool.close()
+        if close:
+            # 关闭webdirver
+            if Request.webdriver_pool:
+                Request.webdriver_pool.close()
+
+            # 关闭打点
+            metrics.close()
+        else:
+            metrics.flush()
 
         # 计算抓取时长
         data = self._redisdb.hget(

@@ -68,3 +68,7 @@ SPIDER_THREAD_COUNT = 1 # 爬虫并发数
 # LOG_LEVEL = "DEBUG"
 # LOG_IS_WRITE_TO_FILE = False
 # OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
+
+INFLUXDB_MEASUREMENT = "task_23"
+# 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
+METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)

@@ -7,10 +7,11 @@ import socket
 import threading
 import time
 from collections import Counter
-from typing import Any, Dict
+from typing import Any
 
 from influxdb import InfluxDBClient
 
+from feapder import setting
 from feapder.utils.log import log
 from feapder.utils.tools import aio_wrap, ensure_float, ensure_int
 
@@ -25,7 +26,6 @@ class MetricsEmitter:
     def __init__(
         self,
         influxdb,
-        prefix,
         *,
         batch_size=10,
         max_timer_seq=0,
@@ -41,7 +41,6 @@ class MetricsEmitter:
         """
         Args:
             influxdb: influxdb instance
-            prefix: prefix for measurement
             batch_size: 打点的批次大小
             max_timer_seq: 每个时间间隔内最多收集多少个 timer 类型点, 0 表示不限制
             emit_interval: 最多等待多长时间必须打点
@@ -54,7 +53,6 @@ class MetricsEmitter:
         """
         self.pending_points = queue.Queue()
         self.batch_size = batch_size
-        self.prefix = prefix
         self.influxdb: InfluxDBClient = influxdb
         self.tagkv = {}
         self.max_timer_seq = max_timer_seq
@@ -180,10 +178,13 @@ class MetricsEmitter:
 
             self.last_emit_ts = time.time()
 
-    def close(self):
+    def flush(self):
         if self.debug:
             log.info("start draining points %s", self.pending_points.qsize())
         self.emit(force=True)
+
+    def close(self):
+        self.flush()
         try:
             self.influxdb.close()
         except Exception as e:
@@ -193,8 +194,6 @@ class MetricsEmitter:
         """
         默认的时间戳是"秒"级别的
         """
-        if measurement is None:
-            measurement = self.prefix
         tags = tags.copy() if tags else {}
         tags.update(self.default_tags)
         fields = fields.copy() if fields else {}
@@ -212,17 +211,15 @@ class MetricsEmitter:
 
     def get_counter_point(
         self,
+        measurement: str,
         key: str = None,
         count: int = 1,
         tags: dict = None,
-        measurement: str = None,
         timestamp: int = None,
     ):
         """
         counter 不能被覆盖
         """
-        if measurement is None:
-            measurement = self.prefix + ".counter"
         tags = tags.copy() if tags else {}
         if key is not None:
             tags["_key"] = key
@@ -234,14 +231,12 @@ class MetricsEmitter:
 
     def get_store_point(
         self,
+        measurement: str,
         key: str = None,
         value: Any = 0,
         tags: dict = None,
-        measurement: str = None,
         timestamp=None,
     ):
-        if measurement is None:
-            measurement = self.prefix + ".store"
         tags = tags.copy() if tags else {}
         if key is not None:
             tags["_key"] = key
@@ -252,17 +247,12 @@ class MetricsEmitter:
 
     def get_timer_point(
         self,
+        measurement: str,
         key: str = None,
         duration: float = 0,
         tags: dict = None,
-        measurement: str = None,
         timestamp=None,
     ):
-        """
-        延迟数据需要统计 pct99 等, 不能彼此覆盖
-        """
-        if measurement is None:
-            measurement = self.prefix + ".timer"
         tags = tags.copy() if tags else {}
         if key is not None:
             tags["_key"] = key
@@ -287,33 +277,76 @@ class MetricsEmitter:
         point = self.get_timer_point(*args, **kwargs)
         self.emit(point)
 
-    def __del__(self):
-        self.close()
-
 
 _emitter: MetricsEmitter = None
 
 
 def init(
-    prefix,
-    *,
     influxdb_host=None,
     influxdb_port=8086,
     influxdb_udp_port=8089,
     influxdb_database=None,
-    influxdb_user="root",
-    influxdb_password="root",
+    influxdb_user=None,
+    influxdb_password=None,
+    retention_policy=None,
+    retention_policy_duration="180d",
+    emit_interval=60,
     batch_size=10,
     debug=False,
-    use_udp=True,
+    use_udp=False,
     timeout=10,
     time_precision="s",
     **kwargs,
 ):
+    """
+    打点监控初始化
+    Args:
+        influxdb_host:
+        influxdb_port:
+        influxdb_udp_port:
+        influxdb_database:
+        influxdb_user:
+        influxdb_password:
+        retention_policy: 保留策略
+        retention_policy_duration: 保留策略过期时间
+        emit_interval: 打点最大间隔
+        batch_size: 打点的批次大小
+        debug: 是否开启调试
+        use_udp: 是否使用udp协议打点
+        timeout: 与influxdb建立连接时的超时时间
+        time_precision: 打点精度 默认秒
+        **kwargs: 可传递MetricsEmitter类的参数
+
+    Returns:
+
+    """
     global _inited_pid, _emitter
     if _inited_pid == os.getpid():
-        log.error("metrics already started")
+        log.info("metrics already started")
         return
+
+    influxdb_host = influxdb_host or setting.INFLUXDB_HOST
+    influxdb_port = influxdb_port or setting.INFLUXDB_PORT
+    influxdb_udp_port = influxdb_udp_port or setting.INFLUXDB_UDP_PORT
+    influxdb_database = influxdb_database or setting.INFLUXDB_DATABASE
+    influxdb_user = influxdb_user or setting.INFLUXDB_USER
+    influxdb_password = influxdb_password or setting.INFLUXDB_PASSWORD
+    retention_policy = retention_policy or retention_policy_duration
+
+    if not all(
+        [
+            influxdb_host,
+            influxdb_port,
+            influxdb_udp_port,
+            influxdb_database,
+            influxdb_user,
+            influxdb_password,
+            setting.INFLUXDB_MEASUREMENT,
+        ]
+    ):
+        return
+    else:
+        log.info("启用监控")
 
     influxdb_client = InfluxDBClient(
         host=influxdb_host,
@@ -329,56 +362,110 @@ def init(
     if influxdb_database:
         try:
             influxdb_client.create_database(influxdb_database)
+            influxdb_client.create_retention_policy(
+                retention_policy, retention_policy_duration, replication="1"
+            )
         except Exception as e:
             log.error(e)
 
     _emitter = MetricsEmitter(
         influxdb_client,
-        prefix,
         debug=debug,
         batch_size=batch_size,
         time_precision=time_precision,
+        retention_policy=retention_policy,
+        emit_interval=emit_interval,
         **kwargs,
     )
     _inited_pid = os.getpid()
     log.info("metrics init successfully")
 
 
-def emit_any(*args, **kwargs):
+def emit_any(
+    tags: dict,
+    fields: dict,
+    *,
+    classify: str = None,
+    measurement: str = None,
+    timestamp=None,
+):
     if not _emitter:
         return
-    _emitter.emit_any(*args, **kwargs)
+
+    if classify:
+        tags = tags or {}
+        tags["classify"] = classify
+    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    _emitter.emit_any(measurement, tags, fields, timestamp)
 
 
-def emit_counter(*args, **kwargs):
+def emit_counter(
+    key: str = None,
+    count: int = 1,
+    *,
+    classify: str = None,
+    tags: dict = None,
+    measurement: str = None,
+    timestamp: int = None,
+):
     if not _emitter:
         return
-    _emitter.emit_counter(*args, **kwargs)
+
+    if classify:
+        tags = tags or {}
+        tags["classify"] = classify
+    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    _emitter.emit_counter(measurement, key, count, tags, timestamp)
 
 
-def emit_timer(*args, **kwargs):
+def emit_timer(
+    key: str = None,
+    duration: float = 0,
+    *,
+    classify: str = None,
+    tags: dict = None,
+    measurement: str = None,
+    timestamp=None,
+):
     if not _emitter:
         return
-    _emitter.emit_timer(*args, **kwargs)
+
+    if classify:
+        tags = tags or {}
+        tags["classify"] = classify
+    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    _emitter.emit_timer(measurement, key, duration, tags, timestamp)
 
 
-def emit_store(*args, **kwargs):
+def emit_store(
+    key: str = None,
+    value: Any = 0,
+    *,
+    classify: str = None,
+    tags: dict = None,
+    measurement: str,
+    timestamp=None,
+):
     if not _emitter:
         return
-    _emitter.emit_store(*args, **kwargs)
+
+    if classify:
+        tags = tags or {}
+        tags["classify"] = classify
+    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    _emitter.emit_store(measurement, key, value, tags, timestamp)
+
+
+def flush():
+    if not _emitter:
+        return
+    _emitter.flush()
 
 
 def close():
     if not _emitter:
         return
     _emitter.close()
-
-
-def emit_counter_by_dict(counters: Dict[str, int], tags=None, timestamp=None):
-    for k, v in counters.items():
-        if not v:
-            continue
-        emit_counter(k, v, tags=tags, timestamp=timestamp)
 
 
 aemit_counter = aio_wrap(executor=_executor)(emit_counter)

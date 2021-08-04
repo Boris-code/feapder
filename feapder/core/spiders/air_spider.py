@@ -18,6 +18,7 @@ from feapder.core.parser_control import AirSpiderParserControl
 from feapder.db.memory_db import MemoryDB
 from feapder.network.request import Request
 from feapder.utils.log import log
+from feapder.utils import metrics
 
 
 class AirSpider(BaseParser, Thread):
@@ -40,6 +41,8 @@ class AirSpider(BaseParser, Thread):
         self._memory_db = MemoryDB()
         self._parser_controls = []
         self._item_buffer = ItemBuffer(redis_key="air_spider")
+
+        metrics.init(**setting.METRICS_OTHER_ARGS)
 
     def distribute_task(self):
         for request in self.start_requests():
@@ -102,3 +105,4 @@ class AirSpider(BaseParser, Thread):
 
         self.end_callback()
         self._started.clear()
+        metrics.close()
