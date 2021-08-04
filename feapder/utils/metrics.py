@@ -330,7 +330,9 @@ def init(
     influxdb_database = influxdb_database or setting.INFLUXDB_DATABASE
     influxdb_user = influxdb_user or setting.INFLUXDB_USER
     influxdb_password = influxdb_password or setting.INFLUXDB_PASSWORD
-    retention_policy = retention_policy or retention_policy_duration
+    retention_policy = (
+        retention_policy or f"{influxdb_database}_{retention_policy_duration}"
+    )
 
     if not all(
         [
