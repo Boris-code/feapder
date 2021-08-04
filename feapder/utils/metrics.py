@@ -363,7 +363,10 @@ def init(
         try:
             influxdb_client.create_database(influxdb_database)
             influxdb_client.create_retention_policy(
-                retention_policy, retention_policy_duration, replication="1"
+                retention_policy,
+                retention_policy_duration,
+                replication="1",
+                default=True,
             )
         except Exception as e:
             log.error(e)
