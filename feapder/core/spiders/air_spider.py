@@ -104,5 +104,15 @@ class AirSpider(BaseParser, Thread):
                 break
 
         self.end_callback()
+        # 为了线程可重复start
         self._started.clear()
         metrics.close()
+
+    def join(self, timeout=None):
+        """
+        重写线程的join
+        """
+        if not self._started.is_set():
+            return
+
+        super().join()

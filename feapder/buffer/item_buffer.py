@@ -91,6 +91,7 @@ class ItemBuffer(threading.Thread):
         return self._mysql_pipeline
 
     def run(self):
+        self._thread_stop = False
         while not self._thread_stop:
             self.flush()
             tools.delay_time(0.5)

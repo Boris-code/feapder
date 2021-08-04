@@ -568,3 +568,12 @@ class Scheduler(threading.Thread):
         batch_interval=None,
     ):
         pass
+
+    def join(self, timeout=None):
+        """
+        重写线程的join
+        """
+        if not self._started.is_set():
+            return
+
+        super().join()

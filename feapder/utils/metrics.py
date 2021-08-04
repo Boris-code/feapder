@@ -322,7 +322,6 @@ def init(
     """
     global _inited_pid, _emitter
     if _inited_pid == os.getpid():
-        log.info("metrics already started")
         return
 
     influxdb_host = influxdb_host or setting.INFLUXDB_HOST

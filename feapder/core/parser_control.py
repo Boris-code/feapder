@@ -47,6 +47,7 @@ class PaserControl(threading.Thread):
         self._wait_task_time = 0
 
     def run(self):
+        self._thread_stop = False
         while not self._thread_stop:
             try:
                 requests = self._collector.get_requests(setting.SPIDER_TASK_COUNT)
