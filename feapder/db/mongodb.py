@@ -11,8 +11,9 @@ from urllib import parse
 from typing import List, Dict, Optional
 
 from pymongo import MongoClient
+from pymongo.database import Database
 from pymongo.collection import Collection
-from pymongo.errors import DuplicateKeyError
+from pymongo.errors import DuplicateKeyError, BulkWriteError
 
 import feapder.setting as setting
 from feapder.utils.log import log
@@ -33,10 +34,8 @@ class MongoDB:
         if not user_pass:
             user_pass = setting.MONGO_USER_PASS
 
-        self.client = MongoClient(
-            host=ip, port=port, username=user_name, password=user_pass
-        )
-        self.db = self.client.get_database(db)
+        self.client = MongoClient(host=ip, port=port, username=user_name, password=user_pass)
+        self.db = self.get_database(db)
 
     @classmethod
     def from_url(cls, url, **kwargs):
@@ -61,13 +60,21 @@ class MongoDB:
         connect_params.update(kwargs)
         return cls(**connect_params)
     
-    def get_collection(self, coll_name) -> Collection:
+    def get_database(self, database, **kwargs) -> Database:
+        """
+        获取数据库对象
+        @param database: 数据库名
+        @return:
+        """
+        return self.client.get_database(database, **kwargs)
+    
+    def get_collection(self, coll_name, **kwargs) -> Collection:
         """
         根据集合名获取集合对象
         @param coll_name: 集合名
         @return:
         """
-        return self.db.get_collection(coll_name)
+        return self.db.get_collection(coll_name, **kwargs)
     
     def find(self,
              coll_name: str,
@@ -248,16 +255,11 @@ class MongoDB:
                 affect_count += write_result['n']
             
             else:
-                command = {
-                    'insert': coll_name,
-                    'documents': datas,
-                    'ordered': False
-                }
-                write_result = self.run_command(command)
-                affect_count += write_result['n']
-                write_errors = write_result.get('writeErrors', None)
-                if write_errors:
-                    log.error("error:{}".format(write_errors))
+                try:
+                    result = collection.insert_many(datas, ordered=False).inserted_ids
+                except BulkWriteError:
+                    result = []
+                affect_count += len(result)
         
         except Exception as e:
             log.error("error:{}".format(e))
