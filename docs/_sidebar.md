@@ -31,6 +31,7 @@
   * [MongoDB](source_code/MongoDB.md)
   * [RedisDB](source_code/RedisDB.md)
   * [工具库-tools](source_code/tools.md)
+  * [日志配置及使用](source_code/logger.md)
   * [海量数据去重-dedup](source_code/dedup.md)
   * [报警及监控](source_code/报警及监控.md)
 
