@@ -18,6 +18,7 @@ from feapder.buffer.item_buffer import ItemBuffer
 from feapder.db.memory_db import MemoryDB
 from feapder.network.item import Item
 from feapder.network.request import Request
+from feapder.utils import metrics
 from feapder.utils.log import log
 
 
@@ -25,7 +26,7 @@ class PaserControl(threading.Thread):
     DOWNLOAD_EXCEPTION = "download_exception"
     DOWNLOAD_SUCCESS = "download_success"
     DOWNLOAD_TOTAL = "download_total"
-    PAESERS_EXCEPTION = "parsers_exception"
+    PAESERS_EXCEPTION = "parser_exception"
 
     is_show_tip = False
 
@@ -46,6 +47,7 @@ class PaserControl(threading.Thread):
         self._wait_task_time = 0
 
     def run(self):
+        self._thread_stop = False
         while not self._thread_stop:
             try:
                 requests = self._collector.get_requests(setting.SPIDER_TASK_COUNT)
@@ -413,7 +415,8 @@ class PaserControl(threading.Thread):
         记录html等文档下载状态
         @return:
         """
-        pass
+
+        metrics.emit_counter(f"{spider}:{status}", 1, classify="document")
 
     def stop(self):
         self._thread_stop = True

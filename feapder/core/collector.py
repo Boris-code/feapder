@@ -49,6 +49,7 @@ class Collector(threading.Thread):
         self.__delete_dead_node()
 
     def run(self):
+        self._thread_stop = False
         while not self._thread_stop:
             try:
                 self.__report_node_heartbeat()

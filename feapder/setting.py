@@ -115,7 +115,7 @@ REQUEST_FILTER_ENABLE = False  # request 去重
 # 钉钉报警
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
-DINGDING_WARNING_ALL = False # 是否提示所有人， 默认为False
+DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # 邮件报警
 EMAIL_SENDER = ""  # 发件人
 EMAIL_PASSWORD = ""  # 授权码
@@ -141,6 +141,18 @@ LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
 LOG_BACKUP_COUNT = 20  # 日志文件保留数量
 LOG_ENCODING = "utf8"  # 日志文件编码
 OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
+
+# 打点监控 influxdb 配置
+INFLUXDB_HOST = os.getenv("INFLUXDB_HOST", "localhost")
+INFLUXDB_PORT = int(os.getenv("INFLUXDB_PORT", 8086))
+INFLUXDB_UDP_PORT = int(os.getenv("INFLUXDB_UDP_PORT", 8086))
+INFLUXDB_USER = os.getenv("INFLUXDB_USER", "root")
+INFLUXDB_PASSWORD = os.getenv("INFLUXDB_PASSWORD", "root")
+INFLUXDB_DATABASE = "feapder"
+# 监控数据存储的表名，爬虫管理系统上会以task_id命名
+INFLUXDB_MEASUREMENT = "task_" + os.getenv("TASK_ID") if os.getenv("TASK_ID") else None
+# 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
+METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
 
 ############# 导入用户自定义的setting #############
 try:

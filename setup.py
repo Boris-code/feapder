@@ -48,7 +48,8 @@ requires = [
     "selenium>=3.141.0",
     "pymongo>=3.10.1",
     "urllib3>=1.25.8",
-    "loguru>=0.5.3"
+    "loguru>=0.5.3",
+    "influxdb>=5.3.1",
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]

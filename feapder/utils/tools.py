@@ -7,6 +7,7 @@ Created on 2018-09-06 14:21
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+import asyncio
 import calendar
 import codecs
 import configparser  # 读配置文件的
@@ -29,6 +30,7 @@ import urllib
 import urllib.parse
 import uuid
 import weakref
+from functools import partial, wraps
 from hashlib import md5
 from pprint import pformat
 from pprint import pprint
@@ -2428,6 +2430,9 @@ def wechat_warning(
         return False
 
 
+###################
+
+
 def make_item(cls, data: dict):
     """提供Item类与原数据，快速构建Item实例
     :param cls: Item类
@@ -2437,3 +2442,70 @@ def make_item(cls, data: dict):
     for key, val in data.items():
         setattr(item, key, val)
     return item
+
+
+###################
+
+
+def aio_wrap(loop=None, executor=None):
+    """
+    wrap a normal sync version of a function to an async version
+    """
+    outer_loop = loop
+    outer_executor = executor
+
+    def wrap(fn):
+        @wraps(fn)
+        async def run(*args, loop=None, executor=None, **kwargs):
+            if loop is None:
+                if outer_loop is None:
+                    loop = asyncio.get_event_loop()
+                else:
+                    loop = outer_loop
+            if executor is None:
+                executor = outer_executor
+            pfunc = partial(fn, *args, **kwargs)
+            return await loop.run_in_executor(executor, pfunc)
+
+        return run
+
+    return wrap
+
+
+######### number ##########
+
+
+def ensure_int(n):
+    """
+    >>> ensure_int(None)
+    0
+    >>> ensure_int(False)
+    0
+    >>> ensure_int(12)
+    12
+    >>> ensure_int("72")
+    72
+    >>> ensure_int('')
+    0
+    >>> ensure_int('1')
+    1
+    """
+    if not n:
+        return 0
+    return int(n)
+
+
+def ensure_float(n):
+    """
+    >>> ensure_float(None)
+    0.0
+    >>> ensure_float(False)
+    0.0
+    >>> ensure_float(12)
+    12.0
+    >>> ensure_float("72")
+    72.0
+    """
+    if not n:
+        return 0.0
+    return float(n)
