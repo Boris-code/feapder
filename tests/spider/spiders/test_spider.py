@@ -13,7 +13,7 @@ from items import *
 
 class TestSpider(feapder.Spider):
     def start_requests(self):
-        for i in range(100):
+        for i in range(1):
             yield feapder.Request(f"https://www.baidu.com#{i}", callback=self.parse)
 
     def validate(self, request, response):
