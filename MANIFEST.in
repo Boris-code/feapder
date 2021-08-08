@@ -3,10 +3,9 @@ include LICENSE
 
 include feapder/requirements.txt
 include feapder/VERSION
-include feapder/utils/js *
 
+recursive-include feapder/utils/js *
 recursive-include feapder/templates *
-
 recursive-include tests *
 
 global-exclude __pycache__ *.py[cod]
