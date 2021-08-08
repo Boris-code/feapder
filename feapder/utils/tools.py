@@ -1959,14 +1959,14 @@ def make_insert_sql(
             ["{key}=values({key})".format(key=key) for key in update_columns]
         )
         sql = (
-            "insert%s into {table} {keys} values {values} on duplicate key update %s"
+            "insert%s into `{table}` {keys} values {values} on duplicate key update %s"
             % (" ignore" if insert_ignore else "", update_columns_)
         )
 
     elif auto_update:
-        sql = "replace into {table} {keys} values {values}"
+        sql = "replace into `{table}` {keys} values {values}"
     else:
-        sql = "insert%s into {table} {keys} values {values}" % (
+        sql = "insert%s into `{table}` {keys} values {values}" % (
             " ignore" if insert_ignore else ""
         )
 
@@ -1997,7 +1997,7 @@ def make_update_sql(table, data, condition):
 
     key_values = ", ".join(key_values)
 
-    sql = "update {table} set {key_values} where {condition}"
+    sql = "update `{table}` set {key_values} where {condition}"
     sql = sql.format(table=table, key_values=key_values, condition=condition)
     return sql
 
@@ -2052,18 +2052,18 @@ def make_batch_sql(
             update_columns_ = ", ".join(
                 ["`{key}`=values(`{key}`)".format(key=key) for key in update_columns]
             )
-        sql = "insert into {table} {keys} values {values_placeholder} on duplicate key update {update_columns}".format(
+        sql = "insert into `{table}` {keys} values {values_placeholder} on duplicate key update {update_columns}".format(
             table=table,
             keys=keys,
             values_placeholder=values_placeholder,
             update_columns=update_columns_,
         )
     elif auto_update:
-        sql = "replace into {table} {keys} values {values_placeholder}".format(
+        sql = "replace into `{table}` {keys} values {values_placeholder}".format(
             table=table, keys=keys, values_placeholder=values_placeholder
         )
     else:
-        sql = "insert ignore into {table} {keys} values {values_placeholder}".format(
+        sql = "insert ignore into `{table}` {keys} values {values_placeholder}".format(
             table=table, keys=keys, values_placeholder=values_placeholder
         )
 
@@ -2073,7 +2073,7 @@ def make_batch_sql(
 ############### json相关 #######################
 
 
-def key2underline(key, strict=True):
+def key2underline(key: str, strict=True):
     """
     >>> key2underline("HelloWord")
     'hello_word'
@@ -2085,15 +2085,17 @@ def key2underline(key, strict=True):
     'sh_data_hi'
     >>> key2underline("SHDataHi", strict=True)
     's_h_data_hi'
+    >>> key2underline("dataHi", strict=True)
+    'data_hi'
     """
     regex = "[A-Z]*" if not strict else "[A-Z]"
     capitals = re.findall(regex, key)
 
     if capitals:
-        for pos, capital in enumerate(capitals):
+        for capital in capitals:
             if not capital:
                 continue
-            if pos == 0:
+            if key.startswith(capital):
                 if len(capital) > 1:
                     key = key.replace(
                         capital, capital[:-1].lower() + "_" + capital[-1].lower(), 1
