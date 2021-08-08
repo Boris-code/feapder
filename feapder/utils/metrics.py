@@ -346,8 +346,6 @@ def init(
         ]
     ):
         return
-    else:
-        log.info("启用监控")
 
     influxdb_client = InfluxDBClient(
         host=influxdb_host,
@@ -370,7 +368,8 @@ def init(
                 default=True,
             )
         except Exception as e:
-            log.error(e)
+            log.error("metrics init falied: {}".format(e))
+            return
 
     _emitter = MetricsEmitter(
         influxdb_client,
