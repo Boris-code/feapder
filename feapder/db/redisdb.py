@@ -533,6 +533,9 @@ class RedisDB:
 
         return res
 
+    def zincrby(self, table, amount, value):
+        return self._redis.zincrby(table, amount, value)
+
     def zget_count(self, table, priority_min=None, priority_max=None):
         """
         @summary: 获取表数据的数量
@@ -863,3 +866,6 @@ class RedisDB:
                 log.error(f"连接失败 e: {e}")
 
             time.sleep(2)
+
+    def __getattr__(self, name):
+        return getattr(self._redis, name)
