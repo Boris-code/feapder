@@ -148,7 +148,7 @@ INFLUXDB_PORT = int(os.getenv("INFLUXDB_PORT", 8086))
 INFLUXDB_UDP_PORT = int(os.getenv("INFLUXDB_UDP_PORT", 8086))
 INFLUXDB_USER = os.getenv("INFLUXDB_USER", "root")
 INFLUXDB_PASSWORD = os.getenv("INFLUXDB_PASSWORD", "root")
-INFLUXDB_DATABASE = "feapder"
+INFLUXDB_DATABASE = os.getenv("INFLUXDB_DB", "feapder")
 # 监控数据存储的表名，爬虫管理系统上会以task_id命名
 INFLUXDB_MEASUREMENT = "task_" + os.getenv("TASK_ID") if os.getenv("TASK_ID") else None
 # 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
