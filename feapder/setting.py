@@ -100,6 +100,8 @@ PROXY_ENABLE = True
 
 # 随机headers
 RANDOM_HEADERS = True
+# UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，若不指定则随机类型
+USER_AGENT_TYPE = "chrome"
 # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 # requests 使用session
@@ -113,9 +115,10 @@ REQUEST_FILTER_ENABLE = False  # request 去重
 # 钉钉报警
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
+DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # 邮件报警
-EAMIL_SENDER = ""  # 发件人
-EAMIL_PASSWORD = ""  # 授权码
+EMAIL_SENDER = ""  # 发件人
+EMAIL_PASSWORD = ""  # 授权码
 EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
 EMAIL_SMTPSERVER = "smtp.163.com"  # 邮件服务器 默认为163邮箱
 # 企业微信报警
@@ -131,13 +134,25 @@ LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 LOG_LEVEL = "DEBUG"
 LOG_COLOR = True  # 是否带有颜色
-LOG_IS_WRITE_TO_CONSOLE = True # 是否打印到控制台
+LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 LOG_IS_WRITE_TO_FILE = False  # 是否写文件
 LOG_MODE = "w"  # 写文件的模式
 LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
 LOG_BACKUP_COUNT = 20  # 日志文件保留数量
 LOG_ENCODING = "utf8"  # 日志文件编码
 OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
+
+# 打点监控 influxdb 配置
+INFLUXDB_HOST = os.getenv("INFLUXDB_HOST", "localhost")
+INFLUXDB_PORT = int(os.getenv("INFLUXDB_PORT", 8086))
+INFLUXDB_UDP_PORT = int(os.getenv("INFLUXDB_UDP_PORT", 8089))
+INFLUXDB_USER = os.getenv("INFLUXDB_USER")
+INFLUXDB_PASSWORD = os.getenv("INFLUXDB_PASSWORD")
+INFLUXDB_DATABASE = os.getenv("INFLUXDB_DB")
+# 监控数据存储的表名，爬虫管理系统上会以task_id命名
+INFLUXDB_MEASUREMENT = "task_" + os.getenv("TASK_ID") if os.getenv("TASK_ID") else None
+# 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
+METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
 
 ############# 导入用户自定义的setting #############
 try:

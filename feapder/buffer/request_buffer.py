@@ -48,6 +48,7 @@ class RequestBuffer(threading.Thread):
                 )  # 过期时间为一个月
 
     def run(self):
+        self._thread_stop = False
         while not self._thread_stop:
             try:
                 self.__add_request_to_db()

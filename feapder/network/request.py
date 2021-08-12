@@ -10,17 +10,17 @@ Created on 2018-07-25 11:49:08
 
 import requests
 from requests.adapters import HTTPAdapter
+from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
-from feapder.network.proxy_pool import proxy_pool
+from feapder.network.proxy_pool import ProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
 from feapder.utils.webdriver import WebDriverPool
-from requests.cookies import RequestsCookieJar
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -30,7 +30,7 @@ class Request(object):
     session = None
     webdriver_pool: WebDriverPool = None
     user_agent_pool = user_agent
-    proxies_pool = proxy_pool
+    proxies_pool: ProxyPool = None
 
     cache_db = None  # redis / pika
     cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
@@ -197,6 +197,13 @@ class Request(object):
         return self.__class__.webdriver_pool
 
     @property
+    def _proxies_pool(self):
+        if not self.__class__.proxies_pool:
+            self.__class__.proxies_pool = ProxyPool()
+
+        return self.__class__.proxies_pool
+
+    @property
     def to_dict(self):
         request_dict = {}
 
@@ -270,7 +277,13 @@ class Request(object):
         headers = self.requests_kwargs.get("headers", {})
         if "user-agent" not in headers and "User-Agent" not in headers:
             if self.random_user_agent and setting.RANDOM_HEADERS:
-                headers.update({"User-Agent": self.__class__.user_agent_pool.get()})
+                headers.update(
+                    {
+                        "User-Agent": self.__class__.user_agent_pool.get(
+                            setting.USER_AGENT_TYPE
+                        )
+                    }
+                )
                 self.requests_kwargs.update(headers=headers)
         else:
             self.requests_kwargs.setdefault(
@@ -279,9 +292,9 @@ class Request(object):
 
         # 代理
         proxies = self.requests_kwargs.get("proxies", -1)
-        if proxies == -1 and setting.PROXY_ENABLE and self.__class__.proxies_pool:
+        if proxies == -1 and setting.PROXY_ENABLE and setting.PROXY_EXTRACT_API:
             while True:
-                proxies = self.__class__.proxies_pool.get()
+                proxies = self._proxies_pool.get()
                 if proxies:
                     self.requests_kwargs.update(proxies=proxies)
                     break

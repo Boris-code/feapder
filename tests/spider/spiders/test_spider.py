@@ -13,10 +13,10 @@ from items import *
 
 class TestSpider(feapder.Spider):
     def start_requests(self):
-        yield feapder.Request("https://www.baidu.com", callback=self.parse)
+        for i in range(1):
+            yield feapder.Request(f"https://www.baidu.com#{i}", callback=self.parse)
 
     def validate(self, request, response):
-        print(request.callback_name)
         if response.status_code != 200:
             raise Exception("response code not 200")  # 重试
 
@@ -28,3 +28,8 @@ class TestSpider(feapder.Spider):
         item = spider_data_item.SpiderDataItem()  # 声明一个item
         item.title = title  # 给item属性赋值
         yield item  # 返回item， item会自动批量入库
+
+
+if __name__ == '__main__':
+    spider = TestSpider(redis_key="feapder3:test_spider", thread_count=100)
+    spider.start()

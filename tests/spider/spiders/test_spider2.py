@@ -13,7 +13,8 @@ from items import *
 
 class TestSpider2(feapder.Spider):
     def start_requests(self):
-        yield feapder.Request("https://www.baidu.com")
+        for i in range(100):
+            yield feapder.Request("https://www.baidu.com#{}".format(i))
 
     def parse(self, request, response):
         title = response.xpath("//title/text()").extract_first()  # 取标题

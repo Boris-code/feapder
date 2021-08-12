@@ -36,13 +36,6 @@ def get_proxies_by_id(proxy_id):
     return proxies
 
 
-# 代理类型定义
-class LimitProxy(object):
-    """提取次数有限制的代理"""
-
-    pass
-
-
 def get_proxy_from_url(**kwargs):
     """
     获取指定url的代理
@@ -391,6 +384,9 @@ class ProxyPool(ProxyPoolBase):
         :param logger: 日志处理器 默认 log.get_logger()
         :param kwargs: 其他的参数
         """
+        kwargs.setdefault("size", -1)
+        kwargs.setdefault("proxy_source_url", setting.PROXY_EXTRACT_API)
+
         super(ProxyPool, self).__init__(**kwargs)
         # 队列最大长度
         self.max_queue_size = kwargs.get("size", -1)
@@ -423,7 +419,7 @@ class ProxyPool(ProxyPoolBase):
         self.proxy_dict = {}
         # 失效代理队列
         self.invalid_proxy_dict = {}
-        #
+
         self.kwargs = kwargs
 
         # 重置代理池锁
@@ -707,9 +703,3 @@ class ProxyPool(ProxyPoolBase):
         :return:
         """
         return get_proxy_from_url(**self.kwargs)
-
-
-if not setting.PROXY_ENABLE or not setting.PROXY_EXTRACT_API:
-    proxy_pool = None
-else:
-    proxy_pool = ProxyPool(size=-1, proxy_source_url=setting.PROXY_EXTRACT_API)

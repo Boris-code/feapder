@@ -24,6 +24,7 @@ from feapder.network.item import Item
 from feapder.network.request import Request
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
+from feapder.utils import metrics
 
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
@@ -144,6 +145,14 @@ class Scheduler(threading.Thread):
         self._last_check_task_status_time = 0
         self.wait_lock = wait_lock
 
+        self.init_metrics()
+
+    def init_metrics(self):
+        """
+        初始化打点系统
+        """
+        metrics.init(**setting.METRICS_OTHER_ARGS)
+
     def add_parser(self, parser):
         parser = parser()  # parser 实例化
         if isinstance(parser, BaseParser):
@@ -195,7 +204,7 @@ class Scheduler(threading.Thread):
         # 判断任务池中属否还有任务，若有接着抓取
         todo_task_count = self._collector.get_requests_count()
         if todo_task_count:
-            log.info("检查到有待做任务 %s 条，不重下发新任务。将接着上回异常终止处继续抓取" % todo_task_count)
+            log.info("检查到有待做任务 %s 条，不重下发新任务，将接着上回异常终止处继续抓取" % todo_task_count)
         else:
             for parser in self._parsers:
                 results = parser.start_requests()
@@ -263,10 +272,7 @@ class Scheduler(threading.Thread):
             if self.wait_lock:
                 # 将添加任务处加锁，防止多进程之间添加重复的任务
                 with RedisLock(
-                    key=self._spider_name,
-                    timeout=3600,
-                    wait_timeout=60,
-                    redis_cli=RedisDB().get_redis_obj(),
+                    key=self._spider_name, redis_cli=RedisDB().get_redis_obj()
                 ) as lock:
                     if lock.locked:
                         self.__add_task()
@@ -434,11 +440,12 @@ class Scheduler(threading.Thread):
         self._started.clear()
 
     def send_msg(self, msg, level="debug", message_prefix=""):
+        # log.debug("发送报警 level:{} msg{}".format(level, msg))
         if setting.WARNING_LEVEL == "ERROR":
             if level != "error":
                 return
 
-        if setting.DINGDING_WARNING_PHONE:
+        if setting.DINGDING_WARNING_URL:
             keyword = "feapder报警系统\n"
             tools.dingding_warning(keyword + msg, message_prefix=message_prefix)
 
@@ -475,21 +482,28 @@ class Scheduler(threading.Thread):
             # 发送消息
             self.send_msg("《%s》爬虫开始" % self._spider_name)
 
-    def spider_end(self):
+    def spider_end(self, close=True):
         self.record_end_time()
 
         if self._end_callback:
             self._end_callback()
 
         for parser in self._parsers:
-            parser.close()
+            if close:
+                parser.close()
             parser.end_callback()
 
-        # 关闭webdirver
-        if Request.webdriver_pool:
-            Request.webdriver_pool.close()
+        if close:
+            # 关闭webdirver
+            if Request.webdriver_pool:
+                Request.webdriver_pool.close()
 
-        # 计算抓取时常
+            # 关闭打点
+            metrics.close()
+        else:
+            metrics.flush()
+
+        # 计算抓取时长
         data = self._redisdb.hget(
             self._tab_spider_time, SPIDER_START_TIME_KEY, is_pop=True
         )
@@ -554,3 +568,12 @@ class Scheduler(threading.Thread):
         batch_interval=None,
     ):
         pass
+
+    def join(self, timeout=None):
+        """
+        重写线程的join
+        """
+        if not self._started.is_set():
+            return
+
+        super().join()

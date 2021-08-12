@@ -23,6 +23,7 @@
 - 国内文档：https://boris-code.gitee.io/feapder
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
+- 爬虫管理系统：https://boris.org.cn/feapder/#/feapder_platform/爬虫管理系统
 
 
 ## 环境要求：
@@ -90,7 +91,7 @@ Thread-2|2021-02-09 14:55:11,373|request.py|get_response|line:283|DEBUG|
                 body = {'timeout': 22, 'stream': True, 'verify': False, 'headers': {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.93 Safari/537.36'}}
 
 <Response [200]>
-Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|DEBUG| parser 等待任务 ...
+Thread-2|2021-02-09 14:55:11,610|parser_control.py|run|line:415|DEBUG| parser 等待任务...
 FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，爬虫结束
 ```
 
@@ -106,24 +107,29 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 [爬虫 | 如何快速的将请求头转为json格式](https://mp.weixin.qq.com/s/BgAGo7HwlHxL8jDL5TSuHQ)
 
-## 学习交流
-
-知识星球：
-
-![知识星球](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg)
-
-星球会不定时分享爬虫技术干货，涉及的领域包括但不限于js逆向技巧、爬虫框架刨析、爬虫技术分享等
-
-
 ## 微信赞赏
 
 如果您觉得这个项目帮助到了您，您可以帮作者买一杯咖啡表示鼓励 🍹
 
 也可和作者交个朋友，解决您在使用过程中遇到的问题
 
-作者微信：**boris_tm**
-
-加好友备注：feapder
 
 ![赞赏码](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/03/16/zan-shang-ma.png)
 
+## 学习交流
+
+<table border="0"> 
+    <tr> 
+     <td> 知识星球：17321694 </td> 
+     <td> 作者微信： boris_tm </td> 
+     <td> QQ群号：750614606 </td> 
+    </tr> 
+    <tr> 
+    <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg" width=250px>
+ </td> 
+     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/er-wei-ma.jpeg?x-oss-process=style/markdown-media" width="250px" /> </td> 
+     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/16260897330897.jpg" width="250px" /> </td> 
+    </tr> 
+  </table> 
+  
+  加好友备注：feapder

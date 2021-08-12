@@ -32,8 +32,13 @@ def test_webdirver_pool():
 
 def test_webdriver():
     with WebDriver(
-        load_images=False, driver_type=WebDriver.FIREFOX, timeout=30
+        load_images=True, driver_type=WebDriver.CHROME, timeout=30
     ) as browser:
         browser.get("https://httpbin.org/get")
         html = browser.page_source
         print(html)
+
+        import time
+        time.sleep(1000)
+
+test_webdriver()

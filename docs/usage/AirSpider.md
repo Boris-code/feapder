@@ -253,8 +253,60 @@ WEBDRIVER = dict(
 )
 ```
 
+## 14. 自定义下载器
 
-## 14. 完整的代码示例
+自定义下载器即在下载中间件里下载，然后返回response即可，如使用httpx库下载以便支持http2
+
+
+```python
+import feapder
+import httpx
+
+
+class AirSpeedTest(feapder.AirSpider):
+    def start_requests(self):
+        yield feapder.Request("http://www.baidu.com")
+
+    def download_midware(self, request):
+        with httpx.Client(http2=True) as client:
+            response = client.get(request.url)
+
+        return request, response
+
+    def parse(self, request, response):
+        print(response) 
+
+
+if __name__ == "__main__":
+    AirSpeedTest(thread_count=1).start()
+```
+
+注意，解析函数里的response已经变成了下载中间件返回的response，而非默认的。若想用xpath、css等解析功能，写法如下
+
+```python
+
+import feapder
+import httpx
+from feapder.network.selector import Selector
+
+
+class AirSpeedTest(feapder.AirSpider):
+    def start_requests(self):
+        yield feapder.Request("http://www.baidu.com")
+
+    def download_midware(self, request):
+        with httpx.Client(http2=True) as client:
+            response = client.get(request.url)
+
+        return request, response
+
+    def parse(self, request, response):
+        selector = Selector(response.text)
+        title = selector.xpath("//title/text()").extract_first()
+        print(title)
+```
+
+## 15. 完整的代码示例
 
 AirSpider：https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py
 

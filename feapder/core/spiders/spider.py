@@ -193,7 +193,7 @@ class Spider(
         while True:
             if self.all_thread_is_done():
                 if not self._is_notify_end:
-                    self.spider_end()  # 跑完一轮
+                    self.spider_end(close=self._auto_stop_when_spider_done)  # 跑完一轮
                     self.record_spider_state(
                         spider_type=1,
                         state=1,

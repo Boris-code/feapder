@@ -79,6 +79,8 @@
 #
 # # 随机headers
 # RANDOM_HEADERS = True
+# # UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，若不指定则随机类型
+# USER_AGENT_TYPE = "chrome"
 # # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
 # DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 # # requests 使用session
@@ -92,9 +94,10 @@
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
+# DINGDING_WARNING_ALL = False # 是否提示所有人， 默认为False
 # # 邮件报警
-# EAMIL_SENDER = ""  # 发件人
-# EAMIL_PASSWORD = ""  # 授权码
+# EMAIL_SENDER = ""  # 发件人
+# EMAIL_PASSWORD = ""  # 授权码
 # EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
 # EMAIL_SMTPSERVER = "smtp.163.com" # 邮件服务器 默认为163邮箱
 # # 企业微信报警

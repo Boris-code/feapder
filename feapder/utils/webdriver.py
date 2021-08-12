@@ -10,7 +10,7 @@ Created on 2021/3/18 4:59 下午
 
 import queue
 import threading
-
+import os
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
@@ -196,16 +196,9 @@ class WebDriver(RemoteWebDriver):
         else:
             driver = webdriver.Chrome(chrome_options=chrome_options)
 
-        driver.execute_cdp_cmd(
-            "Page.addScriptToEvaluateOnNewDocument",
-            {
-                "source": """
-                    Object.defineProperty(navigator, 'webdriver', {
-                        get: () => undefined
-                    })
-                  """
-            },
-        )
+        with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:
+            js = f.read()
+        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
 
         return driver
 
