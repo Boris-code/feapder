@@ -14,3 +14,4 @@ redis-py-cluster>=2.1.0
 cryptography>=3.3.2
 urllib3>=1.25.8
 loguru>=0.5.3
+influxdb>=5.3.1

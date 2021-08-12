@@ -239,7 +239,10 @@ class Response(res):
     def text(self):
         if self._cached_text is None:
             if self.encoding and self.encoding.upper() != FAIL_ENCODING:
-                self._cached_text = self.__text
+                try:
+                    self._cached_text = self.__text
+                except UnicodeDecodeError:
+                    self._cached_text = self._get_unicode_html(self.content)
             else:
                 self._cached_text = self._get_unicode_html(self.content)
 
@@ -325,6 +328,11 @@ class Response(res):
             regex = re.sub("['\"]", "['\"]", regex)
 
         return self.selector.re_first(regex, default, replace_entities)
+
+    def close_browser(self, request):
+        if hasattr(self, "browser"):
+            request._webdriver_pool.remove(self.browser)
+            del self.browser
 
     def __del__(self):
         self.close()

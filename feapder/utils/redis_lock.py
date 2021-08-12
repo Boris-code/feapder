@@ -7,93 +7,65 @@ Created on 2019/11/5 5:25 PM
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+import threading
 import time
 
 from feapder.utils.log import log
 
 
 class RedisLock(object):
-    def __init__(
-        self,
-        key,
-        timeout=300,
-        wait_timeout=300,
-        break_wait=None,
-        redis_cli=None,
-    ):
+    def __init__(self, key, redis_cli, wait_timeout=0, lock_timeout=86400):
         """
         redis超时锁
-        :param key: 关键字  不同项目区分
-        :param timeout: 锁超时时间
-        :param wait_timeout:  等待加锁超时时间 防止多线程竞争时可能出现的 某个线程无限等待
-                            <=0 则不等待 直接加锁失败
-        :param break_wait: 可自定义函数 灵活控制 wait_timeout 时间 当此函数返回True时 不再wait
-        :param redis_cli: redis客户端
+        :param key: 存储锁的key redis_lock:[key]
+        :param redis_cli: redis客户端对象
+        :param wait_timeout: 等待加锁超时时间，为0时则不等待加锁，加锁失败
+        :param lock_timeout: 锁超时时间 为0时则不会超时，直到锁释放或意外退出，默认超时为1天
 
         用法示例:
-        with RedisLock(key="test", timeout=10, wait_timeout=100, redis_uri="") as _lock:
+        with RedisLock(key="test", redis_cli=redis_obj) as _lock:
             if _lock.locked:
                 # 用来判断是否加上了锁
                 # do somethings
         """
-        self.redis_index = -1
-        if not key:
-            raise Exception("lock key is empty")
-        if not redis_cli:
-            raise Exception("redis_cli is empty")
-
         self.redis_conn = redis_cli
         self.lock_key = "redis_lock:{}".format(key)
         # 锁超时时间
-        self.timeout = timeout
+        self.lock_timeout = lock_timeout
         # 等待加锁时间
         self.wait_timeout = wait_timeout
-        # wait中断函数
-        self.break_wait = break_wait
-        if self.break_wait is None:
-            self.break_wait = lambda: False
-        if not callable(self.break_wait):
-            raise TypeError(
-                "break_wait must be function or None, but: {}".format(
-                    type(self.break_wait)
-                )
-            )
-
         self.locked = False
+        self.stop_prolong_life = False
 
     def __enter__(self):
         if not self.locked:
             self.acquire()
+            # 延长锁的时间
+            thread = threading.Thread(target=self.prolong_life)
+            thread.setDaemon(True)
+            thread.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        self.stop_prolong_life = True
         self.release()
 
     def __repr__(self):
-        return "<RedisLock: {} index: {}>".format(self.lock_key, self.redis_index)
+        return "<RedisLock: {} >".format(self.lock_key)
 
     def acquire(self):
         start = time.time()
-        while 1:
+        while True:
             # 尝试加锁
-            if self.redis_conn.setnx(self.lock_key, time.time()):
-                self.redis_conn.expire(self.lock_key, self.timeout)
+            if self.redis_conn.set(self.lock_key, time.time(), nx=True, ex=5):
                 self.locked = True
                 break
-            else:
-                # 修复bug： 当加锁时被干掉 导致没有设置expire成功 锁无限存在
-                if self.redis_conn.ttl(self.lock_key) < 0:
-                    self.redis_conn.delete(self.lock_key)
 
             if self.wait_timeout > 0:
                 if time.time() - start > self.wait_timeout:
                     log.info("加锁失败")
                     break
             else:
-                # 不等待
-                break
-            if self.break_wait():
-                log.info("break_wait 生效 不再等待加锁")
                 break
             log.debug("等待加锁: {} wait:{}".format(self, time.time() - start))
             if self.wait_timeout > 10:
@@ -108,15 +80,22 @@ class RedisLock(object):
             self.locked = False
         return
 
-    def prolong_life(self, life_time: int) -> int:
+    def prolong_life(self):
         """
-        延长这个锁的超时时间
-        :param life_time: 延长时间
+        延长锁的过期时间
         :return:
         """
-        expire = self.redis_conn.ttl(self.lock_key)
-        if expire < 0:
-            return expire
-        expire += life_time
-        self.redis_conn.expire(self.lock_key, expire)
-        return self.redis_conn.ttl(self.lock_key)
+
+        spend_time = 0
+        while not self.stop_prolong_life:
+            expire = self.redis_conn.ttl(self.lock_key)
+            if expire < 0:  # key 不存在
+                time.sleep(1)
+                continue
+            self.redis_conn.expire(self.lock_key, expire + 5)  # 延长5秒
+            time.sleep(expire)  # 临过期5秒前，再次延长
+            spend_time += expire
+            if self.lock_timeout and spend_time > self.lock_timeout:
+                log.info("锁超时，释放")
+                self.redis_conn.delete(self.lock_key)
+                break

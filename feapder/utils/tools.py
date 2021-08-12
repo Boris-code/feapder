@@ -7,6 +7,7 @@ Created on 2018-09-06 14:21
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+import asyncio
 import calendar
 import codecs
 import configparser  # 读配置文件的
@@ -29,6 +30,7 @@ import urllib
 import urllib.parse
 import uuid
 import weakref
+from functools import partial, wraps
 from hashlib import md5
 from pprint import pformat
 from pprint import pprint
@@ -1965,14 +1967,14 @@ def make_insert_sql(
             ["{key}=values({key})".format(key=key) for key in update_columns]
         )
         sql = (
-            "insert%s into {table} {keys} values {values} on duplicate key update %s"
+            "insert%s into `{table}` {keys} values {values} on duplicate key update %s"
             % (" ignore" if insert_ignore else "", update_columns_)
         )
 
     elif auto_update:
-        sql = "replace into {table} {keys} values {values}"
+        sql = "replace into `{table}` {keys} values {values}"
     else:
-        sql = "insert%s into {table} {keys} values {values}" % (
+        sql = "insert%s into `{table}` {keys} values {values}" % (
             " ignore" if insert_ignore else ""
         )
 
@@ -1995,7 +1997,7 @@ def make_update_sql(table, data, condition):
     for key, value in data.items():
         value = format_sql_value(value)
         if isinstance(value, str):
-            key_values.append("`{}`='{}'".format(key, value))
+            key_values.append("`{}`={}".format(key, repr(value)))
         elif value is None:
             key_values.append("`{}`={}".format(key, "null"))
         else:
@@ -2003,7 +2005,7 @@ def make_update_sql(table, data, condition):
 
     key_values = ", ".join(key_values)
 
-    sql = "update {table} set {key_values} where {condition}"
+    sql = "update `{table}` set {key_values} where {condition}"
     sql = sql.format(table=table, key_values=key_values, condition=condition)
     return sql
 
@@ -2058,18 +2060,18 @@ def make_batch_sql(
             update_columns_ = ", ".join(
                 ["`{key}`=values(`{key}`)".format(key=key) for key in update_columns]
             )
-        sql = "insert into {table} {keys} values {values_placeholder} on duplicate key update {update_columns}".format(
+        sql = "insert into `{table}` {keys} values {values_placeholder} on duplicate key update {update_columns}".format(
             table=table,
             keys=keys,
             values_placeholder=values_placeholder,
             update_columns=update_columns_,
         )
     elif auto_update:
-        sql = "replace into {table} {keys} values {values_placeholder}".format(
+        sql = "replace into `{table}` {keys} values {values_placeholder}".format(
             table=table, keys=keys, values_placeholder=values_placeholder
         )
     else:
-        sql = "insert ignore into {table} {keys} values {values_placeholder}".format(
+        sql = "insert ignore into `{table}` {keys} values {values_placeholder}".format(
             table=table, keys=keys, values_placeholder=values_placeholder
         )
 
@@ -2079,7 +2081,7 @@ def make_batch_sql(
 ############### json相关 #######################
 
 
-def key2underline(key, strict=True):
+def key2underline(key: str, strict=True):
     """
     >>> key2underline("HelloWord")
     'hello_word'
@@ -2091,15 +2093,17 @@ def key2underline(key, strict=True):
     'sh_data_hi'
     >>> key2underline("SHDataHi", strict=True)
     's_h_data_hi'
+    >>> key2underline("dataHi", strict=True)
+    'data_hi'
     """
     regex = "[A-Z]*" if not strict else "[A-Z]"
     capitals = re.findall(regex, key)
 
     if capitals:
-        for pos, capital in enumerate(capitals):
+        for capital in capitals:
             if not capital:
                 continue
-            if pos == 0:
+            if key.startswith(capital):
                 if len(capital) > 1:
                     key = key.replace(
                         capital, capital[:-1].lower() + "_" + capital[-1].lower(), 1
@@ -2281,13 +2285,14 @@ def is_in_rate_limit(rate_limit, *key):
 
 
 def dingding_warning(
-    message,
-    message_prefix=None,
-    rate_limit=setting.WARNING_INTERVAL,
-    url=setting.DINGDING_WARNING_URL,
-    user_phone=setting.DINGDING_WARNING_PHONE,
+    message, message_prefix=None, rate_limit=None, url=None, user_phone=None
 ):
-    if not all([url, user_phone, message]):
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.DINGDING_WARNING_URL
+    user_phone = user_phone or setting.DINGDING_WARNING_PHONE
+
+    if not all([url, message]):
         return
 
     if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
@@ -2295,12 +2300,12 @@ def dingding_warning(
         return
 
     if isinstance(user_phone, str):
-        user_phone = [user_phone]
+        user_phone = [user_phone] if user_phone else []
 
     data = {
         "msgtype": "text",
         "text": {"content": message},
-        "at": {"atMobiles": user_phone, "isAtAll": False},
+        "at": {"atMobiles": user_phone, "isAtAll": setting.DINGDING_WARNING_ALL},
     }
 
     headers = {"Content-Type": "application/json"}
@@ -2324,17 +2329,24 @@ def email_warning(
     message,
     title,
     message_prefix=None,
-    eamil_sender=setting.EAMIL_SENDER,
-    eamil_password=setting.EAMIL_PASSWORD,
-    email_receiver=setting.EMAIL_RECEIVER,
-    email_smtpserver=setting.EMAIL_SMTPSERVER,
-    rate_limit=setting.WARNING_INTERVAL,
+    email_sender=None,
+    email_password=None,
+    email_receiver=None,
+    email_smtpserver=None,
+    rate_limit=None,
 ):
-    if not all([message, eamil_sender, eamil_password, email_receiver]):
+    # 为了加载最新的配置
+    email_sender = email_sender or setting.EMAIL_SENDER
+    email_password = email_password or setting.EMAIL_PASSWORD
+    email_receiver = email_receiver or setting.EMAIL_RECEIVER
+    email_smtpserver = email_smtpserver or setting.EMAIL_SMTPSERVER
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+
+    if not all([message, email_sender, email_password, email_receiver]):
         return
 
     if is_in_rate_limit(
-        rate_limit, email_receiver, eamil_sender, message_prefix or message
+        rate_limit, email_receiver, email_sender, message_prefix or message
     ):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
@@ -2343,7 +2355,7 @@ def email_warning(
         email_receiver = [email_receiver]
 
     with EmailSender(
-        username=eamil_sender, password=eamil_password, smtpserver=email_smtpserver
+        username=email_sender, password=email_password, smtpserver=email_smtpserver
     ) as email:
         return email.send(receivers=email_receiver, title=title, content=message)
 
@@ -2380,12 +2392,19 @@ def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None)
 def wechat_warning(
     message,
     message_prefix=None,
-    rate_limit=setting.WARNING_INTERVAL,
-    url=setting.WECHAT_WARNING_URL,
-    user_phone=setting.WECHAT_WARNING_PHONE,
-    all_users=setting.WECHAT_WARNING_ALL,
+    rate_limit=None,
+    url=None,
+    user_phone=None,
+    all_users: bool = None,
 ):
     """企业微信报警"""
+
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.WECHAT_WARNING_URL
+    user_phone = user_phone or setting.WECHAT_WARNING_PHONE
+    all_users = all_users if all_users is not None else setting.WECHAT_WARNING_ALL
+
     if isinstance(user_phone, str):
         user_phone = [user_phone] if user_phone else []
 
@@ -2421,6 +2440,9 @@ def wechat_warning(
         return False
 
 
+###################
+
+
 def make_item(cls, data: dict):
     """提供Item类与原数据，快速构建Item实例
     :param cls: Item类
@@ -2430,3 +2452,70 @@ def make_item(cls, data: dict):
     for key, val in data.items():
         setattr(item, key, val)
     return item
+
+
+###################
+
+
+def aio_wrap(loop=None, executor=None):
+    """
+    wrap a normal sync version of a function to an async version
+    """
+    outer_loop = loop
+    outer_executor = executor
+
+    def wrap(fn):
+        @wraps(fn)
+        async def run(*args, loop=None, executor=None, **kwargs):
+            if loop is None:
+                if outer_loop is None:
+                    loop = asyncio.get_event_loop()
+                else:
+                    loop = outer_loop
+            if executor is None:
+                executor = outer_executor
+            pfunc = partial(fn, *args, **kwargs)
+            return await loop.run_in_executor(executor, pfunc)
+
+        return run
+
+    return wrap
+
+
+######### number ##########
+
+
+def ensure_int(n):
+    """
+    >>> ensure_int(None)
+    0
+    >>> ensure_int(False)
+    0
+    >>> ensure_int(12)
+    12
+    >>> ensure_int("72")
+    72
+    >>> ensure_int('')
+    0
+    >>> ensure_int('1')
+    1
+    """
+    if not n:
+        return 0
+    return int(n)
+
+
+def ensure_float(n):
+    """
+    >>> ensure_float(None)
+    0.0
+    >>> ensure_float(False)
+    0.0
+    >>> ensure_float(12)
+    12.0
+    >>> ensure_float("72")
+    72.0
+    """
+    if not n:
+        return 0.0
+    return float(n)
