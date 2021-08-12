@@ -279,15 +279,18 @@ class MetricsEmitter:
 
 
 _emitter: MetricsEmitter = None
+_measurement: str = None
 
 
 def init(
+    *,
     influxdb_host=None,
     influxdb_port=None,
     influxdb_udp_port=None,
     influxdb_database=None,
     influxdb_user=None,
     influxdb_password=None,
+    influxdb_measurement=None,
     retention_policy=None,
     retention_policy_duration="180d",
     emit_interval=60,
@@ -307,6 +310,7 @@ def init(
         influxdb_database:
         influxdb_user:
         influxdb_password:
+        influxdb_measurement: 存储的表，也可以在打点的时候指定
         retention_policy: 保留策略
         retention_policy_duration: 保留策略过期时间
         emit_interval: 打点最大间隔
@@ -330,6 +334,7 @@ def init(
     influxdb_database = influxdb_database or setting.INFLUXDB_DATABASE
     influxdb_user = influxdb_user or setting.INFLUXDB_USER
     influxdb_password = influxdb_password or setting.INFLUXDB_PASSWORD
+    _measurement = influxdb_measurement or setting.INFLUXDB_MEASUREMENT
     retention_policy = (
         retention_policy or f"{influxdb_database}_{retention_policy_duration}"
     )
@@ -398,7 +403,7 @@ def emit_any(
     if classify:
         tags = tags or {}
         tags["classify"] = classify
-    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    measurement = measurement or _measurement
     _emitter.emit_any(measurement, tags, fields, timestamp)
 
 
@@ -417,7 +422,7 @@ def emit_counter(
     if classify:
         tags = tags or {}
         tags["classify"] = classify
-    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    measurement = measurement or _measurement
     _emitter.emit_counter(measurement, key, count, tags, timestamp)
 
 
@@ -436,7 +441,7 @@ def emit_timer(
     if classify:
         tags = tags or {}
         tags["classify"] = classify
-    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    measurement = measurement or _measurement
     _emitter.emit_timer(measurement, key, duration, tags, timestamp)
 
 
@@ -455,7 +460,7 @@ def emit_store(
     if classify:
         tags = tags or {}
         tags["classify"] = classify
-    measurement = measurement or setting.INFLUXDB_MEASUREMENT
+    measurement = measurement or _measurement
     _emitter.emit_store(measurement, key, value, tags, timestamp)
 
 
