@@ -283,8 +283,8 @@ _emitter: MetricsEmitter = None
 
 def init(
     influxdb_host=None,
-    influxdb_port=8086,
-    influxdb_udp_port=8089,
+    influxdb_port=None,
+    influxdb_udp_port=None,
     influxdb_database=None,
     influxdb_user=None,
     influxdb_password=None,

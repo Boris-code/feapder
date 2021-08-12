@@ -145,7 +145,7 @@ OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
 # 打点监控 influxdb 配置
 INFLUXDB_HOST = os.getenv("INFLUXDB_HOST", "localhost")
 INFLUXDB_PORT = int(os.getenv("INFLUXDB_PORT", 8086))
-INFLUXDB_UDP_PORT = int(os.getenv("INFLUXDB_UDP_PORT", 8086))
+INFLUXDB_UDP_PORT = int(os.getenv("INFLUXDB_UDP_PORT", 8089))
 INFLUXDB_USER = os.getenv("INFLUXDB_USER", "root")
 INFLUXDB_PASSWORD = os.getenv("INFLUXDB_PASSWORD", "root")
 INFLUXDB_DATABASE = os.getenv("INFLUXDB_DB", "feapder")
