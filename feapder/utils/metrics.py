@@ -194,6 +194,7 @@ class MetricsEmitter:
         """
         默认的时间戳是"秒"级别的
         """
+        assert measurement, "measurement can't be null"
         tags = tags.copy() if tags else {}
         tags.update(self.default_tags)
         fields = fields.copy() if fields else {}
@@ -324,7 +325,7 @@ def init(
     Returns:
 
     """
-    global _inited_pid, _emitter
+    global _inited_pid, _emitter, _measurement
     if _inited_pid == os.getpid():
         return
 
@@ -347,7 +348,6 @@ def init(
             influxdb_database,
             influxdb_user,
             influxdb_password,
-            setting.INFLUXDB_MEASUREMENT,
         ]
     ):
         return
@@ -397,6 +397,18 @@ def emit_any(
     measurement: str = None,
     timestamp=None,
 ):
+    """
+    原生的打点，不进行额外的处理
+    Args:
+        tags: influxdb的tag的字段和值
+        fields: influxdb的field的字段和值
+        classify: 点的类别
+        measurement: 存储的表
+        timestamp: 点的时间搓，默认为当前时间
+
+    Returns:
+
+    """
     if not _emitter:
         return
 
@@ -416,6 +428,19 @@ def emit_counter(
     measurement: str = None,
     timestamp: int = None,
 ):
+    """
+    聚合打点，即会将一段时间内的点求和，然后打一个点数和
+    Args:
+        key: 与点绑定的key值
+        count: 点数
+        classify: 点的类别
+        tags: influxdb的tag的字段和值
+        measurement: 存储的表
+        timestamp: 点的时间搓，默认为当前时间
+
+    Returns:
+
+    """
     if not _emitter:
         return
 
@@ -435,6 +460,19 @@ def emit_timer(
     measurement: str = None,
     timestamp=None,
 ):
+    """
+    时间打点，用于监控程序的运行时长等，每个duration一个点，不会被覆盖
+    Args:
+        key: 与点绑定的key值
+        duration: 时长
+        classify: 点的类别
+        tags: influxdb的tag的字段和值
+        measurement: 存储的表
+        timestamp: 点的时间搓，默认为当前时间
+
+    Returns:
+
+    """
     if not _emitter:
         return
 
@@ -454,6 +492,19 @@ def emit_store(
     measurement: str,
     timestamp=None,
 ):
+    """
+    直接打点，不进行额外的处理
+    Args:
+        key: 与点绑定的key值
+        value: 点的值
+        classify: 点的类别
+        tags: influxdb的tag的字段和值
+        measurement: 存储的表
+        timestamp: 点的时间搓，默认为当前时间
+
+    Returns:
+
+    """
     if not _emitter:
         return
 
@@ -465,17 +516,28 @@ def emit_store(
 
 
 def flush():
+    """
+    强刷点到influxdb
+    Returns:
+
+    """
     if not _emitter:
         return
     _emitter.flush()
 
 
 def close():
+    """
+    关闭
+    Returns:
+
+    """
     if not _emitter:
         return
     _emitter.close()
 
 
+# 协程打点
 aemit_counter = aio_wrap(executor=_executor)(emit_counter)
 aemit_store = aio_wrap(executor=_executor)(emit_store)
 aemit_timer = aio_wrap(executor=_executor)(emit_timer)
