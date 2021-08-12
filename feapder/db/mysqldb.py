@@ -173,13 +173,13 @@ class MysqlDB:
         cursor.execute(sql)
 
         if limit == 1:
-            result = cursor.fetchone()  # 全部查出来，截取 不推荐使用
+            result = cursor.fetchone()  # 查一条
         elif limit > 1:
             result = cursor.fetchmany(limit)  # 全部查出来，截取 不推荐使用
         else:
             result = cursor.fetchall()
 
-        if to_json:
+        if result and to_json:
             columns = [i[0] for i in cursor.description]
 
             # 处理数据
