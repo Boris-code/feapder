@@ -12,7 +12,7 @@ def __init__(
     begin_callback=None,
     end_callback=None,
     delete_keys=(),
-    auto_stop_when_spider_done=None,
+    keep_alive=None,
     auto_start_requests=None,
     send_run_time=False,
     batch_interval=0,
@@ -26,7 +26,7 @@ def __init__(
     @param begin_callback: 爬虫开始回调函数
     @param end_callback: 爬虫结束回调函数
     @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
-    @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
+    @param keep_alive: 爬虫是否常驻
     @param auto_start_requests: 爬虫是否自动添加任务
     @param send_run_time: 发送运行时间
     @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
@@ -107,11 +107,11 @@ delete_keys 接收类型为tuple/bool/string，支持正则，拿以下的key举
 
 删除全部可写为`delete_keys="*"`
 
-### 4. auto_stop_when_spider_done
+### 4. keep_alive
 
 用于`spider.start_monitor_task()` 与 `spider.start()` 这种master、worker模式。
 
-`auto_stop_when_spider_done=False`时，爬虫做完任务后不会退出，继续等待任务。
+`keep_alive=True`时，爬虫做完任务后不会退出，继续等待任务。
 
 ### 5. send_run_time
 
@@ -137,11 +137,11 @@ Spider继承至BaseParser，并且BaseParser是对开发者暴露的常用方法
 
 ### 1. start_monitor_task
 
-下发及监控任务，与`auto_stop_when_spider_done`参数配合使用，用于常驻进程的爬虫
+下发及监控任务，与`keep_alive`参数配合使用，用于常驻进程的爬虫
 
 使用：
 
-    spider = test_spider.TestSpider(redis_key="feapder:test_spider", auto_stop_when_spider_done=False)
+    spider = test_spider.TestSpider(redis_key="feapder:test_spider", keep_alive=True)
     # 下发及监控任务
     spider.start_monitor_task()
     # 采集（进程常驻）

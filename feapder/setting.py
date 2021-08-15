@@ -58,7 +58,7 @@ SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 SPIDER_AUTO_START_REQUESTS = (
     True
 )  # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
-AUTO_STOP_WHEN_SPIDER_DONE = True  # 爬虫是否自动结束
+KEEP_ALIVE = False  # 爬虫是否常驻
 
 # 浏览器渲染
 WEBDRIVER = dict(
@@ -157,5 +157,8 @@ METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
 ############# 导入用户自定义的setting #############
 try:
     from setting import *
+
+    # 兼容老版本的配置
+    KEEP_ALIVE = not AUTO_STOP_WHEN_SPIDER_DONE
 except:
     pass

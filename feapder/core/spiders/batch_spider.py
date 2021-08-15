@@ -53,8 +53,9 @@ class BatchSpider(BatchParser, Scheduler):
         begin_callback=None,
         end_callback=None,
         delete_keys=(),
-        auto_stop_when_spider_done=None,
+        keep_alive=None,
         send_run_time=False,
+        **kwargs
     ):
         """
         @summary: 批次爬虫
@@ -88,7 +89,7 @@ class BatchSpider(BatchParser, Scheduler):
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
-        @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
+        @param keep_alive: 爬虫是否常驻，默认否
         @param send_run_time: 发送运行时间
         @param related_redis_key: 有关联的其他爬虫任务表（redis）注意：要避免环路 如 A -> B & B -> A 。
         @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。
@@ -107,11 +108,12 @@ class BatchSpider(BatchParser, Scheduler):
             begin_callback=begin_callback,
             end_callback=end_callback,
             delete_keys=delete_keys,
-            auto_stop_when_spider_done=auto_stop_when_spider_done,
+            keep_alive=keep_alive,
             auto_start_requests=False,
             send_run_time=send_run_time,
             batch_interval=batch_interval,
             task_table=task_table,
+            **kwargs
         )
 
         self._redisdb = RedisDB()
@@ -206,7 +208,7 @@ class BatchSpider(BatchParser, Scheduler):
         while True:
             try:
                 if self.check_batch(is_first_check):  # 该批次已经做完
-                    if not self._auto_stop_when_spider_done:
+                    if self._keep_alive:
                         is_first_check = True
                         log.info("爬虫所有任务已做完，不自动结束，等待新任务...")
                         time.sleep(self._check_task_interval)
@@ -1011,7 +1013,7 @@ class BatchSpider(BatchParser, Scheduler):
                     self.task_is_done() and self.all_thread_is_done()
                 ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                     if not self._is_notify_end:
-                        self.spider_end(close=self._auto_stop_when_spider_done)
+                        self.spider_end()
                         self.record_spider_state(
                             spider_type=2,
                             state=1,
@@ -1022,7 +1024,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                         self._is_notify_end = True
 
-                    if self._auto_stop_when_spider_done:
+                    if not self._keep_alive:
                         self._stop_all_thread()
                         break
                 else:

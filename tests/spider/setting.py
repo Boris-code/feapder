@@ -41,9 +41,8 @@ SPIDER_THREAD_COUNT = 1 # 爬虫并发数
 # WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 #
 # # 爬虫初始化工作
-# # 爬虫做完request后是否自动结束或者等待任务
-# AUTO_STOP_WHEN_SPIDER_DONE = True
-#
+# # 爬虫是否常驻
+# KEEP_ALIVE = True
 #
 # # 设置代理
 # PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n

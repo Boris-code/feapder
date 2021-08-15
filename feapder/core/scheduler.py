@@ -41,12 +41,13 @@ class Scheduler(threading.Thread):
         begin_callback=None,
         end_callback=None,
         delete_keys=(),
-        auto_stop_when_spider_done=None,
+        keep_alive=None,
         auto_start_requests=None,
         send_run_time=True,
         batch_interval=0,
         wait_lock=True,
         task_table=None,
+        **kwargs
     ):
         """
         @summary: 调度器
@@ -56,7 +57,7 @@ class Scheduler(threading.Thread):
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则
-        @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
+        @param keep_alive: 爬虫是否常驻，默认否
         @param auto_start_requests: 爬虫是否自动添加任务
         @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
@@ -69,7 +70,10 @@ class Scheduler(threading.Thread):
         super(Scheduler, self).__init__()
 
         for key, value in self.__class__.__custom_setting__.items():
-            setattr(setting, key, value)
+            if key == "AUTO_STOP_WHEN_SPIDER_DONE":  # 兼容老版本的配置
+                setattr(setting, "KEEP_ALIVE", not value)
+            else:
+                setattr(setting, key, value)
 
         self._redis_key = redis_key or setting.REDIS_KEY
         if not self._redis_key:
@@ -89,11 +93,13 @@ class Scheduler(threading.Thread):
         self._parser_controls = []
         self._parser_control_obj = PaserControl
 
-        self._auto_stop_when_spider_done = (
-            auto_stop_when_spider_done
-            if auto_stop_when_spider_done is not None
-            else setting.AUTO_STOP_WHEN_SPIDER_DONE
-        )
+        # 兼容老版本的参数
+        if "auto_stop_when_spider_done" in kwargs:
+            self._keep_alive = not kwargs.get("auto_stop_when_spider_done")
+        else:
+            self._keep_alive = (
+                keep_alive if keep_alive is not None else setting.KEEP_ALIVE
+            )
         self._auto_start_requests = (
             auto_start_requests
             if auto_start_requests is not None
@@ -179,7 +185,7 @@ class Scheduler(threading.Thread):
 
                     self._is_notify_end = True
 
-                if self._auto_stop_when_spider_done:
+                if not self._keep_alive:
                     self._stop_all_thread()
                     break
 
@@ -482,18 +488,18 @@ class Scheduler(threading.Thread):
             # 发送消息
             self.send_msg("《%s》爬虫开始" % self._spider_name)
 
-    def spider_end(self, close=True):
+    def spider_end(self):
         self.record_end_time()
 
         if self._end_callback:
             self._end_callback()
 
         for parser in self._parsers:
-            if close:
+            if not self._keep_alive:
                 parser.close()
             parser.end_callback()
 
-        if close:
+        if not self._keep_alive:
             # 关闭webdirver
             if Request.webdriver_pool:
                 Request.webdriver_pool.close()
@@ -521,7 +527,7 @@ class Scheduler(threading.Thread):
             if self._send_run_time:
                 self.send_msg(msg)
 
-        if not self._auto_stop_when_spider_done:
+        if self._keep_alive:
             log.info("爬虫不自动结束， 等待下一轮任务...")
         else:
             self.delete_tables(self._tab_spider_status)
