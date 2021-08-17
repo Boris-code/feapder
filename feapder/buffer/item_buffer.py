@@ -62,6 +62,9 @@ class ItemBuffer(threading.Thread):
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 self.__class__.dedup = Dedup(to_md5=False)
 
+            # 导出失败的次数
+            self.export_falied_times = 0
+
     @property
     def redis_db(self):
         if self.__class__.__redis_db is None:
@@ -327,22 +330,59 @@ class ItemBuffer(threading.Thread):
                 tab_item, datas, is_update=True, update_keys=update_keys
             )
 
-        # 执行回调
-        while callbacks:
-            try:
-                callback = callbacks.pop(0)
-                callback()
-            except Exception as e:
-                log.exception(e)
+        if export_success:
+            # 执行回调
+            while callbacks:
+                try:
+                    callback = callbacks.pop(0)
+                    callback()
+                except Exception as e:
+                    log.exception(e)
 
-        # 删除做过的request
-        if requests:
-            self.redis_db.zrem(self._table_request, requests)
+            # 删除做过的request
+            if requests:
+                self.redis_db.zrem(self._table_request, requests)
 
-        # 去重入库
-        if export_success and setting.ITEM_FILTER_ENABLE:
-            if items_fingerprints:
-                self.__class__.dedup.add(items_fingerprints, skip_check=True)
+            # 去重入库
+            if setting.ITEM_FILTER_ENABLE:
+                if items_fingerprints:
+                    self.__class__.dedup.add(items_fingerprints, skip_check=True)
+        else:
+            if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
+                # 报警
+                msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
+                    self._redis_key, self.export_falied_times
+                )
+                log.error(msg)
+                tools.send_msg(
+                    msg=msg,
+                    level="error",
+                    message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
+                )
+
+            if self.export_falied_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
+                # 删除做过的request
+                if requests:
+                    self.redis_db.zrem(self._table_request, requests)
+                log.error("入库超过最大重试次数，不再重试")
+            else:
+                tip = ["入库不成功"]
+                if callbacks:
+                    tip.append("不执行回调")
+                if requests:
+                    tip.append("不删除任务")
+                    exists = self.redis_db.zexists(self._table_request, requests)
+                    for exist, request in zip(exists, requests):
+                        if exist:
+                            self.redis_db.zadd(self._table_request, requests, 300)
+
+                if setting.ITEM_FILTER_ENABLE:
+                    tip.append("数据不入去重库")
+
+                tip.append("将自动重试 (AirSpider不支持)")
+                log.error("，".join(tip))
+
+                self.export_falied_times += 1
 
         self._is_adding_to_db = False
 

@@ -2432,6 +2432,26 @@ def wechat_warning(
         return False
 
 
+def send_msg(msg, level="debug", message_prefix=""):
+    if setting.WARNING_LEVEL == "ERROR":
+        if level != "error":
+            return
+
+    if setting.DINGDING_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        dingding_warning(keyword + msg, message_prefix=message_prefix)
+
+    if setting.EMAIL_RECEIVER:
+        title = message_prefix or msg
+        if len(title) > 50:
+            title = title[:50] + "..."
+        email_warning(msg, message_prefix=message_prefix, title=title)
+
+    if setting.WECHAT_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        wechat_warning(keyword + msg, message_prefix=message_prefix)
+
+
 ###################
 
 

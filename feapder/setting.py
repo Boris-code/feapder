@@ -32,7 +32,6 @@ MONGO_USER_PASS = os.getenv("MONGO_USER_PASS")
 # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
 REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
 REDISDB_USER_PASS = os.getenv("REDISDB_USER_PASS")
-# 默认 0 到 15 共16个数据库
 REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
 # 适用于redis哨兵模式
 REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
@@ -42,6 +41,8 @@ ITEM_PIPELINES = [
     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
 ]
+EXPORT_DATA_MAX_FAILED_TIMES = 10 # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
+EXPORT_DATA_MAX_RETRY_TIMES = 10 # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
 
 # 爬虫相关
 # COLLECTOR
@@ -100,7 +101,7 @@ PROXY_ENABLE = True
 
 # 随机headers
 RANDOM_HEADERS = True
-# UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，若不指定则随机类型
+# UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，'mobile' 若不指定则随机类型
 USER_AGENT_TYPE = "chrome"
 # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"

@@ -43,7 +43,6 @@ class Spider(
         delete_keys=(),
         keep_alive=None,
         auto_start_requests=None,
-        send_run_time=False,
         batch_interval=0,
         wait_lock=True,
         **kwargs
@@ -60,7 +59,6 @@ class Spider(
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
         @param keep_alive: 爬虫是否常驻
         @param auto_start_requests: 爬虫是否自动添加任务
-        @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
         ---------
@@ -74,7 +72,6 @@ class Spider(
             delete_keys=delete_keys,
             keep_alive=keep_alive,
             auto_start_requests=auto_start_requests,
-            send_run_time=send_run_time,
             batch_interval=batch_interval,
             wait_lock=wait_lock,
             **kwargs

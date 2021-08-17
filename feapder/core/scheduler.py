@@ -43,7 +43,6 @@ class Scheduler(threading.Thread):
         delete_keys=(),
         keep_alive=None,
         auto_start_requests=None,
-        send_run_time=True,
         batch_interval=0,
         wait_lock=True,
         task_table=None,
@@ -59,7 +58,6 @@ class Scheduler(threading.Thread):
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则
         @param keep_alive: 爬虫是否常驻，默认否
         @param auto_start_requests: 爬虫是否自动添加任务
-        @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
         @param task_table: 任务表， 批次爬虫传递
@@ -105,7 +103,6 @@ class Scheduler(threading.Thread):
             if auto_start_requests is not None
             else setting.SPIDER_AUTO_START_REQUESTS
         )
-        self._send_run_time = send_run_time
         self._batch_interval = batch_interval
 
         self._begin_callback = (
@@ -394,10 +391,10 @@ class Scheduler(threading.Thread):
             self.send_msg(
                 msg,
                 level="error",
-                message_prefix="《%s》爬虫当前失败任务数预警" % (self._spider_name),
+                message_prefix="《%s》爬虫当前失败任务数报警" % (self._spider_name),
             )
 
-        # parser_control实时统计已做任务数及失败任务数，若失败数大于10且失败任务数/已做任务数>=0.5 则报警
+        # parser_control实时统计已做任务数及失败任务数，若成功率<0.5 则报警
         failed_task_count, success_task_count = PaserControl.get_task_status_count()
         total_count = success_task_count + failed_task_count
         if total_count > 0:
@@ -411,12 +408,21 @@ class Scheduler(threading.Thread):
                     task_success_rate,
                 )
                 log.error(msg)
-                # 统计下上次发消息的时间，若时间大于1小时，则报警（此处为多进程，需要考虑别报重复）
                 self.send_msg(
                     msg,
                     level="error",
-                    message_prefix="《%s》爬虫当前任务成功率" % (self._spider_name),
+                    message_prefix="《%s》爬虫当前任务成功率报警" % (self._spider_name),
                 )
+
+        # 检查入库失败次数
+        if self._item_buffer.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
+            msg = "《{}》爬虫导出数据失败，失败次数：{}， 请检查爬虫是否正常".format(
+                self._spider_name, self._item_buffer.export_falied_times
+            )
+            log.error(msg)
+            self.send_msg(
+                msg, level="error", message_prefix="《%s》爬虫导出数据失败" % (self._spider_name)
+            )
 
     def delete_tables(self, delete_tables_list):
         if isinstance(delete_tables_list, bool):
@@ -447,22 +453,7 @@ class Scheduler(threading.Thread):
 
     def send_msg(self, msg, level="debug", message_prefix=""):
         # log.debug("发送报警 level:{} msg{}".format(level, msg))
-        if setting.WARNING_LEVEL == "ERROR":
-            if level != "error":
-                return
-
-        if setting.DINGDING_WARNING_URL:
-            keyword = "feapder报警系统\n"
-            tools.dingding_warning(keyword + msg, message_prefix=message_prefix)
-
-        if setting.EMAIL_RECEIVER:
-            tools.email_warning(
-                msg, message_prefix=message_prefix, title=self._spider_name
-            )
-
-        if setting.WECHAT_WARNING_URL:
-            keyword = "feapder报警系统\n"
-            tools.wechat_warning(keyword + msg, message_prefix=message_prefix)
+        tools.send_msg(msg=msg, level=level, message_prefix=message_prefix)
 
     def spider_begin(self):
         """
@@ -524,8 +515,7 @@ class Scheduler(threading.Thread):
             )
             log.info(msg)
 
-            if self._send_run_time:
-                self.send_msg(msg)
+            self.send_msg(msg)
 
         if self._keep_alive:
             log.info("爬虫不自动结束， 等待下一轮任务...")

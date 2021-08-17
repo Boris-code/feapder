@@ -54,8 +54,7 @@ class BatchSpider(BatchParser, Scheduler):
         end_callback=None,
         delete_keys=(),
         keep_alive=None,
-        send_run_time=False,
-        **kwargs
+        **kwargs,
     ):
         """
         @summary: 批次爬虫
@@ -90,7 +89,6 @@ class BatchSpider(BatchParser, Scheduler):
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
         @param keep_alive: 爬虫是否常驻，默认否
-        @param send_run_time: 发送运行时间
         @param related_redis_key: 有关联的其他爬虫任务表（redis）注意：要避免环路 如 A -> B & B -> A 。
         @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。
             related_redis_key 与 related_batch_record 选其一配置即可；用于相关联的爬虫没结束时，本爬虫也不结束
@@ -110,10 +108,9 @@ class BatchSpider(BatchParser, Scheduler):
             delete_keys=delete_keys,
             keep_alive=keep_alive,
             auto_start_requests=False,
-            send_run_time=send_run_time,
             batch_interval=batch_interval,
             task_table=task_table,
-            **kwargs
+            **kwargs,
         )
 
         self._redisdb = RedisDB()
@@ -659,7 +656,15 @@ class BatchSpider(BatchParser, Scheduler):
                             >= self._send_msg_interval
                         ):
                             self._last_send_msg_time = now_date
-                            self.send_msg(msg, level="error")
+                            self.send_msg(
+                                msg,
+                                level="error",
+                                message_prefix="《{}》本批次未完成, 正在等待依赖爬虫 {} 结束".format(
+                                    self._batch_name,
+                                    self._related_batch_record
+                                    or self._related_task_tables,
+                                ),
+                            )
 
                     return False
 
@@ -768,7 +773,11 @@ class BatchSpider(BatchParser, Scheduler):
                         >= self._send_msg_interval
                     ):
                         self._last_send_msg_time = now_date
-                        self.send_msg(msg, level="error")
+                        self.send_msg(
+                            msg,
+                            level="error",
+                            message_prefix="《{}》批次超时".format(self._batch_name),
+                        )
 
                 else:  # 未超时
                     remaining_time = (
@@ -823,7 +832,13 @@ class BatchSpider(BatchParser, Scheduler):
                                 >= self._send_msg_interval
                             ):
                                 self._last_send_msg_time = now_date
-                                self.send_msg(msg, level="error")
+                                self.send_msg(
+                                    msg,
+                                    level="error",
+                                    message_prefix="《{}》批次可能超时".format(
+                                        self._batch_name
+                                    ),
+                                )
 
                         elif overflow_time < 0:
                             msg += ", 该批次预计提前 {} 完成".format(
@@ -1036,7 +1051,9 @@ class BatchSpider(BatchParser, Scheduler):
         except Exception as e:
             msg = "《%s》主线程异常 爬虫结束 exception: %s" % (self._batch_name, e)
             log.error(msg)
-            self.send_msg(msg, level="error")
+            self.send_msg(
+                msg, level="error", message_prefix="《%s》爬虫异常结束".format(self._batch_name)
+            )
 
             os._exit(137)  # 使退出码为35072 方便爬虫管理器重启
 
