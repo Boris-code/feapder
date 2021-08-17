@@ -45,6 +45,9 @@ class ItemBuffer(threading.Thread):
 
             self._table_item = setting.TAB_ITEM
             self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
+            self._table_failed_items = setting.TAB_FAILED_ITEMS.format(
+                redis_key=redis_key
+            )
 
             self._item_tables = {
                 # 'xxx_item': {'tab_item': 'xxx:xxx_item'} # 记录item名与redis中item名对应关系
@@ -246,39 +249,37 @@ class ItemBuffer(threading.Thread):
 
         return datas_dict
 
-    def __export_to_db(self, tab_item, datas, is_update=False, update_keys=()):
-        to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
-
+    def __export_to_db(self, table, datas, is_update=False, update_keys=()):
         # 打点 校验
-        self.check_datas(table=to_table, datas=datas)
+        self.check_datas(table=table, datas=datas)
 
         for pipeline in self._pipelines:
             if is_update:
-                if to_table == self._task_table and not isinstance(
+                if table == self._task_table and not isinstance(
                     pipeline, MysqlPipeline
                 ):
                     continue
 
-                if not pipeline.update_items(to_table, datas, update_keys=update_keys):
+                if not pipeline.update_items(table, datas, update_keys=update_keys):
                     log.error(
-                        f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 更新数据失败. table: {table}  items: {datas}"
                     )
                     return False
 
             else:
-                if not pipeline.save_items(to_table, datas):
+                if not pipeline.save_items(table, datas):
                     log.error(
-                        f"{pipeline.__class__.__name__} 保存数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 保存数据失败. table: {table}  items: {datas}"
                     )
                     return False
 
         # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
-        if not self._have_mysql_pipeline and is_update and to_table == self._task_table:
+        if not self._have_mysql_pipeline and is_update and table == self._task_table:
             if not self.mysql_pipeline.update_items(
-                to_table, datas, update_keys=update_keys
+                table, datas, update_keys=update_keys
             ):
                 log.error(
-                    f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                    f"{self.mysql_pipeline.__class__.__name__} 更新数据失败. table: {table}  items: {datas}"
                 )
                 return False
 
@@ -299,8 +300,10 @@ class ItemBuffer(threading.Thread):
         update_items_dict = self.__pick_items(update_items, is_update_item=True)
 
         # item批量入库
+        failed_items = {}
         while items_dict:
             tab_item, datas = items_dict.popitem()
+            table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
 
             log.debug(
                 """
@@ -308,27 +311,35 @@ class ItemBuffer(threading.Thread):
                 表名: %s
                 datas: %s
                     """
-                % (tab_item, tools.dumps_json(datas, indent=16))
+                % (table, tools.dumps_json(datas, indent=16))
             )
 
-            export_success = self.__export_to_db(tab_item, datas)
+            export_success = self.__export_to_db(table, datas)
+            if not export_success:
+                failed_items["add"] = {"table": table, "datas": datas}
+                break
 
         # 执行批量update
         while update_items_dict:
             tab_item, datas = update_items_dict.popitem()
+            table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
+
             log.debug(
                 """
                 -------------- item 批量更新 --------------
                 表名: %s
                 datas: %s
                     """
-                % (tab_item, tools.dumps_json(datas, indent=16))
+                % (table, tools.dumps_json(datas, indent=16))
             )
 
             update_keys = self._item_update_keys.get(tab_item)
             export_success = self.__export_to_db(
-                tab_item, datas, is_update=True, update_keys=update_keys
+                table, datas, is_update=True, update_keys=update_keys
             )
+            if not export_success:
+                failed_items["update"] = {"table": table, "datas": datas}
+                break
 
         if export_success:
             # 执行回调
@@ -361,10 +372,17 @@ class ItemBuffer(threading.Thread):
                 )
 
             if self.export_falied_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
+                failed_items["requests"] = requests
+                self.redis_db.sadd(self._table_failed_items, failed_items)
+
                 # 删除做过的request
                 if requests:
                     self.redis_db.zrem(self._table_request, requests)
-                log.error("入库超过最大重试次数，不再重试")
+                log.error(
+                    "入库超过最大重试次数，不再重试, 数据记录到redis, items:\n {}".format(
+                        tools.dumps_json(failed_items)
+                    )
+                )
             else:
                 tip = ["入库不成功"]
                 if callbacks:

@@ -7,6 +7,8 @@ import os
 TAB_REQUSETS = "{redis_key}:z_requsets"
 # 任务失败模板
 TAB_FAILED_REQUSETS = "{redis_key}:z_failed_requsets"
+# 数据保存失败模板
+TAB_FAILED_ITEMS = "{redis_key}:s_failed_items"
 # 爬虫状态表模版
 TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
 # item 表模版
@@ -41,8 +43,8 @@ ITEM_PIPELINES = [
     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
 ]
-EXPORT_DATA_MAX_FAILED_TIMES = 10 # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
-EXPORT_DATA_MAX_RETRY_TIMES = 10 # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
+EXPORT_DATA_MAX_FAILED_TIMES = 10  # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
+EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
 
 # 爬虫相关
 # COLLECTOR
