@@ -300,7 +300,7 @@ class ItemBuffer(threading.Thread):
         update_items_dict = self.__pick_items(update_items, is_update_item=True)
 
         # item批量入库
-        failed_items = {}
+        failed_items = {"add": [], "update": [], "requests": []}
         while items_dict:
             tab_item, datas = items_dict.popitem()
             table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
@@ -314,10 +314,9 @@ class ItemBuffer(threading.Thread):
                 % (table, tools.dumps_json(datas, indent=16))
             )
 
-            export_success = self.__export_to_db(table, datas)
-            if not export_success:
-                failed_items["add"] = {"table": table, "datas": datas}
-                break
+            if not self.__export_to_db(table, datas):
+                export_success = False
+                failed_items["add"].append({"table": table, "datas": datas})
 
         # 执行批量update
         while update_items_dict:
@@ -334,12 +333,11 @@ class ItemBuffer(threading.Thread):
             )
 
             update_keys = self._item_update_keys.get(tab_item)
-            export_success = self.__export_to_db(
+            if not self.__export_to_db(
                 table, datas, is_update=True, update_keys=update_keys
-            )
-            if not export_success:
-                failed_items["update"] = {"table": table, "datas": datas}
-                break
+            ):
+                export_success = False
+                failed_items["update"].append({"table": table, "datas": datas})
 
         if export_success:
             # 执行回调
@@ -359,6 +357,8 @@ class ItemBuffer(threading.Thread):
                 if items_fingerprints:
                     self.__class__.dedup.add(items_fingerprints, skip_check=True)
         else:
+            failed_items["requests"] = requests
+
             if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
                 # 报警
                 msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
@@ -372,17 +372,20 @@ class ItemBuffer(threading.Thread):
                 )
 
             if self.export_falied_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
-                failed_items["requests"] = requests
+                # 失败的item记录到redis
                 self.redis_db.sadd(self._table_failed_items, failed_items)
 
                 # 删除做过的request
                 if requests:
                     self.redis_db.zrem(self._table_request, requests)
+
                 log.error(
-                    "入库超过最大重试次数，不再重试, 数据记录到redis, items:\n {}".format(
+                    "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
                         tools.dumps_json(failed_items)
                     )
                 )
+                self.export_falied_times = 0
+
             else:
                 tip = ["入库不成功"]
                 if callbacks:
@@ -397,7 +400,11 @@ class ItemBuffer(threading.Thread):
                 if setting.ITEM_FILTER_ENABLE:
                     tip.append("数据不入去重库")
 
-                tip.append("将自动重试 (AirSpider不支持)")
+                tip.append(
+                    "将自动重试 (AirSpider不支持)，失败items:\n {}".format(
+                        tools.dumps_json(failed_items)
+                    )
+                )
                 log.error("，".join(tip))
 
                 self.export_falied_times += 1
