@@ -288,7 +288,7 @@ class ItemBuffer(threading.Thread):
     def __add_item_to_db(
         self, items, update_items, requests, callbacks, items_fingerprints
     ):
-        export_success = False
+        export_success = True
         self._is_adding_to_db = True
 
         # 去重
