@@ -19,8 +19,8 @@ from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
 from feapder.pipelines import BasePipeline
 from feapder.pipelines.mysql_pipeline import MysqlPipeline
-from feapder.utils.log import log
 from feapder.utils import metrics
+from feapder.utils.log import log
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
 UPLOAD_BATCH_MAX_SIZE = 1000
@@ -65,7 +65,9 @@ class ItemBuffer(threading.Thread):
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 self.__class__.dedup = Dedup(to_md5=False)
 
-            # 导出失败的次数
+            # 导出重试的次数
+            self.export_retry_times = 0
+            # 导出失败的次数 TODO 非air爬虫使用redis统计
             self.export_falied_times = 0
 
     @property
@@ -371,20 +373,21 @@ class ItemBuffer(threading.Thread):
                     message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
                 )
 
-            if self.export_falied_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
-                # 失败的item记录到redis
-                self.redis_db.sadd(self._table_failed_items, failed_items)
+            if self.export_retry_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
+                if self._redis_key != "air_spider":
+                    # 失败的item记录到redis
+                    self.redis_db.sadd(self._table_failed_items, failed_items)
 
-                # 删除做过的request
-                if requests:
-                    self.redis_db.zrem(self._table_request, requests)
+                    # 删除做过的request
+                    if requests:
+                        self.redis_db.zrem(self._table_request, requests)
 
-                log.error(
-                    "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
-                        tools.dumps_json(failed_items)
+                    log.error(
+                        "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
+                            tools.dumps_json(failed_items)
+                        )
                     )
-                )
-                self.export_falied_times = 0
+                self.export_retry_times = 0
 
             else:
                 tip = ["入库不成功"]
@@ -400,14 +403,16 @@ class ItemBuffer(threading.Thread):
                 if setting.ITEM_FILTER_ENABLE:
                     tip.append("数据不入去重库")
 
-                tip.append(
-                    "将自动重试 (AirSpider不支持)，失败items:\n {}".format(
-                        tools.dumps_json(failed_items)
-                    )
-                )
+                if self._redis_key != "air_spider":
+                    tip.append("将自动重试")
+
+                tip.append("失败items:\n {}".format(tools.dumps_json(failed_items)))
                 log.error("，".join(tip))
 
                 self.export_falied_times += 1
+
+                if self._redis_key != "air_spider":
+                    self.export_retry_times += 1
 
         self._is_adding_to_db = False
 
