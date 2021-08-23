@@ -393,7 +393,7 @@ def emit_any(
     tags: dict,
     fields: dict,
     *,
-    classify: str = None,
+    classify: str = "",
     measurement: str = None,
     timestamp=None,
 ):
@@ -412,9 +412,8 @@ def emit_any(
     if not _emitter:
         return
 
-    if classify:
-        tags = tags or {}
-        tags["classify"] = classify
+    tags = tags or {}
+    tags["_classify"] = classify
     measurement = measurement or _measurement
     _emitter.emit_any(measurement, tags, fields, timestamp)
 
@@ -423,7 +422,7 @@ def emit_counter(
     key: str = None,
     count: int = 1,
     *,
-    classify: str = None,
+    classify: str = "",
     tags: dict = None,
     measurement: str = None,
     timestamp: int = None,
@@ -444,9 +443,8 @@ def emit_counter(
     if not _emitter:
         return
 
-    if classify:
-        tags = tags or {}
-        tags["classify"] = classify
+    tags = tags or {}
+    tags["_classify"] = classify
     measurement = measurement or _measurement
     _emitter.emit_counter(measurement, key, count, tags, timestamp)
 
@@ -455,7 +453,7 @@ def emit_timer(
     key: str = None,
     duration: float = 0,
     *,
-    classify: str = None,
+    classify: str = "",
     tags: dict = None,
     measurement: str = None,
     timestamp=None,
@@ -476,9 +474,8 @@ def emit_timer(
     if not _emitter:
         return
 
-    if classify:
-        tags = tags or {}
-        tags["classify"] = classify
+    tags = tags or {}
+    tags["_classify"] = classify
     measurement = measurement or _measurement
     _emitter.emit_timer(measurement, key, duration, tags, timestamp)
 
@@ -487,7 +484,7 @@ def emit_store(
     key: str = None,
     value: Any = 0,
     *,
-    classify: str = None,
+    classify: str = "",
     tags: dict = None,
     measurement: str,
     timestamp=None,
@@ -508,9 +505,8 @@ def emit_store(
     if not _emitter:
         return
 
-    if classify:
-        tags = tags or {}
-        tags["classify"] = classify
+    tags = tags or {}
+    tags["_classify"] = classify
     measurement = measurement or _measurement
     _emitter.emit_store(measurement, key, value, tags, timestamp)
 
