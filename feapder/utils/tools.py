@@ -2255,14 +2255,14 @@ def re_def_supper_class(obj, supper_class):
 
 
 ###################
-rate_limit_record = {}
+freq_limit_record = {}
 
 
-def is_in_rate_limit(rate_limit, *key):
+def reach_freq_limit(rate_limit, *key):
     """
     频率限制
     :param rate_limit: 限制时间 单位秒
-    :param key: 限制频率的key
+    :param key: 频率限制的key
     :return: True / False
     """
     if rate_limit == 0:
@@ -2277,16 +2277,16 @@ def is_in_rate_limit(rate_limit, *key):
         get_redisdb().set(key, time.time(), ex=rate_limit)
     except redis.exceptions.ConnectionError as e:
         # 使用内存做频率限制
-        global rate_limit_record
+        global freq_limit_record
 
-        if key not in rate_limit_record:
-            rate_limit_record[key] = time.time()
+        if key not in freq_limit_record:
+            freq_limit_record[key] = time.time()
             return False
 
-        if time.time() - rate_limit_record.get(key) < rate_limit:
+        if time.time() - freq_limit_record.get(key) < rate_limit:
             return True
         else:
-            rate_limit_record[key] = time.time()
+            freq_limit_record[key] = time.time()
 
     return False
 
@@ -2302,7 +2302,7 @@ def dingding_warning(
     if not all([url, message]):
         return
 
-    if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
+    if reach_freq_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
@@ -2352,7 +2352,7 @@ def email_warning(
     if not all([message, email_sender, email_password, email_receiver]):
         return
 
-    if is_in_rate_limit(
+    if reach_freq_limit(
         rate_limit, email_receiver, email_sender, message_prefix or message
     ):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
@@ -2383,7 +2383,7 @@ def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None)
         log.info("未设置灵犀token，不支持报警")
         return
 
-    if is_in_rate_limit(rate_limit, token, message_prefix or message):
+    if reach_freq_limit(rate_limit, token, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
@@ -2421,7 +2421,7 @@ def wechat_warning(
     if not all([url, message]):
         return
 
-    if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
+    if reach_freq_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
