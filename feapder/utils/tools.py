@@ -225,7 +225,7 @@ def get_cookies(response):
 def get_cookies_from_str(cookie_str):
     """
     >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=")
-    "{'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}"
+    {'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}
 
     Args:
         cookie_str: key=value; key2=value2; key3=; key4=
@@ -2255,6 +2255,7 @@ def re_def_supper_class(obj, supper_class):
 
 
 ###################
+rate_limit_record = {}
 
 
 def is_in_rate_limit(rate_limit, *key):
@@ -2269,10 +2270,24 @@ def is_in_rate_limit(rate_limit, *key):
 
     msg_md5 = get_md5(*key)
     key = "rate_limit:{}".format(msg_md5)
-    if get_redisdb().get(key):
-        return True
+    try:
+        if get_redisdb().get(key):
+            return True
 
-    get_redisdb().set(key, time.time(), ex=rate_limit)
+        get_redisdb().set(key, time.time(), ex=rate_limit)
+    except redis.exceptions.ConnectionError as e:
+        # 使用内存做频率限制
+        global rate_limit_record
+
+        if key not in rate_limit_record:
+            rate_limit_record[key] = time.time()
+            return False
+
+        if time.time() - rate_limit_record.get(key) < rate_limit:
+            return True
+        else:
+            rate_limit_record[key] = time.time()
+
     return False
 
 
