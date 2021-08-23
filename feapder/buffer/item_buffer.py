@@ -361,18 +361,6 @@ class ItemBuffer(threading.Thread):
         else:
             failed_items["requests"] = requests
 
-            if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
-                # 报警
-                msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
-                    self._redis_key, self.export_falied_times
-                )
-                log.error(msg)
-                tools.send_msg(
-                    msg=msg,
-                    level="error",
-                    message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
-                )
-
             if self.export_retry_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
                 if self._redis_key != "air_spider":
                     # 失败的item记录到redis
@@ -413,6 +401,18 @@ class ItemBuffer(threading.Thread):
 
                 if self._redis_key != "air_spider":
                     self.export_retry_times += 1
+
+            if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
+                # 报警
+                msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
+                    self._redis_key, self.export_falied_times
+                )
+                log.error(msg)
+                tools.send_msg(
+                    msg=msg,
+                    level="error",
+                    message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
+                )
 
         self._is_adding_to_db = False
 
