@@ -252,6 +252,13 @@ class Response(res):
 
         return self._cached_text
 
+    @text.setter
+    def text(self, html):
+        self._cached_text = html
+        self._cached_text = self._absolute_links(self._cached_text)
+        self._cached_text = self._del_special_character(self._cached_text)
+        self._cached_selector = Selector(self.text)
+
     @property
     def json(self, **kwargs):
         if self._cached_json is None:

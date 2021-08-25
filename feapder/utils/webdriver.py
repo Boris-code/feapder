@@ -32,7 +32,7 @@ class WebDriver(RemoteWebDriver):
         user_agent=None,
         proxy=None,
         headless=False,
-        driver_type=PHANTOMJS,
+        driver_type=CHROME,
         timeout=16,
         window_size=(1024, 800),
         executable_path=None,

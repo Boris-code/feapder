@@ -10,11 +10,14 @@ Created on 2019/11/5 5:25 PM
 import threading
 import time
 
+from feapder.db.redisdb import RedisDB
 from feapder.utils.log import log
 
 
-class RedisLock(object):
-    def __init__(self, key, redis_cli, wait_timeout=0, lock_timeout=86400):
+class RedisLock:
+    redis_cli = None
+
+    def __init__(self, key, redis_cli=None, wait_timeout=0, lock_timeout=86400):
         """
         redis超时锁
         :param key: 存储锁的key redis_lock:[key]
@@ -23,7 +26,7 @@ class RedisLock(object):
         :param lock_timeout: 锁超时时间 为0时则不会超时，直到锁释放或意外退出，默认超时为1天
 
         用法示例:
-        with RedisLock(key="test", redis_cli=redis_obj) as _lock:
+        with RedisLock(key="test") as _lock:
             if _lock.locked:
                 # 用来判断是否加上了锁
                 # do somethings
@@ -36,6 +39,17 @@ class RedisLock(object):
         self.wait_timeout = wait_timeout
         self.locked = False
         self.stop_prolong_life = False
+
+    @property
+    def redis_conn(self):
+        if not self.__class__.redis_cli:
+            self.__class__.redis_cli = RedisDB().get_redis_obj()
+
+        return self.__class__.redis_cli
+
+    @redis_conn.setter
+    def redis_conn(self, cli):
+        self.__class__.redis_cli = cli
 
     def __enter__(self):
         if not self.locked:

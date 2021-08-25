@@ -224,7 +224,7 @@ def get_cookies(response):
 
 def get_cookies_from_str(cookie_str):
     """
-    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=")
+    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=; ")
     {'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}
 
     Args:
@@ -235,6 +235,9 @@ def get_cookies_from_str(cookie_str):
     """
     cookies = {}
     for cookie in cookie_str.split(";"):
+        cookie = cookie.strip()
+        if not cookie:
+            continue
         key, value = cookie.split("=", 1)
         key = key.strip()
         value = value.strip()
