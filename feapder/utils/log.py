@@ -234,5 +234,29 @@ class Log:
             self.__class__.log = get_logger()
         return getattr(self.__class__.log, name)
 
+    @property
+    def debug(self):
+        return self.__class__.log.debug
+
+    @property
+    def info(self):
+        return self.__class__.log.info
+
+    @property
+    def warning(self):
+        return self.__class__.log.warning
+
+    @property
+    def exception(self):
+        return self.__class__.log.exception
+
+    @property
+    def error(self):
+        return self.__class__.log.error
+
+    @property
+    def critical(self):
+        return self.__class__.log.critical
+
 
 log = Log()
