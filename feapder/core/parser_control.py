@@ -67,6 +67,7 @@ class PaserControl(threading.Thread):
 
             except Exception as e:
                 log.exception(e)
+                time.sleep(3)
 
     def is_not_task(self):
         return self.is_show_tip
@@ -459,6 +460,7 @@ class AirSpiderParserControl(PaserControl):
 
             except Exception as e:
                 log.exception(e)
+                time.sleep(3)
 
     def deal_requests(self, requests):
         for request in requests:

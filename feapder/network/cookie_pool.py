@@ -125,66 +125,75 @@ class PageCookiePool(CookiePoolInterface):
 
     def run(self):
         while True:
-            now_cookie_count = self._redisdb.lget_count(self._tab_cookie_pool)
-            need_cookie_count = self._min_cookies - now_cookie_count
+            try:
+                now_cookie_count = self._redisdb.lget_count(self._tab_cookie_pool)
+                need_cookie_count = self._min_cookies - now_cookie_count
 
-            if need_cookie_count > 0:
-                log.info(
-                    "当前cookie数为 {} 小于 {}, 生产cookie".format(
-                        now_cookie_count, self._min_cookies
+                if need_cookie_count > 0:
+                    log.info(
+                        "当前cookie数为 {} 小于 {}, 生产cookie".format(
+                            now_cookie_count, self._min_cookies
+                        )
                     )
-                )
-                try:
-                    cookies = self.create_cookie()
-                    if cookies:
-                        self.add_cookies(cookies)
-                except Exception as e:
-                    log.exception(e)
-            else:
-                log.info("当前cookie数为 {} 数量足够 暂不生产".format(now_cookie_count))
-
-                # 判断cookie池近一分钟数量是否有变化，无变化则认为爬虫不再用了，退出
-                last_count_info = self._redisdb.strget(self._tab_cookie_pool_last_count)
-                if not last_count_info:
-                    self._redisdb.strset(
-                        self._tab_cookie_pool_last_count,
-                        "{}:{}".format(time.time(), now_cookie_count),
-                    )
+                    try:
+                        cookies = self.create_cookie()
+                        if cookies:
+                            self.add_cookies(cookies)
+                    except Exception as e:
+                        log.exception(e)
                 else:
-                    last_time, last_count = last_count_info.split(":")
-                    last_time = float(last_time)
-                    last_count = int(last_count)
+                    log.info("当前cookie数为 {} 数量足够 暂不生产".format(now_cookie_count))
 
-                    if time.time() - last_time > 60:
-                        if now_cookie_count == last_count:
-                            log.info("近一分钟，cookie池数量无变化，判定爬虫未使用，退出生产")
-                            break
-                        else:
-                            self._redisdb.strset(
-                                self._tab_cookie_pool_last_count,
-                                "{}:{}".format(time.time(), now_cookie_count),
-                            )
+                    # 判断cookie池近一分钟数量是否有变化，无变化则认为爬虫不再用了，退出
+                    last_count_info = self._redisdb.strget(self._tab_cookie_pool_last_count)
+                    if not last_count_info:
+                        self._redisdb.strset(
+                            self._tab_cookie_pool_last_count,
+                            "{}:{}".format(time.time(), now_cookie_count),
+                        )
+                    else:
+                        last_time, last_count = last_count_info.split(":")
+                        last_time = float(last_time)
+                        last_count = int(last_count)
 
-                if self._keep_alive:
-                    log.info("sleep 10")
-                    tools.delay_time(10)
-                else:
-                    break
+                        if time.time() - last_time > 60:
+                            if now_cookie_count == last_count:
+                                log.info("近一分钟，cookie池数量无变化，判定爬虫未使用，退出生产")
+                                break
+                            else:
+                                self._redisdb.strset(
+                                    self._tab_cookie_pool_last_count,
+                                    "{}:{}".format(time.time(), now_cookie_count),
+                                )
+
+                    if self._keep_alive:
+                        log.info("sleep 10")
+                        tools.delay_time(10)
+                    else:
+                        break
+
+            except Exception as e:
+                log.exception(e)
+                tools.delay_time(1)
 
     def get_cookie(self, wait_when_null=True):
         while True:
-            cookie_info = self._redisdb.rpoplpush(self._tab_cookie_pool)
-            if not cookie_info and wait_when_null:
-                log.info("暂无cookie 生产中...")
-                self._keep_alive = False
-                self._min_cookies = 1
-                with RedisLock(
-                    key=self._tab_cookie_pool, lock_timeout=3600, wait_timeout=5
-                ) as _lock:
-                    if _lock.locked:
-                        self.run()
-                continue
-            return eval(cookie_info) if cookie_info else {}
+            try:
+                cookie_info = self._redisdb.rpoplpush(self._tab_cookie_pool)
+                if not cookie_info and wait_when_null:
+                    log.info("暂无cookie 生产中...")
+                    self._keep_alive = False
+                    self._min_cookies = 1
+                    with RedisLock(
+                        key=self._tab_cookie_pool, lock_timeout=3600, wait_timeout=5
+                    ) as _lock:
+                        if _lock.locked:
+                            self.run()
+                    continue
+                return eval(cookie_info) if cookie_info else {}
+            except Exception as e:
+                log.exception(e)
+                tools.delay_time(1)
 
     def del_cookie(self, cookies):
         self._redisdb.lrem(self._tab_cookie_pool, cookies)
@@ -285,12 +294,16 @@ class LoginCookiePool(CookiePoolInterface):
 
     def get_cookie(self, wait_when_null=True):
         while True:
-            cookie_info = self._redisdb.rpoplpush(self._tab_cookie_pool)
-            if not cookie_info and wait_when_null:
-                log.info("暂无cookie 生产中...")
-                self.login()
-                continue
-            return eval(cookie_info) if cookie_info else {}
+            try:
+                cookie_info = self._redisdb.rpoplpush(self._tab_cookie_pool)
+                if not cookie_info and wait_when_null:
+                    log.info("暂无cookie 生产中...")
+                    self.login()
+                    continue
+                return eval(cookie_info) if cookie_info else {}
+            except Exception as e:
+                log.exception(e)
+                tools.delay_time(1)
 
     def del_cookie(self, username, cookie):
         """

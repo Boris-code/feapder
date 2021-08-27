@@ -88,20 +88,26 @@ class AirSpider(BaseParser, Thread):
         self.distribute_task()
 
         while True:
-            if self.all_thread_is_done():
-                # 停止 parser_controls
-                for parser_control in self._parser_controls:
-                    parser_control.stop()
+            try:
+                if self.all_thread_is_done():
+                    # 停止 parser_controls
+                    for parser_control in self._parser_controls:
+                        parser_control.stop()
 
-                # 关闭item_buffer
-                self._item_buffer.stop()
+                    # 关闭item_buffer
+                    self._item_buffer.stop()
 
-                # 关闭webdirver
-                if Request.webdriver_pool:
-                    Request.webdriver_pool.close()
+                    # 关闭webdirver
+                    if Request.webdriver_pool:
+                        Request.webdriver_pool.close()
 
-                log.info("无任务，爬虫结束")
-                break
+                    log.info("无任务，爬虫结束")
+                    break
+
+            except Exception as e:
+                log.exception(e)
+
+            tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
         self.end_callback()
         # 为了线程可重复start

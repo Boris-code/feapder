@@ -1022,28 +1022,33 @@ class BatchSpider(BatchParser, Scheduler):
             self._start()
 
             while True:
-                if (
-                    self.task_is_done() and self.all_thread_is_done()
-                ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
-                    if not self._is_notify_end:
-                        self.spider_end()
-                        self.record_spider_state(
-                            spider_type=2,
-                            state=1,
-                            batch_date=self._batch_date_cache,
-                            spider_end_time=tools.get_current_date(),
-                            batch_interval=self._batch_interval,
-                        )
+                try:
+                    if (
+                        self.task_is_done() and self.all_thread_is_done()
+                    ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
+                        if not self._is_notify_end:
+                            self.spider_end()
+                            self.record_spider_state(
+                                spider_type=2,
+                                state=1,
+                                batch_date=self._batch_date_cache,
+                                spider_end_time=tools.get_current_date(),
+                                batch_interval=self._batch_interval,
+                            )
 
-                        self._is_notify_end = True
+                            self._is_notify_end = True
 
-                    if not self._keep_alive:
-                        self._stop_all_thread()
-                        break
-                else:
-                    self._is_notify_end = False
+                        if not self._keep_alive:
+                            self._stop_all_thread()
+                            break
+                    else:
+                        self._is_notify_end = False
 
-                self.check_task_status()
+                    self.check_task_status()
+
+                except Exception as e:
+                    log.exception(e)
+
                 tools.delay_time(10)  # 10秒钟检查一次爬虫状态
 
         except Exception as e:
@@ -1244,9 +1249,13 @@ class DebugBatchSpider(BatchSpider):
         self._start()
 
         while True:
-            if self.all_thread_is_done():
-                self._stop_all_thread()
-                break
+            try:
+                if self.all_thread_is_done():
+                    self._stop_all_thread()
+                    break
+
+            except Exception as e:
+                log.exception(e)
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 

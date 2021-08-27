@@ -170,26 +170,30 @@ class Scheduler(threading.Thread):
         self._start()
 
         while True:
-            if self.all_thread_is_done():
-                if not self._is_notify_end:
-                    self.spider_end()  # 跑完一轮
-                    self.record_spider_state(
-                        spider_type=1,
-                        state=1,
-                        spider_end_time=tools.get_current_date(),
-                        batch_interval=self._batch_interval,
-                    )
+            try:
+                if self.all_thread_is_done():
+                    if not self._is_notify_end:
+                        self.spider_end()  # 跑完一轮
+                        self.record_spider_state(
+                            spider_type=1,
+                            state=1,
+                            spider_end_time=tools.get_current_date(),
+                            batch_interval=self._batch_interval,
+                        )
 
-                    self._is_notify_end = True
+                        self._is_notify_end = True
 
-                if not self._keep_alive:
-                    self._stop_all_thread()
-                    break
+                    if not self._keep_alive:
+                        self._stop_all_thread()
+                        break
 
-            else:
-                self._is_notify_end = False
+                else:
+                    self._is_notify_end = False
 
-            self.check_task_status()
+                self.check_task_status()
+
+            except Exception as e:
+                log.exception(e)
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
