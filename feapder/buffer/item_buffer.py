@@ -63,7 +63,9 @@ class ItemBuffer(threading.Thread):
             self._mysql_pipeline = None
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
-                self.__class__.dedup = Dedup(to_md5=False)
+                self.__class__.dedup = Dedup(
+                    to_md5=False, **setting.ITEM_FILTER_SETTING
+                )
 
             # 导出重试的次数
             self.export_retry_times = 0
@@ -423,6 +425,7 @@ class ItemBuffer(threading.Thread):
         @param datas: 数据 列表
         @return:
         """
+        metrics.emit_counter("total count", len(datas), classify=table)
         for data in datas:
             for k, v in data.items():
                 metrics.emit_counter(k, int(bool(v)), classify=table)
