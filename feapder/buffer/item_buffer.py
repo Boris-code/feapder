@@ -43,18 +43,17 @@ class ItemBuffer(threading.Thread):
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
 
-            self._table_item = setting.TAB_ITEM
             self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
             self._table_failed_items = setting.TAB_FAILED_ITEMS.format(
                 redis_key=redis_key
             )
 
             self._item_tables = {
-                # 'xxx_item': {'tab_item': 'xxx:xxx_item'} # 记录item名与redis中item名对应关系
+                # 'item_name': 'table_name' # 缓存item名与表名对应关系
             }
 
             self._item_update_keys = {
-                # 'xxx:xxx_item': ['id', 'name'...] # 记录redis中item名与需要更新的key对应关系
+                # 'table_name': ['id', 'name'...] # 缓存table_name与__update_key__的关系
             }
 
             self._pipelines = self.load_pipelines()
@@ -220,7 +219,7 @@ class ItemBuffer(threading.Thread):
         @return:
         """
         datas_dict = {
-            # 'xxx:xxx_item': [{}, {}] redis 中的item名与对应的数据
+            # 'table_name': [{}, {}]
         }
 
         while items:
@@ -228,28 +227,18 @@ class ItemBuffer(threading.Thread):
             # 取item下划线格式的名
             # 下划线类的名先从dict中取，没有则现取，然后存入dict。加快下次取的速度
             item_name = item.item_name
-            item_table = self._item_tables.get(item_name)
-            if not item_table:
-                item_name_underline = item.name_underline
-                tab_item = self._table_item.format(
-                    redis_key=self._redis_key, item_name=item_name_underline
-                )
+            table_name = self._item_tables.get(item_name)
+            if not table_name:
+                table_name = item.table_name
+                self._item_tables[item_name] = table_name
 
-                item_table = {}
-                item_table["tab_item"] = tab_item
+            if table_name not in datas_dict:
+                datas_dict[table_name] = []
 
-                self._item_tables[item_name] = item_table
+            datas_dict[table_name].append(item.to_dict)
 
-            else:
-                tab_item = item_table.get("tab_item")
-
-            if tab_item not in datas_dict:
-                datas_dict[tab_item] = []
-
-            datas_dict[tab_item].append(item.to_dict)
-
-            if is_update_item and tab_item not in self._item_update_keys:
-                self._item_update_keys[tab_item] = item.update_key
+            if is_update_item and table_name not in self._item_update_keys:
+                self._item_update_keys[table_name] = item.update_key
 
         return datas_dict
 
@@ -306,8 +295,7 @@ class ItemBuffer(threading.Thread):
         # item批量入库
         failed_items = {"add": [], "update": [], "requests": []}
         while items_dict:
-            tab_item, datas = items_dict.popitem()
-            table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
+            table, datas = items_dict.popitem()
 
             log.debug(
                 """
@@ -324,8 +312,7 @@ class ItemBuffer(threading.Thread):
 
         # 执行批量update
         while update_items_dict:
-            tab_item, datas = update_items_dict.popitem()
-            table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
+            table, datas = update_items_dict.popitem()
 
             log.debug(
                 """
@@ -336,7 +323,7 @@ class ItemBuffer(threading.Thread):
                 % (table, tools.dumps_json(datas, indent=16))
             )
 
-            update_keys = self._item_update_keys.get(tab_item)
+            update_keys = self._item_update_keys.get(table)
             if not self.__export_to_db(
                 table, datas, is_update=True, update_keys=update_keys
             ):

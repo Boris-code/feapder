@@ -11,8 +11,6 @@ TAB_FAILED_REQUSETS = "{redis_key}:z_failed_requsets"
 TAB_FAILED_ITEMS = "{redis_key}:s_failed_items"
 # 爬虫状态表模版
 TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
-# item 表模版
-TAB_ITEM = "{redis_key}:s_{item_name}"
 # 爬虫时间记录表
 TAB_SPIDER_TIME = "{redis_key}:h_spider_time"
 

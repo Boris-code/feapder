@@ -942,7 +942,8 @@ def get_conf_value(config_file, section, key):
 
 def mkdir(path):
     try:
-        os.makedirs(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
     except OSError as exc:  # Python >2.5
         pass
 
@@ -1046,8 +1047,19 @@ def is_exist(file_path):
     return os.path.exists(file_path)
 
 
-def download_file(url, base_path, filename="", call_func="", proxies=None, data=None):
-    file_path = base_path + filename
+def download_file(url, file_path, *, call_func=None, proxies=None, data=None):
+    """
+    下载文件，会自动创建文件存储目录
+    Args:
+        url: 地址
+        file_path: 文件存储地址
+        call_func: 下载成功的回调
+        proxies: 代理
+        data: 请求体
+
+    Returns:
+
+    """
     directory = os.path.dirname(file_path)
     mkdir(directory)
 
@@ -1067,13 +1079,6 @@ def download_file(url, base_path, filename="", call_func="", proxies=None, data=
 
     if url:
         try:
-            log.debug(
-                """
-                         正在下载 %s
-                         存储路径 %s
-                      """
-                % (url, file_path)
-            )
             if proxies:
                 # create the object, assign it to a variable
                 proxy = request.ProxyHandler(proxies)
@@ -1084,15 +1089,8 @@ def download_file(url, base_path, filename="", call_func="", proxies=None, data=
 
             request.urlretrieve(url, file_path, progress_callfunc, data)
 
-            log.debug(
-                """
-                         下载完毕 %s
-                         文件路径 %s
-                      """
-                % (url, file_path)
-            )
-
-            call_func and call_func()
+            if callable(call_func):
+                call_func()
             return 1
         except Exception as e:
             log.error(e)
