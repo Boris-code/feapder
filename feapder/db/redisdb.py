@@ -185,14 +185,9 @@ class RedisDB:
 
         except Exception as e:
             raise
-        else:
-            # if not self._url:
-            #     log.debug("连接到redis数据库 %s db%s" % (self._ip_ports, self._db))
-            # else:
-            #     log.debug("连接到redis数据库 %s" % (self._url))
-            pass
 
-        return self.__redis.ping()  # 不要写成self._redis.ping() 否则循环调用了
+        # 不要写成self._redis.ping() 否则循环调用了
+        return self.__redis.ping()
 
     @classmethod
     def from_url(cls, url):
