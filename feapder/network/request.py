@@ -111,7 +111,7 @@ class Request(object):
         @param render: 是否用浏览器渲染
         @param render_time: 渲染时长，即打开网页等待指定时间后再获取源码
         --
-        以下参数于requests参数使用方式一致
+        以下参数与requests参数使用方式一致
         @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断
         @param params: 请求参数
         @param data: 请求body
