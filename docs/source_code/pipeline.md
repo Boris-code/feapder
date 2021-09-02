@@ -2,7 +2,7 @@
 
 Pipeline是数据入库时流经的管道，默认为使用mysql入库，用户可自定义，以便对接其他数据库。
 
-注：AirSpider不支持
+注：item会被聚合成多条一起流经pipeline，方便批量入库
 
 ## 使用方式
 
@@ -52,7 +52,7 @@ class Pipeline(BasePipeline):
         return True
 ```
 
-`Pipeline`需继承`BasePipeline`，类名和存放位置随意，需要实现`save_items`接口。一定要有返回值，返回`False`表示数据没保存成功，数据不入去重库，以便再次入库
+`Pipeline`需继承`BasePipeline`，类名和存放位置随意，需要实现`save_items`接口。一定要有返回值，返回`False`表示数据没保存成功，会触发重试逻辑
 
 `update_items`接口与`UpdateItem`配合使用，更新数据时使用，若爬虫中没使用UpdateItem，则可不实现此接口
 
