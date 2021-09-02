@@ -8,6 +8,7 @@ Created on 2021/2/8 11:21 上午
 @email: boris_liu@foxmail.com
 """
 import argparse
+
 import feapder.setting as setting
 from feapder.commands.create import *
 
@@ -47,6 +48,7 @@ def main():
     spider.add_argument("-j", "--json", help="创建json", action="store_true")
     spider.add_argument("-sj", "--sort_json", help="创建有序json", action="store_true")
     spider.add_argument("-c", "--cookies", help="创建cookie", action="store_true")
+    spider.add_argument("--params", help="解析地址中的参数", action="store_true")
     spider.add_argument(
         "--setting", help="创建全局配置文件" "feapder create --setting", action="store_true"
     )
@@ -107,6 +109,9 @@ def main():
 
     elif args.setting:
         CreateSetting().create()
+
+    elif args.params:
+        CreateParams().create()
 
 
 if __name__ == "__main__":
