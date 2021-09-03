@@ -16,5 +16,7 @@ class ${item_name}Item(Item):
     command: feapder create -i ${table_name}.
     """
 
+    __table_name__ = "${table_name}"
+
     def __init__(self, *args, **kwargs):
         ${propertys}
