@@ -4,33 +4,34 @@
 # import sys
 #
 # # MYSQL
-# MYSQL_IP = os.getenv("MYSQL_IP")
-# MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
-# MYSQL_DB = os.getenv("MYSQL_DB")
-# MYSQL_USER_NAME = os.getenv("MYSQL_USER_NAME")
-# MYSQL_USER_PASS = os.getenv("MYSQL_USER_PASS")
+# MYSQL_IP = "localhost"
+# MYSQL_PORT = 3306
+# MYSQL_DB = ""
+# MYSQL_USER_NAME = ""
+# MYSQL_USER_PASS = ""
 #
 # # MONGODB
-# MONGO_IP = os.getenv("MONGO_IP", "localhost")
-# MONGO_PORT = int(os.getenv("MONGO_PORT", 27017))
-# MONGO_DB = os.getenv("MONGO_DB")
-# MONGO_USER_NAME = os.getenv("MONGO_USER_NAME")
-# MONGO_USER_PASS = os.getenv("MONGO_USER_PASS")
+# MONGO_IP = "localhost"
+# MONGO_PORT = 27017
+# MONGO_DB = ""
+# MONGO_USER_NAME = ""
+# MONGO_USER_PASS = ""
 #
 # # REDIS
 # # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
-# REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
-# REDISDB_USER_PASS = os.getenv("REDISDB_USER_PASS")
-# # 默认 0 到 15 共16个数据库
-# REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
+# REDISDB_IP_PORTS = "localhost:6379"
+# REDISDB_USER_PASS = ""
+# REDISDB_DB = 0
 # # 适用于redis哨兵模式
-# REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
+# REDISDB_SERVICE_NAME = ""
 #
 # # 数据入库的pipeline，可自定义，默认MysqlPipeline
 # ITEM_PIPELINES = [
 #     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
 #     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
 # ]
+# EXPORT_DATA_MAX_FAILED_TIMES = 10 # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
+# EXPORT_DATA_MAX_RETRY_TIMES = 10 # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
 #
 # # 爬虫相关
 # # COLLECTOR
@@ -42,7 +43,7 @@
 # SPIDER_SLEEP_TIME = 0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 # SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 # SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
-# AUTO_STOP_WHEN_SPIDER_DONE = True  # 爬虫是否自动结束
+# KEEP_ALIVE = False  # 爬虫是否常驻
 #
 # # 浏览器渲染
 # WEBDRIVER = dict(
@@ -79,7 +80,7 @@
 #
 # # 随机headers
 # RANDOM_HEADERS = True
-# # UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，若不指定则随机类型
+# # UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，'mobile' 若不指定则随机类型
 # USER_AGENT_TYPE = "chrome"
 # # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
 # DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
@@ -89,6 +90,14 @@
 # # 去重
 # ITEM_FILTER_ENABLE = False  # item 去重
 # REQUEST_FILTER_ENABLE = False  # request 去重
+# ITEM_FILTER_SETTING = dict(
+#     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+# )
+# REQUEST_FILTER_ENABLE = False  # request 去重
+# REQUEST_FILTER_SETTING = dict(
+#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+#     expire_time=2592000,  # 过期时间1个月
+# )
 #
 # # 报警 支持钉钉、企业微信、邮件
 # # 钉钉报警

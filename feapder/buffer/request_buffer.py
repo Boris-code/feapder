@@ -41,11 +41,8 @@ class RequestBuffer(threading.Thread):
 
             if not self.__class__.dedup and setting.REQUEST_FILTER_ENABLE:
                 self.__class__.dedup = Dedup(
-                    filter_type=Dedup.ExpireFilter,
-                    name=redis_key,
-                    expire_time=2592000,
-                    to_md5=False,
-                )  # 过期时间为一个月
+                    name=redis_key, to_md5=False, **setting.REQUEST_FILTER_SETTING
+                )  # 默认过期时间为一个月
 
     def run(self):
         self._thread_stop = False

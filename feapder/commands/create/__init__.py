@@ -6,7 +6,8 @@ __all__ = [
     "CreateJson",
     "CreateTable",
     "CreateCookies",
-    "CreateSetting"
+    "CreateSetting",
+    "CreateParams",
 ]
 
 from .create_table import CreateTable
@@ -17,3 +18,4 @@ from .create_item import CreateItem
 from .create_project import CreateProject
 from .create_cookies import CreateCookies
 from .create_setting import CreateSetting
+from .create_params import CreateParams

@@ -185,14 +185,9 @@ class RedisDB:
 
         except Exception as e:
             raise
-        else:
-            # if not self._url:
-            #     log.debug("连接到redis数据库 %s db%s" % (self._ip_ports, self._db))
-            # else:
-            #     log.debug("连接到redis数据库 %s" % (self._url))
-            pass
 
-        return self.__redis.ping()  # 不要写成self._redis.ping() 否则循环调用了
+        # 不要写成self._redis.ping() 否则循环调用了
+        return self.__redis.ping()
 
     @classmethod
     def from_url(cls, url):
@@ -217,9 +212,7 @@ class RedisDB:
         """
 
         if isinstance(values, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -244,9 +237,7 @@ class RedisDB:
             count = count if count <= self.sget_count(table) else self.sget_count(table)
             if count:
                 if count > 1:
-                    pipe = self._redis.pipeline(
-                        transaction=True
-                    )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+                    pipe = self._redis.pipeline()
 
                     if not self._is_redis_cluster:
                         pipe.multi()
@@ -274,9 +265,7 @@ class RedisDB:
         """
 
         if isinstance(values, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -330,7 +319,7 @@ class RedisDB:
             else:
                 assert len(values) == len(prioritys), "values值要与prioritys值一一对应"
 
-            pipe = self._redis.pipeline(transaction=True)
+            pipe = self._redis.pipeline()
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -359,9 +348,7 @@ class RedisDB:
         start_pos = 0  # 包含
         end_pos = count - 1 if count > 0 else count
 
-        pipe = self._redis.pipeline(
-            transaction=True
-        )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+        pipe = self._redis.pipeline()
 
         if not self._is_redis_cluster:
             pipe.multi()  # 标记事务的开始 参考 http://www.runoob.com/redis/redis-transactions.html
@@ -577,9 +564,7 @@ class RedisDB:
         is_exists = []
 
         if isinstance(values, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
             pipe.multi()
             for value in values:
                 pipe.zscore(table, value)
@@ -599,9 +584,7 @@ class RedisDB:
     def lpush(self, table, values):
 
         if isinstance(values, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
 
             if not self._is_redis_cluster:
                 pipe.multi()
@@ -628,9 +611,7 @@ class RedisDB:
 
         if count:
             if count > 1:
-                pipe = self._redis.pipeline(
-                    transaction=True
-                )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+                pipe = self._redis.pipeline()
 
                 if not self._is_redis_cluster:
                     pipe.multi()
@@ -701,7 +682,7 @@ class RedisDB:
         Returns:
 
         """
-        pipe = self._redis.pipeline(transaction=True)
+        pipe = self._redis.pipeline()
 
         if not self._is_redis_cluster:
             pipe.multi()
@@ -767,9 +748,7 @@ class RedisDB:
             else:
                 assert len(offsets) == len(values), "offsets值要与values值一一对应"
 
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
             pipe.multi()
 
             for offset, value in zip(offsets, values):
@@ -788,9 +767,7 @@ class RedisDB:
         @return: list / 单个值
         """
         if isinstance(offsets, list):
-            pipe = self._redis.pipeline(
-                transaction=True
-            )  # redis-py默认在执行每次请求都会创建（连接池申请连接）和断开（归还连接池）一次连接操作，如果想要在一次请求中指定多个命令，则可以使用pipeline实现一次请求指定多个命令，并且默认情况下一次pipeline 是原子性操作。
+            pipe = self._redis.pipeline()
             pipe.multi()
             for offset in offsets:
                 pipe.getbit(table, offset)

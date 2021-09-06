@@ -19,8 +19,8 @@ from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
 from feapder.pipelines import BasePipeline
 from feapder.pipelines.mysql_pipeline import MysqlPipeline
-from feapder.utils.log import log
 from feapder.utils import metrics
+from feapder.utils.log import log
 
 MAX_ITEM_COUNT = 5000  # 缓存中最大item数
 UPLOAD_BATCH_MAX_SIZE = 1000
@@ -43,15 +43,17 @@ class ItemBuffer(threading.Thread):
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
 
-            self._table_item = setting.TAB_ITEM
             self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
+            self._table_failed_items = setting.TAB_FAILED_ITEMS.format(
+                redis_key=redis_key
+            )
 
             self._item_tables = {
-                # 'xxx_item': {'tab_item': 'xxx:xxx_item'} # 记录item名与redis中item名对应关系
+                # 'item_name': 'table_name' # 缓存item名与表名对应关系
             }
 
             self._item_update_keys = {
-                # 'xxx:xxx_item': ['id', 'name'...] # 记录redis中item名与需要更新的key对应关系
+                # 'table_name': ['id', 'name'...] # 缓存table_name与__update_key__的关系
             }
 
             self._pipelines = self.load_pipelines()
@@ -60,7 +62,14 @@ class ItemBuffer(threading.Thread):
             self._mysql_pipeline = None
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
-                self.__class__.dedup = Dedup(to_md5=False)
+                self.__class__.dedup = Dedup(
+                    to_md5=False, **setting.ITEM_FILTER_SETTING
+                )
+
+            # 导出重试的次数
+            self.export_retry_times = 0
+            # 导出失败的次数 TODO 非air爬虫使用redis统计
+            self.export_falied_times = 0
 
     @property
     def redis_db(self):
@@ -210,7 +219,7 @@ class ItemBuffer(threading.Thread):
         @return:
         """
         datas_dict = {
-            # 'xxx:xxx_item': [{}, {}] redis 中的item名与对应的数据
+            # 'table_name': [{}, {}]
         }
 
         while items:
@@ -218,64 +227,52 @@ class ItemBuffer(threading.Thread):
             # 取item下划线格式的名
             # 下划线类的名先从dict中取，没有则现取，然后存入dict。加快下次取的速度
             item_name = item.item_name
-            item_table = self._item_tables.get(item_name)
-            if not item_table:
-                item_name_underline = item.name_underline
-                tab_item = self._table_item.format(
-                    redis_key=self._redis_key, item_name=item_name_underline
-                )
+            table_name = self._item_tables.get(item_name)
+            if not table_name:
+                table_name = item.table_name
+                self._item_tables[item_name] = table_name
 
-                item_table = {}
-                item_table["tab_item"] = tab_item
+            if table_name not in datas_dict:
+                datas_dict[table_name] = []
 
-                self._item_tables[item_name] = item_table
+            datas_dict[table_name].append(item.to_dict)
 
-            else:
-                tab_item = item_table.get("tab_item")
-
-            if tab_item not in datas_dict:
-                datas_dict[tab_item] = []
-
-            datas_dict[tab_item].append(item.to_dict)
-
-            if is_update_item and tab_item not in self._item_update_keys:
-                self._item_update_keys[tab_item] = item.update_key
+            if is_update_item and table_name not in self._item_update_keys:
+                self._item_update_keys[table_name] = item.update_key
 
         return datas_dict
 
-    def __export_to_db(self, tab_item, datas, is_update=False, update_keys=()):
-        to_table = tools.get_info(tab_item, ":s_(.*?)_item$", fetch_one=True)
-
+    def __export_to_db(self, table, datas, is_update=False, update_keys=()):
         # 打点 校验
-        self.check_datas(table=to_table, datas=datas)
+        self.check_datas(table=table, datas=datas)
 
         for pipeline in self._pipelines:
             if is_update:
-                if to_table == self._task_table and not isinstance(
+                if table == self._task_table and not isinstance(
                     pipeline, MysqlPipeline
                 ):
                     continue
 
-                if not pipeline.update_items(to_table, datas, update_keys=update_keys):
+                if not pipeline.update_items(table, datas, update_keys=update_keys):
                     log.error(
-                        f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 更新数据失败. table: {table}  items: {datas}"
                     )
                     return False
 
             else:
-                if not pipeline.save_items(to_table, datas):
+                if not pipeline.save_items(table, datas):
                     log.error(
-                        f"{pipeline.__class__.__name__} 保存数据失败. table: {to_table}  items: {datas}"
+                        f"{pipeline.__class__.__name__} 保存数据失败. table: {table}  items: {datas}"
                     )
                     return False
 
         # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
-        if not self._have_mysql_pipeline and is_update and to_table == self._task_table:
+        if not self._have_mysql_pipeline and is_update and table == self._task_table:
             if not self.mysql_pipeline.update_items(
-                to_table, datas, update_keys=update_keys
+                table, datas, update_keys=update_keys
             ):
                 log.error(
-                    f"{pipeline.__class__.__name__} 更新数据失败. table: {to_table}  items: {datas}"
+                    f"{self.mysql_pipeline.__class__.__name__} 更新数据失败. table: {table}  items: {datas}"
                 )
                 return False
 
@@ -284,7 +281,7 @@ class ItemBuffer(threading.Thread):
     def __add_item_to_db(
         self, items, update_items, requests, callbacks, items_fingerprints
     ):
-        export_success = False
+        export_success = True
         self._is_adding_to_db = True
 
         # 去重
@@ -296,8 +293,9 @@ class ItemBuffer(threading.Thread):
         update_items_dict = self.__pick_items(update_items, is_update_item=True)
 
         # item批量入库
+        failed_items = {"add": [], "update": [], "requests": []}
         while items_dict:
-            tab_item, datas = items_dict.popitem()
+            table, datas = items_dict.popitem()
 
             log.debug(
                 """
@@ -305,44 +303,105 @@ class ItemBuffer(threading.Thread):
                 表名: %s
                 datas: %s
                     """
-                % (tab_item, tools.dumps_json(datas, indent=16))
+                % (table, tools.dumps_json(datas, indent=16))
             )
 
-            export_success = self.__export_to_db(tab_item, datas)
+            if not self.__export_to_db(table, datas):
+                export_success = False
+                failed_items["add"].append({"table": table, "datas": datas})
 
         # 执行批量update
         while update_items_dict:
-            tab_item, datas = update_items_dict.popitem()
+            table, datas = update_items_dict.popitem()
+
             log.debug(
                 """
                 -------------- item 批量更新 --------------
                 表名: %s
                 datas: %s
                     """
-                % (tab_item, tools.dumps_json(datas, indent=16))
+                % (table, tools.dumps_json(datas, indent=16))
             )
 
-            update_keys = self._item_update_keys.get(tab_item)
-            export_success = self.__export_to_db(
-                tab_item, datas, is_update=True, update_keys=update_keys
-            )
+            update_keys = self._item_update_keys.get(table)
+            if not self.__export_to_db(
+                table, datas, is_update=True, update_keys=update_keys
+            ):
+                export_success = False
+                failed_items["update"].append({"table": table, "datas": datas})
 
-        # 执行回调
-        while callbacks:
-            try:
-                callback = callbacks.pop(0)
-                callback()
-            except Exception as e:
-                log.exception(e)
+        if export_success:
+            # 执行回调
+            while callbacks:
+                try:
+                    callback = callbacks.pop(0)
+                    callback()
+                except Exception as e:
+                    log.exception(e)
 
-        # 删除做过的request
-        if requests:
-            self.redis_db.zrem(self._table_request, requests)
+            # 删除做过的request
+            if requests:
+                self.redis_db.zrem(self._table_request, requests)
 
-        # 去重入库
-        if export_success and setting.ITEM_FILTER_ENABLE:
-            if items_fingerprints:
-                self.__class__.dedup.add(items_fingerprints, skip_check=True)
+            # 去重入库
+            if setting.ITEM_FILTER_ENABLE:
+                if items_fingerprints:
+                    self.__class__.dedup.add(items_fingerprints, skip_check=True)
+        else:
+            failed_items["requests"] = requests
+
+            if self.export_retry_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
+                if self._redis_key != "air_spider":
+                    # 失败的item记录到redis
+                    self.redis_db.sadd(self._table_failed_items, failed_items)
+
+                    # 删除做过的request
+                    if requests:
+                        self.redis_db.zrem(self._table_request, requests)
+
+                    log.error(
+                        "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
+                            tools.dumps_json(failed_items)
+                        )
+                    )
+                self.export_retry_times = 0
+
+            else:
+                tip = ["入库不成功"]
+                if callbacks:
+                    tip.append("不执行回调")
+                if requests:
+                    tip.append("不删除任务")
+                    exists = self.redis_db.zexists(self._table_request, requests)
+                    for exist, request in zip(exists, requests):
+                        if exist:
+                            self.redis_db.zadd(self._table_request, requests, 300)
+
+                if setting.ITEM_FILTER_ENABLE:
+                    tip.append("数据不入去重库")
+
+                if self._redis_key != "air_spider":
+                    tip.append("将自动重试")
+
+                tip.append("失败items:\n {}".format(tools.dumps_json(failed_items)))
+                log.error("，".join(tip))
+
+                self.export_falied_times += 1
+
+                if self._redis_key != "air_spider":
+                    self.export_retry_times += 1
+
+            if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
+                # 报警
+                msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
+                    self._redis_key, self.export_falied_times
+                )
+                log.error(msg)
+                tools.send_msg(
+                    msg=msg,
+                    level="error",
+                    message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
+                )
 
         self._is_adding_to_db = False
 
@@ -353,6 +412,7 @@ class ItemBuffer(threading.Thread):
         @param datas: 数据 列表
         @return:
         """
+        metrics.emit_counter("total count", len(datas), classify=table)
         for data in datas:
             for k, v in data.items():
                 metrics.emit_counter(k, int(bool(v)), classify=table)

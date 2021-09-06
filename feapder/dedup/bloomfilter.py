@@ -205,8 +205,6 @@ class ScalableBloomFilter(object):
     BASE_MEMORY = BloomFilter.BASE_MEMORY
     BASE_REDIS = BloomFilter.BASE_REDIS
 
-    __redis_cli = None
-
     def __init__(
         self,
         initial_capacity: int = 100000000,
@@ -238,13 +236,6 @@ class ScalableBloomFilter(object):
 
     def __repr__(self):
         return "<ScalableBloomFilter: {}>".format(self.filters[-1].bitarray)
-
-    @property
-    def _redis_cli(self):
-        if self.__class__.__redis_cli is None:
-            self.__class__.__redis_cli = RedisDB(url=self.redis_url).get_redis_obj()
-
-        return self.__class__.__redis_cli
 
     def create_filter(self):
         filter = BloomFilter(
@@ -282,7 +273,7 @@ class ScalableBloomFilter(object):
                     if self.name
                     else "ScalableBloomFilter"
                 )
-                with RedisLock(key=key, redis_cli=self._redis_cli) as lock:
+                with RedisLock(key=key) as lock:
                     if lock.locked:
                         while True:
                             if self.filters[-1].is_at_capacity:

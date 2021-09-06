@@ -111,7 +111,7 @@ class Request(object):
         @param render: 是否用浏览器渲染
         @param render_time: 渲染时长，即打开网页等待指定时间后再获取源码
         --
-        以下参数于requests参数使用方式一致
+        以下参数与requests参数使用方式一致
         @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断
         @param params: 请求参数
         @param data: 请求body
@@ -276,14 +276,15 @@ class Request(object):
         # 随机user—agent
         headers = self.requests_kwargs.get("headers", {})
         if "user-agent" not in headers and "User-Agent" not in headers:
+            if self.render:  # 如果是渲染默认，优先使用WEBDRIVER中配置的ua
+                ua = setting.WEBDRIVER.get(
+                    "user_agent"
+                ) or self.__class__.user_agent_pool.get(setting.USER_AGENT_TYPE)
+            else:
+                ua = self.__class__.user_agent_pool.get(setting.USER_AGENT_TYPE)
+
             if self.random_user_agent and setting.RANDOM_HEADERS:
-                headers.update(
-                    {
-                        "User-Agent": self.__class__.user_agent_pool.get(
-                            setting.USER_AGENT_TYPE
-                        )
-                    }
-                )
+                headers.update({"User-Agent": ua})
                 self.requests_kwargs.update(headers=headers)
         else:
             self.requests_kwargs.setdefault(
@@ -397,6 +398,31 @@ class Request(object):
             self.save_cached(response, expire_time=self.__class__.cached_expire_time)
 
         return response
+
+    def proxies(self):
+        """
+
+        Returns: {"https": "https://ip:port", "http": "http://ip:port"}
+
+        """
+        return self.requests_kwargs.get("proxies")
+
+    def proxy(self):
+        """
+
+        Returns: ip:port
+
+        """
+        proxies = self.proxies()
+        if proxies:
+            return proxies.get("http", "").strip("http://") or proxies.get(
+                "https", ""
+            ).strip("https://")
+
+    def user_agent(self):
+        headers = self.requests_kwargs.get("headers")
+        if headers:
+            return headers.get("user_agent") or headers.get("User-Agent")
 
     @property
     def fingerprint(self):

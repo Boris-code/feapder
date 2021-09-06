@@ -41,11 +41,11 @@ class Spider(
         begin_callback=None,
         end_callback=None,
         delete_keys=(),
-        auto_stop_when_spider_done=None,
+        keep_alive=None,
         auto_start_requests=None,
-        send_run_time=False,
         batch_interval=0,
         wait_lock=True,
+        **kwargs
     ):
         """
         @summary: 爬虫
@@ -57,9 +57,8 @@ class Spider(
         @param begin_callback: 爬虫开始回调函数
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
-        @param auto_stop_when_spider_done: 爬虫抓取完毕后是否自动结束或等待任务，默认自动结束
+        @param keep_alive: 爬虫是否常驻
         @param auto_start_requests: 爬虫是否自动添加任务
-        @param send_run_time: 发送运行时间
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
         @param wait_lock: 下发任务时否等待锁，若不等待锁，可能会存在多进程同时在下发一样的任务，因此分布式环境下请将该值设置True
         ---------
@@ -71,11 +70,11 @@ class Spider(
             begin_callback=begin_callback,
             end_callback=end_callback,
             delete_keys=delete_keys,
-            auto_stop_when_spider_done=auto_stop_when_spider_done,
+            keep_alive=keep_alive,
             auto_start_requests=auto_start_requests,
-            send_run_time=send_run_time,
             batch_interval=batch_interval,
             wait_lock=wait_lock,
+            **kwargs
         )
 
         self._min_task_count = min_task_count
@@ -110,7 +109,7 @@ class Spider(
             except Exception as e:
                 log.exception(e)
 
-            if self._auto_stop_when_spider_done:
+            if not self._keep_alive:
                 break
 
             time.sleep(self._check_task_interval)
@@ -191,26 +190,29 @@ class Spider(
         self._start()
 
         while True:
-            if self.all_thread_is_done():
-                if not self._is_notify_end:
-                    self.spider_end(close=self._auto_stop_when_spider_done)  # 跑完一轮
-                    self.record_spider_state(
-                        spider_type=1,
-                        state=1,
-                        spider_end_time=tools.get_current_date(),
-                        batch_interval=self._batch_interval,
-                    )
+            try:
+                if self.all_thread_is_done():
+                    if not self._is_notify_end:
+                        self.spider_end()  # 跑完一轮
+                        self.record_spider_state(
+                            spider_type=1,
+                            state=1,
+                            spider_end_time=tools.get_current_date(),
+                            batch_interval=self._batch_interval,
+                        )
 
-                    self._is_notify_end = True
+                        self._is_notify_end = True
 
-                if self._auto_stop_when_spider_done:
-                    self._stop_all_thread()
-                    break
+                    if not self._keep_alive:
+                        self._stop_all_thread()
+                        break
 
-            else:
-                self._is_notify_end = False
+                else:
+                    self._is_notify_end = False
 
-            self.check_task_status()
+                self.check_task_status()
+            except Exception as e:
+                log.exception(e)
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
@@ -423,9 +425,12 @@ class DebugSpider(Spider):
         self._start()
 
         while True:
-            if self.all_thread_is_done():
-                self._stop_all_thread()
-                break
+            try:
+                if self.all_thread_is_done():
+                    self._stop_all_thread()
+                    break
+            except Exception as e:
+                log.exception(e)
 
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 

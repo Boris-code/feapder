@@ -37,16 +37,19 @@ class HandleFailedRequests(object):
         log.debug("正在重置失败的requests...")
         total_count = 0
         while True:
-            failed_requests = self.get_failed_requests()
-            if not failed_requests:
-                break
+            try:
+                failed_requests = self.get_failed_requests()
+                if not failed_requests:
+                    break
 
-            for request in failed_requests:
-                request["retry_times"] = 0
-                request_obj = Request.from_dict(request)
-                self._request_buffer.put_request(request_obj)
+                for request in failed_requests:
+                    request["retry_times"] = 0
+                    request_obj = Request.from_dict(request)
+                    self._request_buffer.put_request(request_obj)
 
-                total_count += 1
+                    total_count += 1
+            except Exception as e:
+                log.exception(e)
 
         self._request_buffer.flush()
 

@@ -225,8 +225,8 @@ def get_cookies(response):
 
 def get_cookies_from_str(cookie_str):
     """
-    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=")
-    "{'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}"
+    >>> get_cookies_from_str("key=value; key2=value2; key3=; key4=; ")
+    {'key': 'value', 'key2': 'value2', 'key3': '', 'key4': ''}
 
     Args:
         cookie_str: key=value; key2=value2; key3=; key4=
@@ -236,6 +236,9 @@ def get_cookies_from_str(cookie_str):
     """
     cookies = {}
     for cookie in cookie_str.split(";"):
+        cookie = cookie.strip()
+        if not cookie:
+            continue
         key, value = cookie.split("=", 1)
         key = key.strip()
         value = value.strip()
@@ -940,7 +943,8 @@ def get_conf_value(config_file, section, key):
 
 def mkdir(path):
     try:
-        os.makedirs(path)
+        if not os.path.exists(path):
+            os.makedirs(path)
     except OSError as exc:  # Python >2.5
         pass
 
@@ -1044,8 +1048,19 @@ def is_exist(file_path):
     return os.path.exists(file_path)
 
 
-def download_file(url, base_path, filename="", call_func="", proxies=None, data=None):
-    file_path = base_path + filename
+def download_file(url, file_path, *, call_func=None, proxies=None, data=None):
+    """
+    下载文件，会自动创建文件存储目录
+    Args:
+        url: 地址
+        file_path: 文件存储地址
+        call_func: 下载成功的回调
+        proxies: 代理
+        data: 请求体
+
+    Returns:
+
+    """
     directory = os.path.dirname(file_path)
     mkdir(directory)
 
@@ -1065,13 +1080,6 @@ def download_file(url, base_path, filename="", call_func="", proxies=None, data=
 
     if url:
         try:
-            log.debug(
-                """
-                         正在下载 %s
-                         存储路径 %s
-                      """
-                % (url, file_path)
-            )
             if proxies:
                 # create the object, assign it to a variable
                 proxy = request.ProxyHandler(proxies)
@@ -1082,15 +1090,8 @@ def download_file(url, base_path, filename="", call_func="", proxies=None, data=
 
             request.urlretrieve(url, file_path, progress_callfunc, data)
 
-            log.debug(
-                """
-                         下载完毕 %s
-                         文件路径 %s
-                      """
-                % (url, file_path)
-            )
-
-            call_func and call_func()
+            if callable(call_func):
+                call_func()
             return 1
         except Exception as e:
             log.error(e)
@@ -2263,13 +2264,14 @@ def re_def_supper_class(obj, supper_class):
 
 
 ###################
+freq_limit_record = {}
 
 
-def is_in_rate_limit(rate_limit, *key):
+def reach_freq_limit(rate_limit, *key):
     """
     频率限制
     :param rate_limit: 限制时间 单位秒
-    :param key: 限制频率的key
+    :param key: 频率限制的key
     :return: True / False
     """
     if rate_limit == 0:
@@ -2277,10 +2279,24 @@ def is_in_rate_limit(rate_limit, *key):
 
     msg_md5 = get_md5(*key)
     key = "rate_limit:{}".format(msg_md5)
-    if get_redisdb().get(key):
-        return True
+    try:
+        if get_redisdb().get(key):
+            return True
 
-    get_redisdb().set(key, time.time(), ex=rate_limit)
+        get_redisdb().set(key, time.time(), ex=rate_limit)
+    except redis.exceptions.ConnectionError as e:
+        # 使用内存做频率限制
+        global freq_limit_record
+
+        if key not in freq_limit_record:
+            freq_limit_record[key] = time.time()
+            return False
+
+        if time.time() - freq_limit_record.get(key) < rate_limit:
+            return True
+        else:
+            freq_limit_record[key] = time.time()
+
     return False
 
 
@@ -2295,7 +2311,7 @@ def dingding_warning(
     if not all([url, message]):
         return
 
-    if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
+    if reach_freq_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
@@ -2345,7 +2361,7 @@ def email_warning(
     if not all([message, email_sender, email_password, email_receiver]):
         return
 
-    if is_in_rate_limit(
+    if reach_freq_limit(
         rate_limit, email_receiver, email_sender, message_prefix or message
     ):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
@@ -2376,7 +2392,7 @@ def linkedsee_warning(message, rate_limit=3600, message_prefix=None, token=None)
         log.info("未设置灵犀token，不支持报警")
         return
 
-    if is_in_rate_limit(rate_limit, token, message_prefix or message):
+    if reach_freq_limit(rate_limit, token, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
@@ -2414,7 +2430,7 @@ def wechat_warning(
     if not all([url, message]):
         return
 
-    if is_in_rate_limit(rate_limit, url, user_phone, message_prefix or message):
+    if reach_freq_limit(rate_limit, url, user_phone, message_prefix or message):
         log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
         return
 
@@ -2438,6 +2454,26 @@ def wechat_warning(
     except Exception as e:
         log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
         return False
+
+
+def send_msg(msg, level="debug", message_prefix=""):
+    if setting.WARNING_LEVEL == "ERROR":
+        if level != "error":
+            return
+
+    if setting.DINGDING_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        dingding_warning(keyword + msg, message_prefix=message_prefix)
+
+    if setting.EMAIL_RECEIVER:
+        title = message_prefix or msg
+        if len(title) > 50:
+            title = title[:50] + "..."
+        email_warning(msg, message_prefix=message_prefix, title=title)
+
+    if setting.WECHAT_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        wechat_warning(keyword + msg, message_prefix=message_prefix)
 
 
 ###################

@@ -32,7 +32,7 @@ class WebDriver(RemoteWebDriver):
         user_agent=None,
         proxy=None,
         headless=False,
-        driver_type=PHANTOMJS,
+        driver_type=CHROME,
         timeout=16,
         window_size=(1024, 800),
         executable_path=None,
@@ -155,6 +155,8 @@ class WebDriver(RemoteWebDriver):
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option("useAutomationExtension", False)
+        # docker 里运行需要
+        chrome_options.add_argument("--no-sandbox")
 
         if self._proxy:
             chrome_options.add_argument(
@@ -196,6 +198,7 @@ class WebDriver(RemoteWebDriver):
         else:
             driver = webdriver.Chrome(chrome_options=chrome_options)
 
+        # 隐藏浏览器特征
         with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:
             js = f.read()
         driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
