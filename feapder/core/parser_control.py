@@ -99,16 +99,29 @@ class PaserControl(threading.Thread):
                         if request.auto_request:
                             request_temp = None
                             response = None
+
                             # 下载中间件
                             if request.download_midware:
-                                download_midware = (
-                                    request.download_midware
-                                    if callable(request.download_midware)
-                                    else tools.get_method(
-                                        parser, request.download_midware
+                                if isinstance(request.download_midware, (list, tuple)):
+                                    request_temp = request
+                                    for download_midware in request.download_midware:
+                                        download_midware = (
+                                            download_midware
+                                            if callable(download_midware)
+                                            else tools.get_method(
+                                                parser, download_midware
+                                            )
+                                        )
+                                        request_temp = download_midware(request_temp)
+                                else:
+                                    download_midware = (
+                                        request.download_midware
+                                        if callable(request.download_midware)
+                                        else tools.get_method(
+                                            parser, request.download_midware
+                                        )
                                     )
-                                )
-                                request_temp = download_midware(request)
+                                    request_temp = download_midware(request)
                             elif request.download_midware != False:
                                 request_temp = parser.download_midware(request)
 
@@ -482,14 +495,26 @@ class AirSpiderParserControl(PaserControl):
 
                             # 下载中间件
                             if request.download_midware:
-                                download_midware = (
-                                    request.download_midware
-                                    if callable(request.download_midware)
-                                    else tools.get_method(
-                                        parser, request.download_midware
+                                if isinstance(request.download_midware, (list, tuple)):
+                                    request_temp = request
+                                    for download_midware in request.download_midware:
+                                        download_midware = (
+                                            download_midware
+                                            if callable(download_midware)
+                                            else tools.get_method(
+                                                parser, download_midware
+                                            )
+                                        )
+                                        request_temp = download_midware(request_temp)
+                                else:
+                                    download_midware = (
+                                        request.download_midware
+                                        if callable(request.download_midware)
+                                        else tools.get_method(
+                                            parser, request.download_midware
+                                        )
                                     )
-                                )
-                                request_temp = download_midware(request)
+                                    request_temp = download_midware(request)
                             elif request.download_midware != False:
                                 request_temp = parser.download_midware(request)
 
