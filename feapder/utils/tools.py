@@ -1223,15 +1223,18 @@ def date_to_timestamp(date, time_format="%Y-%m-%d %H:%M:%S"):
 
 def timestamp_to_date(timestamp, time_format="%Y-%m-%d %H:%M:%S"):
     """
-    @summary:
+    @summary: 将时间戳转化为日期
     ---------
-    @param timestamp: 将时间戳转化为日期
-    @param format: 日期格式
+    @param timestamp: 数字或字符串类型的一个时间戳值
+    @param format: 时间格式
     ---------
-    @result: 返回日期
+    @result: 格式化时间
     """
-    if timestamp is None:
-        raise ValueError("timestamp is null")
+    assert timestamp, ValueError("timestamp is null")
+    try:
+        timestamp = int(timestamp)
+    except:
+        raise ValueError(f"{timestamp}：It's not a valid timestamp")
 
     date = time.localtime(timestamp)
     return time.strftime(time_format, date)
