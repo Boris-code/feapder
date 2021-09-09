@@ -396,7 +396,7 @@ def fit_url(urls, identis):
 
 
 def get_param(url, key):
-    params = url.split("?")[-1].split("&")
+    params = unquote_url(url).split("?")[-1].split("&")
     for param in params:
         key_value = param.split("=", 1)
         if key == key_value[0]:
