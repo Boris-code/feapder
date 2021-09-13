@@ -34,6 +34,7 @@
   * [日志配置及使用](source_code/logger.md)
   * [海量数据去重-dedup](source_code/dedup.md)
   * [报警及监控](source_code/报警及监控.md)
+  * [监控打点](source_code/监控打点.md)
 
 * 爬虫管理系统
   * [简介及部署](feapder_platform/爬虫管理系统.md)
