@@ -102,6 +102,8 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## 相关文章
 
+[feapder与scrapy对比分析](https://mp.weixin.qq.com/s/G-Bv9lWwrKRTJoFd7dEO7A)
+
 [使用feapder开发爬虫是一种怎样的体验
 ](https://mp.weixin.qq.com/s/WfClSbsjrn_4aPyI5hsalg)
 
