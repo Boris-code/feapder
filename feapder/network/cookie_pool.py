@@ -145,7 +145,9 @@ class PageCookiePool(CookiePoolInterface):
                     log.info("当前cookie数为 {} 数量足够 暂不生产".format(now_cookie_count))
 
                     # 判断cookie池近一分钟数量是否有变化，无变化则认为爬虫不再用了，退出
-                    last_count_info = self._redisdb.strget(self._tab_cookie_pool_last_count)
+                    last_count_info = self._redisdb.strget(
+                        self._tab_cookie_pool_last_count
+                    )
                     if not last_count_info:
                         self._redisdb.strset(
                             self._tab_cookie_pool_last_count,
@@ -201,17 +203,18 @@ class PageCookiePool(CookiePoolInterface):
 
 class LoginCookiePool(CookiePoolInterface):
     """
-    需要登陆的cookie池
+    需要登陆的cookie池, 用户账号密码等信息用mysql保存
     """
 
     def __init__(
         self,
         redis_key,
+        *,
         tab_userbase,
-        login_state_key,
-        lock_state_key,
-        username_key,
-        password_key,
+        login_state_key="login_state",
+        lock_state_key="lock_state",
+        username_key="username",
+        password_key="password",
         login_retry_times=10,
     ):
         """
@@ -234,6 +237,22 @@ class LoginCookiePool(CookiePoolInterface):
 
         self._redisdb = RedisDB()
         self._mysqldb = MysqlDB()
+
+        self.create_userbase()
+
+    def create_userbase(self):
+        sql = f"""
+            CREATE TABLE IF NOT EXISTS `{self._tab_userbase}` (
+              `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+              `{self._username_key}` varchar(50) DEFAULT NULL COMMENT '用户名',
+              `{self._password_key}` varchar(255) DEFAULT NULL COMMENT '密码',
+              `{self._login_state_key}` int(11) DEFAULT '0' COMMENT '登录状态（0未登录 1已登录）',
+              `{self._lock_state_key}` int(11) DEFAULT '0' COMMENT '账号是否被封（0 未封 1 被封）',
+              PRIMARY KEY (`id`),
+              UNIQUE KEY `username` (`username`) USING BTREE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+        """
+        self._mysqldb.execute(sql)
 
     def create_cookie(self, username, password):
         """
@@ -342,6 +361,9 @@ class LoginCookiePool(CookiePoolInterface):
                 user_infos = self.get_user_info()
                 if not isinstance(user_infos, Iterable):
                     raise ValueError("get_user_info 返回值必须可迭代")
+
+                if not user_infos:
+                    log.info("无可用用户")
 
                 for username, password in user_infos:
                     for i in range(self._login_retry_times):
