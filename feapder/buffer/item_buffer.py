@@ -103,7 +103,7 @@ class ItemBuffer(threading.Thread):
         self._thread_stop = False
         while not self._thread_stop:
             self.flush()
-            tools.delay_time(0.5)
+            tools.delay_time(1)
 
         self.close()
 
