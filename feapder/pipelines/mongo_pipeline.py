@@ -57,10 +57,16 @@ class MongoPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
+        update_values = []
+        for key in update_keys:
+            for item in items:
+                update_values.append(item[key])
+
         update_count = self.to_db.add_batch(
             coll_name=table,
             datas=items,
             update_columns=update_keys or list(items[0].keys()),
+            update_columns_value=update_values,
         )
         if update_count:
             msg = "共更新 %s 条数据 到 %s" % (update_count, table)
