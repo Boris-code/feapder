@@ -3,7 +3,7 @@ import unittest
 from feapder.db.mongodb import MongoDB
 
 db = MongoDB(
-    ip="192.168.20.241",
+    ip="localhost",
     port=27017,
     db="feapder"
 )
@@ -106,16 +106,34 @@ class TestMongoDB(unittest.TestCase):
         """
         items = [
             {
-                '_id': '607c25761b698fa5b385f3b2',
+                "_id": "614411b4e7ecea419dfc7b37",
                 'a': 3,
                 'b': 2,
                 'c': 1
+            },
+            {
+                "_id": "614411b4e7ecea419dfc7b38",
+                'a': 4,
+                'b': 5,
+                'c': 6
+            },
+            {
+                "_id": "614411b4e7ecea419dfc7b37",
+                'a': 3,
+                'b': 2,
+                'c': 1
+            },
+            {
+                "_id": "614411b4e7ecea419dfc7b38",
+                'a': 4,
+                'b': 5,
+                'c': 6
             }
         ]
-        add_count = db.add_batch(self.coll_name, items, update_columns=('b', 'c'), update_columns_value=('5', '6'))
+        add_count = db.add_batch(self.coll_name, items, update_columns=('b', 'c'), update_columns_value=('-1', '-2'))
         datas_size = len(items)
         print("共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, 'test', datas_size - add_count))
-        self.assertEqual(add_count, 1)
+        self.assertEqual(add_count, 2)
     
     def test_update(self):
         """

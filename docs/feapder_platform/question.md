@@ -67,7 +67,9 @@ INFLUXDB_PORT_UDP=8089
 
 > 以下列的是几种可能原因，可按照这个顺序排查，但不是所有步骤都需要走一遍
 
-1. 查看后端日志，观察报错，若是docker版本问题，参考部署一节安装最新版本
+1. 查看后端日志，观察报错
+    1. 若是docker版本问题，参考部署一节安装最新版本，
+    2. 若是报 `This node is not a swarm manager`，则是部署环境没准备好，执行`docker swarm init`，可参考参考部署一节
 2. 查看镜像`docker images`，若不存在爬虫镜像`registry.cn-hangzhou.aliyuncs.com/feapderd/feapder`，可能自动拉取失败了，可手动拉取，拉取命令：`docker pull registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:版本号`，版本号在`.env`里查看
 3. 重启docker服务，Centos对应的命令为：`service docker restart`，其他自行查资料
 

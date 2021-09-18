@@ -26,10 +26,12 @@ class TestMongo(feapder.AirSpider):
 
     def parse(self, request, response):
         title = response.xpath("//title/text()").extract_first()  # 取标题
-        item = Item()  # 声明一个item
-        item.table_name = "test_mongo"
-        item.title = title  # 给item属性赋值
-        yield item  # 返回item， item会自动批量入库
+        for i in range(10):
+            item = Item()  # 声明一个item
+            item.table_name = "test_mongo"
+            item.title = title + str(i)  # 给item属性赋值
+            item.i = i + 95
+            yield item  # 返回item， item会自动批量入库
 
 
 if __name__ == "__main__":
