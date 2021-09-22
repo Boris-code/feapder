@@ -46,3 +46,11 @@ class BasePipeline(metaclass=abc.ABCMeta):
         """
 
         return True
+
+    def close(self):
+        """
+        关闭，爬虫结束时调用
+        Returns:
+
+        """
+        pass

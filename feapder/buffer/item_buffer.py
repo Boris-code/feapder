@@ -418,4 +418,9 @@ class ItemBuffer(threading.Thread):
                 metrics.emit_counter(k, int(bool(v)), classify=table)
 
     def close(self):
-        pass
+        # 调用pipeline的close方法
+        for pipeline in self._pipelines:
+            try:
+                pipeline.close()
+            except:
+                pass
