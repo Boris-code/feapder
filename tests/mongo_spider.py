@@ -8,7 +8,7 @@ Created on 2021-02-08 16:06:12
 """
 
 import feapder
-from feapder import Item
+from feapder import Item, UpdateItem
 
 
 class TestMongo(feapder.AirSpider):
@@ -29,8 +29,9 @@ class TestMongo(feapder.AirSpider):
         for i in range(10):
             item = Item()  # 声明一个item
             item.table_name = "test_mongo"
-            item.title = title + str(i)  # 给item属性赋值
-            item.i = i + 95
+            item.title = title + str(666)  # 给item属性赋值
+            item.i = i + 5
+            item.c = "777"
             yield item  # 返回item， item会自动批量入库
 
 

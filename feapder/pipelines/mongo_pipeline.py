@@ -36,14 +36,17 @@ class MongoPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-        add_count = self.to_db.add_batch(coll_name=table, datas=items)
-        datas_size = len(items)
-        if add_count is not None:
+        try:
+            add_count = self.to_db.add_batch(coll_name=table, datas=items)
+            datas_size = len(items)
             log.info(
-                "共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, table, datas_size - add_count)
+                "共导出 %s 条数据到 %s,  新增 %s条, 重复 %s 条"
+                % (datas_size, table, add_count, datas_size - add_count)
             )
-
-        return add_count != None
+            return True
+        except Exception as e:
+            log.exception(e)
+            return False
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
         """
@@ -57,15 +60,25 @@ class MongoPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-        update_count = self.to_db.add_batch(
-            coll_name=table,
-            datas=items,
-            update_columns=update_keys or list(items[0].keys()),
-        )
-        if update_count:
-            msg = "共更新 %s 条数据 到 %s" % (update_count, table)
+        try:
+            add_count = self.to_db.add_batch(
+                coll_name=table,
+                datas=items,
+                update_columns=update_keys or list(items[0].keys()),
+            )
+            datas_size = len(items)
+            update_count = datas_size - add_count
+            msg = "共导出 %s 条数据到 %s,  新增 %s 条, 更新 %s 条" % (
+                datas_size,
+                table,
+                add_count,
+                update_count,
+            )
             if update_keys:
                 msg += " 更新字段为 {}".format(update_keys)
             log.info(msg)
 
-        return update_count != None
+            return True
+        except Exception as e:
+            log.exception(e)
+            return False
