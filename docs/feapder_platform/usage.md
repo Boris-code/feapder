@@ -1,5 +1,21 @@
 # FEAPLAT使用说明
 
+## 首次运行须知
+
+1. 管理系统默认账号密码：admin / admin
+
+2. 进入系统后，先到设置页面，配置服务端内网地址：
+
+    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/17/16318826920098.jpg)
+
+
+    查看内网地址：
+    
+    ```shell
+    ifconfig
+    ```
+    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16255025919847.jpg)
+
 ## 添加项目
 
 ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/17/16318800747189.jpg)

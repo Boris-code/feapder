@@ -45,24 +45,6 @@ INFLUXDB_PORT_UDP=8089
 通过 `vim .env` 敲击`i` 进入编辑模式，修改完按 `esc`退出编辑，敲击 `:wq` 保存
 
 
-## 首次运行须知
-
-1. 首次运行时，检查下后端日志，看是否运行成功，或报mysql连接错误，重启一次即可解决。这是因为第一次初始化环境，可能后端先于mysql运行了。
-
-2. 管理系统默认账号密码：admin / admin
-
-3. 进入系统后，先到设置页面，配置服务端内网地址：
-
-    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/17/16318826920098.jpg)
-
-
-    查看内网地址：
-    
-    ```shell
-    ifconfig
-    ```
-    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16255025919847.jpg)
-
 ## 启动失败
 
 > 以下列的是几种可能原因，可按照这个顺序排查，但不是所有步骤都需要走一遍
