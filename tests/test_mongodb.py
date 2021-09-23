@@ -12,6 +12,10 @@ class TestMongoDB(unittest.TestCase):
         db.drop_collection(coll_name=self.coll_name)
         db.create_index(self.coll_name, ["a", "b"])
 
+    def test_get_indexx(self):
+        index = db.get_index(self.coll_name)
+        print(index)
+
     def test_find(self):
         """
         查询数据

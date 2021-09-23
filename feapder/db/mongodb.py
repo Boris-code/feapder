@@ -41,6 +41,9 @@ class MongoDB:
         )
         self.db = self.get_database(db)
 
+        # 缓存索引信息
+        self.__index__cached = {}
+
     @classmethod
     def from_url(cls, url, **kwargs):
         # mongodb://username:password@ip:port/db
@@ -152,7 +155,9 @@ class MongoDB:
                 if not isinstance(update_columns, (tuple, list)):
                     update_columns = [update_columns]
 
-                condition = self.__get_update_condition(e.details.get("errmsg"), data)
+                condition = self.__get_update_condition(
+                    coll_name, data, e.details.get("errmsg")
+                )
 
                 # 更新指定的列
                 if update_columns_value:
@@ -169,7 +174,9 @@ class MongoDB:
 
             # 覆盖更新
             elif replace:
-                condition = self.__get_update_condition(e.details.get("errmsg"), data)
+                condition = self.__get_update_condition(
+                    coll_name, data, e.details.get("errmsg")
+                )
                 # 替换已存在的数据
                 collection.replace_one(condition, data)
 
@@ -221,17 +228,20 @@ class MongoDB:
                     data = error.get("op")
                     data.pop("_id", "")
 
-                    # 获取更新条件
-                    if condition_fields:
-                        condition = {
-                            condition_field: data[condition_field]
-                            for condition_field in condition_fields
-                        }
-                    else:
-                        # 根据重复的值获取更新条件
-                        condition = self.__get_update_condition(
-                            error.get("errmsg"), data
-                        )
+                    def get_condition():
+                        # 获取更新条件
+                        if condition_fields:
+                            condition = {
+                                condition_field: data[condition_field]
+                                for condition_field in condition_fields
+                            }
+                        else:
+                            # 根据重复的值获取更新条件
+                            condition = self.__get_update_condition(
+                                coll_name, data, error.get("errmsg")
+                            )
+
+                        return condition
 
                     if update_columns:
                         # 更新指定的列
@@ -249,12 +259,12 @@ class MongoDB:
                             for key in update_columns:
                                 doc = {key: data.get(key)}
 
-                        collection.update_one(condition, {"$set": doc})
+                        collection.update_one(get_condition(), {"$set": doc})
                         add_count -= 1
 
                     elif replace:
                         # 覆盖更新
-                        collection.replace_one(condition, data)
+                        collection.replace_one(get_condition(), data)
                         add_count -= 1
 
                     else:
@@ -354,10 +364,39 @@ class MongoDB:
         _keys = [(key, pymongo.ASCENDING) for key in keys]
         collection.create_index(_keys, unique=unique)
 
+    def get_index(self, coll_name):
+        return self.get_collection(coll_name).index_information()
+
     def drop_collection(self, coll_name):
         return self.db.drop_collection(coll_name)
 
-    def __get_update_condition(self, duplicate_errmsg: str, data: dict) -> dict:
+    def get_index_key(self, coll_name, index_name):
+        """
+        获取参与索引的key
+        Args:
+            index_name: 索引名
+
+        Returns:
+
+        """
+        cache_key = f"{coll_name}:{index_name}"
+
+        if cache_key in self.__index__cached:
+            return self.__index__cached.get(cache_key)
+
+        index = self.get_index(coll_name)
+        index_detail = index.get(index_name)
+        if not index_detail:
+            errmsg = f"not found index {index_name} in collection {coll_name}"
+            raise Exception(errmsg)
+
+        index_keys = [val[0] for val in index_detail.get("key")]
+        self.__index__cached[cache_key] = index_keys
+        return index_keys
+
+    def __get_update_condition(
+        self, coll_name: str, data: dict, duplicate_errmsg: str
+    ) -> dict:
         """
         根据索引冲突的报错信息 获取更新条件
         Args:
@@ -367,26 +406,10 @@ class MongoDB:
         Returns: {"a": 1, "b": "你好"}
 
         """
-        condition = {}
-        duplicate_values = re.search("dup key: \{(.*?)\}", duplicate_errmsg).group(1)
-        duplicate_values = duplicate_values.strip(" :")
-        duplicate_values = duplicate_values.split(", :")
-        values = []
-        for value in duplicate_values:
-            value = value.strip()
-            if value:
-                if '"' in value:
-                    value = value.strip('"')
-                    values.append(value)
-                elif "." in value:
-                    values.append(float(value))
-                else:
-                    values.append(int(value))
-        for key, val in data.items():
-            for value in values:
-                if val == value:
-                    condition[key] = value
+        index_name = re.search(r"index: (\w+)", duplicate_errmsg).group(1)
+        index_keys = self.get_index_key(coll_name, index_name)
 
+        condition = {key: data.get(key) for key in index_keys}
         return condition
 
     def __getattr__(self, name):
