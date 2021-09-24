@@ -23,22 +23,32 @@ from feapder.utils.log import log
 
 class MongoDB:
     def __init__(
-        self, ip=None, port=None, db=None, user_name=None, user_pass=None, **kwargs
+        self,
+        ip=None,
+        port=None,
+        db=None,
+        user_name=None,
+        user_pass=None,
+        url=None,
+        **kwargs,
     ):
-        if not ip:
-            ip = setting.MONGO_IP
-        if not port:
-            port = setting.MONGO_PORT
-        if not db:
-            db = setting.MONGO_DB
-        if not user_name:
-            user_name = setting.MONGO_USER_NAME
-        if not user_pass:
-            user_pass = setting.MONGO_USER_PASS
+        if url:
+            self.client = MongoClient(url, **kwargs)
+        else:
+            if not ip:
+                ip = setting.MONGO_IP
+            if not port:
+                port = setting.MONGO_PORT
+            if not db:
+                db = setting.MONGO_DB
+            if not user_name:
+                user_name = setting.MONGO_USER_NAME
+            if not user_pass:
+                user_pass = setting.MONGO_USER_PASS
+            self.client = MongoClient(
+                host=ip, port=port, username=user_name, password=user_pass
+            )
 
-        self.client = MongoClient(
-            host=ip, port=port, username=user_name, password=user_pass
-        )
         self.db = self.get_database(db)
 
         # 缓存索引信息
@@ -46,26 +56,26 @@ class MongoDB:
 
     @classmethod
     def from_url(cls, url, **kwargs):
-        # mongodb://username:password@ip:port/db
+        """
+        Args:
+            url: mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+                 参考：http://mongodb.github.io/mongo-java-driver/3.4/javadoc/com/mongodb/MongoClientURI.html
+            **kwargs:
+
+        Returns:
+
+        """
         url_parsed = parse.urlparse(url)
 
         db_type = url_parsed.scheme.strip()
         if db_type != "mongodb":
             raise Exception(
-                "url error, expect mongodb://username:password@ip:port/db, but get {}".format(
+                "url error, expect mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]], but get {}".format(
                     url
                 )
             )
 
-        connect_params = {}
-        connect_params["ip"] = url_parsed.hostname.strip()
-        connect_params["port"] = url_parsed.port
-        connect_params["user_name"] = url_parsed.username.strip()
-        connect_params["user_pass"] = url_parsed.password.strip()
-        connect_params["db"] = url_parsed.path.strip("/").strip()
-
-        connect_params.update(kwargs)
-        return cls(**connect_params)
+        return cls(url=url, **kwargs)
 
     def get_database(self, database, **kwargs) -> Database:
         """
