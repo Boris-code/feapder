@@ -183,26 +183,27 @@ class MysqlDB:
             columns = [i[0] for i in cursor.description]
 
             # 处理数据
-            def fix_lob(row):
-                def convert(col):
-                    if isinstance(col, (datetime.date, datetime.time)):
-                        return str(col)
-                    elif isinstance(col, str) and (
-                        col.startswith("{") or col.startswith("[")
-                    ):
-                        try:
-                            # col = self.unescape_string(col)
-                            return json.loads(col)
-                        except:
-                            return col
-                    else:
+            def convert(col):
+                if isinstance(col, (datetime.date, datetime.time)):
+                    return str(col)
+                elif isinstance(col, str) and (
+                    col.startswith("{") or col.startswith("[")
+                ):
+                    try:
                         # col = self.unescape_string(col)
+                        return json.loads(col)
+                    except:
                         return col
+                else:
+                    # col = self.unescape_string(col)
+                    return col
 
-                return [convert(c) for c in row]
-
-            result = [fix_lob(row) for row in result]
-            result = [dict(zip(columns, r)) for r in result]
+            if limit == 1:
+                result = [convert(col) for col in result]
+                result = dict(zip(columns, result))
+            else:
+                result = [[convert(col) for col in row] for row in result]
+                result = [dict(zip(columns, r)) for r in result]
 
         self.close_connection(conn, cursor)
 
