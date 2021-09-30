@@ -201,6 +201,12 @@ class PageCookiePool(CookiePoolInterface):
         self._redisdb.lrem(self._tab_cookie_pool, cookies)
 
 
+class User:
+    def __init__(self, username, cookie):
+        self.username = username
+        self.cookie = cookie
+
+
 class LoginCookiePool(CookiePoolInterface):
     """
     需要登陆的cookie池, 用户账号密码等信息用mysql保存
@@ -210,7 +216,7 @@ class LoginCookiePool(CookiePoolInterface):
         self,
         redis_key,
         *,
-        tab_userbase,
+        table_userbase,
         login_state_key="login_state",
         lock_state_key="lock_state",
         username_key="username",
@@ -219,7 +225,7 @@ class LoginCookiePool(CookiePoolInterface):
     ):
         """
         @param redis_key: 项目名
-        @param tab_userbase: 用户表名
+        @param table_userbase: 用户表名
         @param login_state_key: 登录状态列名
         @param lock_state_key: 封锁状态列名
         @param username_key: 登陆名列名
@@ -229,7 +235,7 @@ class LoginCookiePool(CookiePoolInterface):
 
         self._tab_cookie_pool = "{}:l_cookie_pool".format(redis_key)
         self._login_retry_times = login_retry_times
-        self._tab_userbase = tab_userbase
+        self._table_userbase = table_userbase
         self._login_state_key = login_state_key
         self._lock_state_key = lock_state_key
         self._username_key = username_key
@@ -242,7 +248,7 @@ class LoginCookiePool(CookiePoolInterface):
 
     def create_userbase(self):
         sql = f"""
-            CREATE TABLE IF NOT EXISTS `{self._tab_userbase}` (
+            CREATE TABLE IF NOT EXISTS `{self._table_userbase}` (
               `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
               `{self._username_key}` varchar(50) DEFAULT NULL COMMENT '用户名',
               `{self._password_key}` varchar(255) DEFAULT NULL COMMENT '密码',
@@ -269,10 +275,10 @@ class LoginCookiePool(CookiePoolInterface):
         @return: yield username, password
         """
 
-        sql = "select {username_key}, {password_key} from {tab_userbase} where {lock_state_key} != 1 and {login_state_key} != 1".format(
+        sql = "select {username_key}, {password_key} from {table_userbase} where {lock_state_key} != 1 and {login_state_key} != 1".format(
             username_key=self._username_key,
             password_key=self._password_key,
-            tab_userbase=self._tab_userbase,
+            table_userbase=self._table_userbase,
             lock_state_key=self._lock_state_key,
             login_state_key=self._login_state_key,
         )
@@ -298,12 +304,12 @@ class LoginCookiePool(CookiePoolInterface):
         log.exception(e)
 
     def save_cookie(self, username, cookie):
-        cookie_info = {"username": username, "cookie": cookie}
+        user_cookie = {"username": username, "cookie": cookie}
 
-        self._redisdb.lpush(self._tab_cookie_pool, cookie_info)
+        self._redisdb.lpush(self._tab_cookie_pool, user_cookie)
 
-        sql = "update {tab_userbase} set {login_state_key} = 1 where {username_key} = '{username}'".format(
-            tab_userbase=self._tab_userbase,
+        sql = "update {table_userbase} set {login_state_key} = 1 where {username_key} = '{username}'".format(
+            table_userbase=self._table_userbase,
             login_state_key=self._login_state_key,
             username_key=self._username_key,
             username=username,
@@ -311,44 +317,48 @@ class LoginCookiePool(CookiePoolInterface):
 
         self._mysqldb.update(sql)
 
-    def get_cookie(self, wait_when_null=True):
+    def get_cookie(self, wait_when_null=True) -> User:
         while True:
             try:
-                cookie_info = self._redisdb.rpoplpush(self._tab_cookie_pool)
-                if not cookie_info and wait_when_null:
+                user_cookie = self._redisdb.rpoplpush(self._tab_cookie_pool)
+                if not user_cookie and wait_when_null:
                     log.info("暂无cookie 生产中...")
                     self.login()
                     continue
-                return eval(cookie_info) if cookie_info else {}
+
+                if user_cookie:
+                    user_cookie = eval(user_cookie)
+                    return User(**user_cookie)
+
+                return None
             except Exception as e:
                 log.exception(e)
                 tools.delay_time(1)
 
-    def del_cookie(self, username, cookie):
+    def del_cookie(self, user: User):
         """
         删除失效的cookie
-        @param username:
-        @param password:
+        @param user:
         @return:
         """
-        cookie_info = {"username": username, "cookie": cookie}
-        self._redisdb.lrem(self._tab_cookie_pool, cookie_info)
+        user_info = {"username": user.username, "cookie": user.cookie}
+        self._redisdb.lrem(self._tab_cookie_pool, user_info)
 
-        sql = "update {tab_userbase} set {login_state_key} = 0 where {username_key} = '{username}'".format(
-            tab_userbase=self._tab_userbase,
+        sql = "update {table_userbase} set {login_state_key} = 0 where {username_key} = '{username}'".format(
+            table_userbase=self._table_userbase,
             login_state_key=self._login_state_key,
             username_key=self._username_key,
-            username=username,
+            username=user.username,
         )
 
         self._mysqldb.update(sql)
 
-    def user_is_locked(self, username):
-        sql = "update {tab_userbase} set {lock_state_key} = 1 where {username_key} = '{username}'".format(
-            tab_userbase=self._tab_userbase,
+    def user_is_locked(self, user: User):
+        sql = "update {table_userbase} set {lock_state_key} = 1 where {username_key} = '{username}'".format(
+            table_userbase=self._table_userbase,
             lock_state_key=self._lock_state_key,
             username_key=self._username_key,
-            username=username,
+            username=user.username,
         )
 
         self._mysqldb.update(sql)
