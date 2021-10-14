@@ -1567,6 +1567,12 @@ def transform_lower_num(data_str: str):
 
 @run_safe_model("format_time")
 def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
+    """
+    >>> format_time("2个月前")
+    '2021-08-15 16:24:21'
+    >>> format_time("2月前")
+    '2021-08-15 16:24:36'
+    """
     release_time = transform_lower_num(release_time)
     release_time = release_time.replace("日", "天").replace("/", "-")
 
@@ -1578,7 +1584,7 @@ def format_time(release_time, date_format="%Y-%m-%d %H:%M:%S"):
         release_time = years_ago.strftime("%Y-%m-%d %H:%M:%S")
 
     elif "月前" in release_time:
-        months = re.compile("(\d+)\s*月前").findall(release_time)
+        months = re.compile("(\d+)[\s个]*月前").findall(release_time)
         months_ago = datetime.datetime.now() - datetime.timedelta(
             days=int(months[0]) * 30
         )
