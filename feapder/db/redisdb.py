@@ -39,6 +39,8 @@ class Encoder(_Encoder):
             value = str(value).encode()
         elif isinstance(value, (list, dict, tuple)):
             value = unicode(value)
+        elif isinstance(value, redis.connection.Token):
+            value = value.value.encode()
         elif not isinstance(value, basestring):
             # a value we don't know how to deal with. throw an error
             typename = type(value).__name__
