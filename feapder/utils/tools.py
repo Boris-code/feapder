@@ -1528,6 +1528,7 @@ def transform_lower_num(data_str: str):
     num_map = {
         "一": "1",
         "二": "2",
+        "两": "2",
         "三": "3",
         "四": "4",
         "五": "5",
