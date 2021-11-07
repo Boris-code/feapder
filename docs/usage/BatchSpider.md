@@ -6,7 +6,6 @@ BatchSpider是一款分布式批次爬虫，对于需要周期性采集的数据
 
 参考 [Spider](usage/Spider?id=_1-创建项目)
 
-
 ## 2. 创建爬虫
 
 命令参考：[命令行工具](command/cmdline.md?id=_2-创建爬虫)
