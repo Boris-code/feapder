@@ -99,7 +99,10 @@ yum remove docker  docker-common docker-selinux docker-engine
 ```shell
 yum install -y yum-utils device-mapper-persistent-data lvm2 && python2 /usr/bin/yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo && yum install docker-ce -y
 ```
-
+国内用户推荐使用
+```shell
+yum install -y yum-utils device-mapper-persistent-data lvm2 && python2 /usr/bin/yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo && yum install docker-ce -y
+```
 启动
 ```shell
 systemctl enable docker
@@ -119,9 +122,18 @@ systemctl start docker
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 ```
+国内用户推荐使用
+```shell
+sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+```
 
 ### 4. 部署feaplat爬虫管理系统
-
+#### 预备项
+安装git(1.8.3的版本已够用)
+```shell
+yum -y install git
+```
 #### 1. 下载项目
 
 gitub
