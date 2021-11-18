@@ -13,7 +13,7 @@ import datetime
 import random
 import time
 import warnings
-from collections import Iterable
+from collections.abc import Iterable
 from enum import Enum, unique
 
 import feapder.utils.tools as tools
