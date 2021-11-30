@@ -268,7 +268,7 @@ class Request(object):
         # 设置请求方法
         method = self.__dict__.get("method")
         if not method:
-            if "data" in self.requests_kwargs:
+            if "data" in self.requests_kwargs or "json" in self.requests_kwargs:
                 method = "POST"
             else:
                 method = "GET"
