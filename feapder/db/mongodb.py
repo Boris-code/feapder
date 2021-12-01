@@ -236,7 +236,6 @@ class MongoDB:
                     # 数据重复
                     # 获取重复的数据
                     data = error.get("op")
-                    data.pop("_id", "")
 
                     def get_condition():
                         # 获取更新条件
