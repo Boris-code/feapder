@@ -824,27 +824,31 @@ def jsonp2json(jsonp):
         raise ValueError("Invalid Input")
 
 
-def dumps_json(json_, indent=4, sort_keys=False):
+def dumps_json(data, indent=4, sort_keys=False):
     """
     @summary: 格式化json 用于打印
     ---------
-    @param json_: json格式的字符串或json对象
+    @param data: json格式的字符串或json对象
     ---------
     @result: 格式化后的字符串
     """
     try:
-        if isinstance(json_, str):
-            json_ = get_json(json_)
+        if isinstance(data, str):
+            data = get_json(data)
 
-        json_ = json.dumps(
-            json_, ensure_ascii=False, indent=indent, skipkeys=True, sort_keys=sort_keys
+        data = json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=indent,
+            skipkeys=True,
+            sort_keys=sort_keys,
+            default=str,
         )
 
     except Exception as e:
-        log.error(e)
-        json_ = pformat(json_)
+        data = pformat(data)
 
-    return json_
+    return data
 
 
 def get_json_value(json_object, key):

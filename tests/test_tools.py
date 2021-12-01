@@ -1,4 +1,5 @@
 from feapder.utils import tools
+from datetime import datetime
 
 
 date = tools.format_time("昨天3:10")
@@ -14,3 +15,11 @@ print(date)
 
 date = tools.format_time("1 年前")
 print(date)
+
+
+class C:
+    pass
+
+
+data = {"date": datetime.now(), "c": C()}
+print(tools.dumps_json(data))
