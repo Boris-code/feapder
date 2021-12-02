@@ -193,10 +193,10 @@ class WebDriver(RemoteWebDriver):
 
         if self._executable_path:
             driver = webdriver.Chrome(
-                chrome_options=chrome_options, executable_path=self._executable_path
+                options=chrome_options, executable_path=self._executable_path
             )
         else:
-            driver = webdriver.Chrome(chrome_options=chrome_options)
+            driver = webdriver.Chrome(options=chrome_options)
 
         # 隐藏浏览器特征
         with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:

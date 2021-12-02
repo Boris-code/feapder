@@ -410,16 +410,14 @@ class LimitTimesUserStatus(Enum):
 class LimitTimesUser:
     """
     有次数限制的账户
-    基于本地做的缓存，不支持多进程调用
     """
-
-    ACCOUNT_INFO_KEY = "accounts:h_account_info"  # 存储cookie的redis key
-    SITE_NAME = ""  # 网站名
 
     redisdb = None
 
     def __init__(
         self,
+        redis_key,
+        *,
         username,
         password,
         max_search_times,
@@ -428,6 +426,7 @@ class LimitTimesUser:
         **kwargs,
     ):
         """
+        @param redis_key: cookie存储位置
         @param username:
         @param password:
         @param max_search_times:
@@ -435,6 +434,7 @@ class LimitTimesUser:
         @param search_interval: 调用时间间隔。 支持元组 指定间隔的时间范围 如（5，10）即5到10秒；或直接传整数
         """
         self.__dict__.update(kwargs)
+        self.redis_key = "{}:h_cookie_pool".format(redis_key)
         self.username = username
         self.password = password
         self.max_search_times = max_search_times
@@ -487,7 +487,7 @@ class LimitTimesUser:
         return self.username == other.username
 
     def sync_account_info_from_redis(self):
-        account_info = self.redisdb.hget(self.ACCOUNT_INFO_KEY, self.username)
+        account_info = self.redisdb.hget(self.redis_key, self.username)
         if account_info:
             account_info = eval(account_info)
             self.account_info.update(account_info)
@@ -499,15 +499,11 @@ class LimitTimesUser:
 
     def set_cookies(self, cookies):
         self.account_info["cookies"] = cookies
-        return self.redisdb.hset(
-            self.ACCOUNT_INFO_KEY, self.username, self.account_info
-        )
+        return self.redisdb.hset(self.redis_key, self.username, self.account_info)
 
     def set_login_time(self, login_time=None):
         self.account_info["login_time"] = login_time or time.time()
-        return self.redisdb.hset(
-            self.ACCOUNT_INFO_KEY, self.username, self.account_info
-        )
+        return self.redisdb.hset(self.redis_key, self.username, self.account_info)
 
     def get_login_time(self):
         return self.account_info.get("login_time")
@@ -549,9 +545,7 @@ class LimitTimesUser:
         self.account_info["search_times"] += 1
         self.account_info["last_search_time"] = time.time()
 
-        return self.redisdb.hset(
-            self.ACCOUNT_INFO_KEY, self.username, self.account_info
-        )
+        return self.redisdb.hset(self.redis_key, self.username, self.account_info)
 
     @property
     def search_times(self):
@@ -563,7 +557,7 @@ class LimitTimesUser:
             self.account_info["search_times"] = 0
             self.account_info["init_search_times_time"] = current_time
 
-            self.redisdb.hset(self.ACCOUNT_INFO_KEY, self.username, self.account_info)
+            self.redisdb.hset(self.redis_key, self.username, self.account_info)
 
         return self.account_info["search_times"]
 
@@ -583,9 +577,7 @@ class LimitTimesUser:
 
     def del_cookie(self):
         self.account_info["cookies"] = {}
-        return self.redisdb.hset(
-            self.ACCOUNT_INFO_KEY, self.username, self.account_info
-        )
+        return self.redisdb.hset(self.redis_key, self.username, self.account_info)
 
     def create_cookie(self):
         """
@@ -624,9 +616,9 @@ class LimitTimesUser:
         except Exception as e:
             log.exception(e)
             send_msg(
-                msg=f"{self.SITE_NAME} {self.username} 账号登陆异常 exception: {str(e)}",
+                msg=f"{self.redis_key} {self.username} 账号登陆异常 exception: {str(e)}",
                 level="error",
-                message_prefix=f"{self.SITE_NAME} {self.username} 账号登陆异常",
+                message_prefix=f"{self.redis_key} {self.username} 账号登陆异常",
             )
 
         log.info("登录失败 {}".format(self.username))
@@ -636,14 +628,21 @@ class LimitTimesUser:
 
 class LimitTimesUserPool:
     """
-    限制查询次数的用户的User pool
-    基于本地做的缓存，不支持多进程调用
+    限制查询次数的用户的UserPool
     """
 
     LOAD_USER_INTERVAL = 60
 
-    def __init__(self, *, accounts_dict, limit_user_class, support_more_client=True):
+    def __init__(
+        self,
+        redis_key,
+        *,
+        accounts_dict: dict,
+        limit_user_class: LimitTimesUser.__class__,
+        support_more_client: bool = True,
+    ):
         """
+        @param redis_key: cookie存储位置
         @param accounts_dic: 账户信息字典
             {
                 "15011300228": {
@@ -657,6 +656,7 @@ class LimitTimesUserPool:
         @param limit_user_class: 用户重写的 limit_user_class
         @param support_more_client: 是否支持多客户端 即多线程 多进程模式 (可能在计数上及使用频率上有些误差)
         """
+        self.redis_key = redis_key
         self.accounts_dict = accounts_dict
         self.limit_user_class = limit_user_class
 
@@ -675,7 +675,9 @@ class LimitTimesUserPool:
             if username and username != _username:
                 continue
 
-            limit_times_users = self.limit_user_class(username=_username, **detail)
+            limit_times_users = self.limit_user_class(
+                self.redis_key, username=_username, **detail
+            )
             if limit_times_users in self.limit_times_users:
                 continue
 
