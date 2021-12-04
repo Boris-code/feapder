@@ -12,7 +12,7 @@ import datetime
 import os
 import time
 import warnings
-from collections import Iterable
+from collections.abc import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools

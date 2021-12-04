@@ -159,7 +159,6 @@ class MongoDB:
         try:
             collection.insert_one(data)
         except DuplicateKeyError as e:
-            data.pop("_id", "")
             # 存在则更新
             if update_columns:
                 if not isinstance(update_columns, (tuple, list)):
@@ -236,7 +235,6 @@ class MongoDB:
                     # 数据重复
                     # 获取重复的数据
                     data = error.get("op")
-                    data.pop("_id", "")
 
                     def get_condition():
                         # 获取更新条件
@@ -265,9 +263,7 @@ class MongoDB:
                             }
                         else:
                             # 使用数据本身的值更新
-                            doc = {}
-                            for key in update_columns:
-                                doc = {key: data.get(key)}
+                            doc = {key: data.get(key) for key in update_columns}
 
                         collection.update_one(get_condition(), {"$set": doc})
                         add_count -= 1

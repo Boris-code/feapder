@@ -10,7 +10,7 @@ Created on 2017-01-03 16:06
 import random
 import threading
 import time
-from collections import Iterable
+from collections.abc import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
