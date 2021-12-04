@@ -28,6 +28,13 @@ MONGO_DB = os.getenv("MONGO_DB")
 MONGO_USER_NAME = os.getenv("MONGO_USER_NAME")
 MONGO_USER_PASS = os.getenv("MONGO_USER_PASS")
 
+# PostgreSQL
+PGSQL_IP = os.getenv("PGSQL_IP")
+PGSQL_PORT = int(os.getenv("PGSQL_PORT", 5432))
+PGSQL_DB = os.getenv("PGSQL_DB")
+PGSQL_USER_NAME = os.getenv("PGSQL_USER_NAME")
+PGSQL_USER_PASS = os.getenv("PGSQL_USER_PASS")
+
 # REDIS
 # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
 REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
