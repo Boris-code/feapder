@@ -39,6 +39,7 @@ requires = [
     "parsel>=1.5.2",
     "PyExecJS>=1.5.1",
     "PyMySQL>=0.9.3",
+    "psycopg2-binary>=2.9.2",
     "redis>=2.10.6",
     "requests>=2.22.0",
     "bs4>=0.0.1",
