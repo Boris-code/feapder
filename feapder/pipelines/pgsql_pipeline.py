@@ -14,7 +14,7 @@
 
 from typing import Dict, List, Tuple
 
-import feapder.utils.tools as tools
+import feapder.utils.pgsql_tool as tools
 from feapder.db.pgsqldb import PgsqlDB
 from feapder.pipelines import BasePipeline
 from feapder.utils.log import log
@@ -42,16 +42,18 @@ class PgsqlPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-
-        sql, datas = tools.make_batch_sql(table, items)
+        get_indexes_sql = tools.get_indexes_col_sql(table)
+        indexes_cols = self.to_db.find(sql=get_indexes_sql, limit=0, to_json=True)[0]["column_names"]
+        sql, datas = tools.make_batch_sql(table, items, indexes_cols=indexes_cols)
         add_count = self.to_db.add_batch(sql, datas)
+        log.info(sql)
         datas_size = len(datas)
         if add_count:
             log.info(
                 "共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, table, datas_size - add_count)
             )
 
-        return add_count != None
+        return add_count is not None
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
         """
@@ -65,15 +67,17 @@ class PgsqlPipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-
+        get_indexes_sql = tools.get_indexes_col_sql(table)
+        indexes_cols = self.to_db.find(sql=get_indexes_sql, limit=0, to_json=True)[0]["column_names"]
         sql, datas = tools.make_batch_sql(
-            table, items, update_columns=update_keys or list(items[0].keys())
+            table, items, update_columns=update_keys or list(items[0].keys()), indexes_cols=indexes_cols
         )
+        log.info(sql)
         update_count = self.to_db.add_batch(sql, datas)
         if update_count:
-            msg = "共更新 %s 条数据 到 %s" % (update_count // 2, table)
+            msg = "共更新 %s 条数据 到 %s" % (update_count, table)
             if update_keys:
                 msg += " 更新字段为 {}".format(update_keys)
             log.info(msg)
 
-        return update_count != None
+        return update_count is not None

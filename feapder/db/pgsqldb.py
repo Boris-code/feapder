@@ -21,7 +21,7 @@ from dbutils.pooled_db import PooledDB
 
 import feapder.setting as setting
 from feapder.utils.log import log
-from feapder.utils.tools import make_insert_sql, make_batch_sql, make_update_sql
+from feapder.utils.pgsql_tool import make_insert_sql, make_update_sql, make_batch_sql
 
 
 def auto_retry(func):
@@ -260,7 +260,7 @@ class PgsqlDB:
         """
         @summary: 批量添加数据
         ---------
-        @ param sql: insert ignore into (xxx,xxx) values (%s, %s, %s)
+        @ param sql: insert into (xxx,xxx) values (%s, %s, %s)
         # param datas: 列表 [{}, {}, {}]
         ---------
         @result: 添加行数
@@ -269,7 +269,8 @@ class PgsqlDB:
 
         try:
             conn, cursor = self.get_connection()
-            affect_count = cursor.executemany(sql, datas)
+            cursor.executemany(sql, datas)
+            affect_count = cursor.rowcount
             conn.commit()
 
         except Exception as e:
