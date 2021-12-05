@@ -11,7 +11,7 @@
 
     	***************************
 """
-from feapder.utils.tools import dumps_json, list2str, format_sql_value
+from feapder.utils.tools import list2str, format_sql_value
 
 
 # PostgreSQL数据库相关
@@ -41,7 +41,7 @@ def get_indexes_col_sql(table):
             and a.attrelid = t.oid
             and a.attnum = ANY(ix.indkey)
             and t.relkind = 'r'
-            and t.relname like 'test%'
+            and t.relname like '%'
         group by
             t.relname,
             i.relname

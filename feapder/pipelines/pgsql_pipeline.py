@@ -44,9 +44,10 @@ class PgsqlPipeline(BasePipeline):
         """
         get_indexes_sql = tools.get_indexes_col_sql(table)
         indexes_cols = self.to_db.find(sql=get_indexes_sql, limit=0, to_json=True)[0]["column_names"]
+        log.info(f"索引包含的列名: {indexes_cols}")
         sql, datas = tools.make_batch_sql(table, items, indexes_cols=indexes_cols)
         add_count = self.to_db.add_batch(sql, datas)
-        log.info(sql)
+        # log.info(sql)
         datas_size = len(datas)
         if add_count:
             log.info(
@@ -69,10 +70,11 @@ class PgsqlPipeline(BasePipeline):
         """
         get_indexes_sql = tools.get_indexes_col_sql(table)
         indexes_cols = self.to_db.find(sql=get_indexes_sql, limit=0, to_json=True)[0]["column_names"]
+        log.info(f"索引包含的列名: {indexes_cols}")
         sql, datas = tools.make_batch_sql(
             table, items, update_columns=update_keys or list(items[0].keys()), indexes_cols=indexes_cols
         )
-        log.info(sql)
+        # log.info(sql)
         update_count = self.to_db.add_batch(sql, datas)
         if update_count:
             msg = "共更新 %s 条数据 到 %s" % (update_count, table)
