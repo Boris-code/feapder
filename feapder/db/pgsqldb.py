@@ -29,7 +29,7 @@ def auto_retry(func):
         for i in range(3):
             try:
                 return func(*args, **kwargs)
-            except (psycopg2.Error.InterfaceError, psycopg2.Error.OperationalError) as e:
+            except (psycopg2.InterfaceError, psycopg2.OperationalError) as e:
                 log.error(
                     """
                     error:%s
