@@ -95,6 +95,7 @@ class CreateItem:
             column_comment = column[6]
 
             try:
+                column_default = None if column_default == "NULL" else column_default
                 value = (
                     "kwargs.get('{column_name}')".format(column_name=column_name)
                     if support_dict
