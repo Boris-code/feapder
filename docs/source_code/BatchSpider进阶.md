@@ -112,7 +112,7 @@ def crawl_detail(args):
         spider.start()
 ```
 
-若批次爬虫和批次爬虫之前有依赖，除了设置related_redis_key参数外，还支持设置related_batch_record参数，指定对方的批次记录表即可。两个参数二选一
+若批次爬虫和批次爬虫之间有依赖，除了设置related_redis_key参数外，还支持设置related_batch_record参数，指定对方的批次记录表即可。两个参数二选一
 
 ### 2. task_condition
 
