@@ -61,9 +61,6 @@ class WebDriver(RemoteWebDriver):
         self._executable_path = executable_path
         self._custom_argument = custom_argument
 
-        self.proxies = {}
-        self.user_agent = None
-
         if driver_type == WebDriver.CHROME:
             self.driver = self.chrome_driver()
 
@@ -267,6 +264,10 @@ class WebDriver(RemoteWebDriver):
         """
         for key, value in val.items():
             self.driver.add_cookie({"name": key, "value": value})
+
+    @property
+    def user_agent(self):
+        return self.driver.execute_script("return navigator.userAgent;")
 
     def __getattr__(self, name):
         if self.driver:

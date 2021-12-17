@@ -13,6 +13,8 @@ TAB_FAILED_ITEMS = "{redis_key}:s_failed_items"
 TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
 # 爬虫时间记录表
 TAB_SPIDER_TIME = "{redis_key}:h_spider_time"
+# 用户池
+TAB_USER_POOL = "{redis_key}:h_{user_type}_pool"
 
 # MYSQL
 MYSQL_IP = os.getenv("MYSQL_IP")

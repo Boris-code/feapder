@@ -37,6 +37,7 @@ def test_webdriver():
         browser.get("https://httpbin.org/get")
         html = browser.page_source
         print(html)
+        print(browser.user_agent)
 
         import time
         time.sleep(1000)
