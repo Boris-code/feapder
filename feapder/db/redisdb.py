@@ -734,6 +734,9 @@ class RedisDB:
     def hget_count(self, table):
         return self._redis.hlen(table)
 
+    def hkeys(self, table):
+        return self._redis.hkeys(table)
+
     def setbit(self, table, offsets, values):
         """
         设置字符串数组某一位的值， 返回之前的值
