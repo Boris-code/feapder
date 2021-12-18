@@ -68,14 +68,14 @@ class GuestUserPool(UserPoolInterface):
 
         self._users_id = []
 
-    def load_users_id(self):
+    def _load_users_id(self):
         self._users_id = self._redisdb.hkeys(self._tab_user_pool)
         if self._users_id:
             random.shuffle(self._users_id)
 
-    def get_user_id(self):
+    def _get_user_id(self):
         if not self._users_id:
-            self.load_users_id()
+            self._load_users_id()
 
         if self._users_id:
             return self._users_id.pop()
@@ -114,13 +114,13 @@ class GuestUserPool(UserPoolInterface):
         """
         while True:
             try:
-                user_id = self.get_user_id()
+                user_id = self._get_user_id()
                 user_str = None
                 if user_id:
                     user_str = self._redisdb.hget(self._tab_user_pool, user_id)
                     # 如果没取到user，可能是其他爬虫将此用户删除了，需要重刷新本地缓存的用户id
                     if not user_str:
-                        self.load_users_id()
+                        self._load_users_id()
                         continue
 
                 if not user_id and block:
@@ -140,7 +140,7 @@ class GuestUserPool(UserPoolInterface):
 
     def del_user(self, user_id: str):
         self._redisdb.hdel(self._tab_user_pool, user_id)
-        self.load_users_id()
+        self._load_users_id()
 
     def run(self):
         while True:
