@@ -1,4 +1,4 @@
-__all__ = ["GuestUserPool", "GuestUser"]
+__all__ = ["GuestUserPool", "GuestUser", "NormalUserPool", "NormalUser"]
 
-from .guest_user_pool import GuestUserPool
-from .base_user_pool import GuestUser
+from .guest_user_pool import GuestUserPool, GuestUser
+from .normal_user_pool import NormalUserPool, NormalUser

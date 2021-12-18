@@ -29,7 +29,7 @@ class GuestUserPool(UserPoolInterface):
         self,
         redis_key,
         page_url=None,
-        min_users=10000,
+        min_users=1,
         must_contained_keys=(),
         keep_alive=False,
         **kwargs,
@@ -80,9 +80,9 @@ class GuestUserPool(UserPoolInterface):
         if self._users_id:
             return self._users_id.pop()
 
-    def create_user(self) -> Optional[GuestUser]:
+    def login(self) -> Optional[GuestUser]:
         """
-        默认使用webdirver去生产，可以重写
+        默认使用webdirver去登录，生产cookie，可以重写
         """
         with WebDriver(**self._kwargs) as driver:
             driver.get(self._page_url)
@@ -125,9 +125,8 @@ class GuestUserPool(UserPoolInterface):
 
                 if not user_id and block:
                     self._keep_alive = False
-                    self._min_users = 1
                     with RedisLock(
-                        key=self._tab_user_pool, lock_timeout=3600, wait_timeout=5
+                        key=self._tab_user_pool, lock_timeout=3600, wait_timeout=0
                     ) as _lock:
                         if _lock.locked:
                             self.run()
@@ -150,12 +149,12 @@ class GuestUserPool(UserPoolInterface):
 
                 if need_user_count > 0:
                     log.info(
-                        "当前user数为 {} 小于 {}, 生产user".format(
+                        "当前在线user数为 {} 小于 {}, 生产user".format(
                             now_user_count, self._min_users
                         )
                     )
                     try:
-                        user = self.create_user()
+                        user = self.login()
                         if user:
                             self.add_user(user)
                     except Exception as e:
