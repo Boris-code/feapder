@@ -8,15 +8,16 @@ Created on 2018/12/27 11:32 AM
 @email:  boris_liu@foxmail.com
 """
 
+import random
+from typing import Optional
+
 import feapder.utils.tools as tools
+from feapder import setting
 from feapder.db.redisdb import RedisDB
 from feapder.network.user_pool.base_user_pool import UserPoolInterface, GuestUser
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
-from typing import Optional
 from feapder.utils.webdriver import WebDriver
-from feapder import setting
-import random
 
 
 class GuestUserPool(UserPoolInterface):
@@ -117,8 +118,12 @@ class GuestUserPool(UserPoolInterface):
                 user_str = None
                 if user_id:
                     user_str = self._redisdb.hget(self._tab_user_pool, user_id)
+                    # 如果没取到user，可能是其他爬虫将此用户删除了，需要重刷新本地缓存的用户id
+                    if not user_str:
+                        self.load_users_id()
+                        continue
 
-                if (not user_id or not user_str) and block:
+                if not user_id and block:
                     self._keep_alive = False
                     self._min_users = 1
                     with RedisLock(
