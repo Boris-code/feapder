@@ -14,10 +14,6 @@ from typing import Optional
 
 from feapder.network.user_pool import GuestUser
 from feapder.network.user_pool import GuestUserPool
-from feapder.network.user_pool import NormalUser
-from feapder.network.user_pool import NormalUserPool
-from feapder.network.user_pool import GoldUser
-from feapder.network.user_pool import GoldUserPool
 
 
 class TestUserPool(unittest.TestCase):
