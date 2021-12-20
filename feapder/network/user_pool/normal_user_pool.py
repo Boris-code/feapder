@@ -217,7 +217,7 @@ class NormalUserPool(UserPoolInterface):
                                         break
                                     except NotImplementedError:
                                         log.error(
-                                            "must be implementation login method！"
+                                            f"{self.__class__.__name__} must be implementation login method！"
                                         )
                                         os._exit(0)
                                     except Exception as e:
