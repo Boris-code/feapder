@@ -1,10 +1,14 @@
 # Pipeline
 
-Pipeline是数据入库时流经的管道，默认为使用mysql入库，用户可自定义，以便对接其他数据库。
+Pipeline是数据入库时流经的管道，用户可自定义，以便对接其他数据库。
 
-注：item会被聚合成多条一起流经pipeline，方便批量入库
+框架已内置mysql及mongo管道，其他管道作为扩展方式提供，可从[feapder_pipelines](https://github.com/Boris-code/feapder_pipelines)项目中按需安装
+
+项目地址：https://github.com/Boris-code/feapder_pipelines
 
 ## 使用方式
+
+注：item会被聚合成多条一起流经pipeline，方便批量入库
 
 ### 1. 编写pipeline
 
