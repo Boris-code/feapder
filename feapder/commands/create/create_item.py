@@ -79,9 +79,10 @@ class CreateItem:
         # 组装 类名
         item_template = item_template.replace("${item_name}", table_name_hump_format)
         if support_dict:
-            item_template = item_template.replace("${table_name}", table_name + " 1")
+            item_template = item_template.replace("${command}", table_name + " 1")
         else:
-            item_template = item_template.replace("${table_name}", table_name)
+            item_template = item_template.replace("${command}", table_name)
+        item_template = item_template.replace("${table_name}", table_name)
 
         # 组装 属性
         propertys = ""

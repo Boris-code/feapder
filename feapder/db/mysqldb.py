@@ -2,7 +2,7 @@
 """
 Created on 2016-11-16 16:25
 ---------
-@summary: 操作oracle数据库
+@summary: 操作mysql数据库
 ---------
 @author: Boris
 @email: boris_liu@foxmail.com
@@ -56,7 +56,6 @@ class MysqlDB:
             user_pass = setting.MYSQL_USER_PASS
 
         try:
-
             self.connect_pool = PooledDB(
                 creator=pymysql,
                 mincached=1,
@@ -76,7 +75,7 @@ class MysqlDB:
         except Exception as e:
             log.error(
                 """
-            连接数据失败：
+            连接失败：
             ip: {}
             port: {}
             db: {}
@@ -103,12 +102,13 @@ class MysqlDB:
                 )
             )
 
-        connect_params = {}
-        connect_params["ip"] = url_parsed.hostname.strip()
-        connect_params["port"] = url_parsed.port
-        connect_params["user_name"] = url_parsed.username.strip()
-        connect_params["user_pass"] = url_parsed.password.strip()
-        connect_params["db"] = url_parsed.path.strip("/").strip()
+        connect_params = {
+            "ip": url_parsed.hostname.strip(),
+            "port": url_parsed.port,
+            "user_name": url_parsed.username.strip(),
+            "user_pass": url_parsed.password.strip(),
+            "db": url_parsed.path.strip("/").strip(),
+        }
 
         connect_params.update(kwargs)
 
