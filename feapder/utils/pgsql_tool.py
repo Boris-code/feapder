@@ -75,7 +75,7 @@ def make_insert_sql(
     ---------
     @param table:
     @param data: 表数据 json格式
-    @param auto_update: 使用的是replace into， 为完全覆盖已存在的数据
+    @param auto_update: 使用 insert into `{table}` {keys} values {values_placeholder} on conflict ON 语法
     @param update_columns: 需要更新的列 默认全部，当指定值时，auto_update设置无效，当duplicate key冲突时更新指定的列
     @param insert_ignore: 数据存在忽略
     @param indexes_cols: 索引列
