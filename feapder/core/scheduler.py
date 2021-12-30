@@ -156,8 +156,8 @@ class Scheduler(threading.Thread):
         """
         metrics.init(**setting.METRICS_OTHER_ARGS)
 
-    def add_parser(self, parser):
-        parser = parser()  # parser 实例化
+    def add_parser(self, parser, **kwargs):
+        parser = parser(**kwargs)  # parser 实例化
         if isinstance(parser, BaseParser):
             self._parsers.append(parser)
         else:

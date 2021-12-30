@@ -171,13 +171,14 @@ class BatchSpider(BatchParser, Scheduler):
         self._spider_last_done_time = None
         self._spider_last_done_count = 0  # 爬虫刚开始启动时已做任务数量
 
-    def add_parser(self, parser):
+    def add_parser(self, parser, **kwargs):
         parser = parser(
             self._task_table,
             self._batch_record_table,
             self._task_state,
             self._date_format,
             self._mysqldb,
+            **kwargs,
         )  # parser 实例化
         self._parsers.append(parser)
 
@@ -751,9 +752,12 @@ class BatchSpider(BatchParser, Scheduler):
                         last_batch_date=last_batch_date,
                     )
                     if result:
-                        deal_speed, need_time, overflow_time, calculate_speed_time = (
-                            result
-                        )
+                        (
+                            deal_speed,
+                            need_time,
+                            overflow_time,
+                            calculate_speed_time,
+                        ) = result
                         msg += ", 任务处理速度于{}统计, 约 {}条/小时, 预计还需 {}".format(
                             calculate_speed_time,
                             deal_speed,
@@ -812,9 +816,12 @@ class BatchSpider(BatchParser, Scheduler):
                         last_batch_date=last_batch_date,
                     )
                     if result:
-                        deal_speed, need_time, overflow_time, calculate_speed_time = (
-                            result
-                        )
+                        (
+                            deal_speed,
+                            need_time,
+                            overflow_time,
+                            calculate_speed_time,
+                        ) = result
                         msg += ", 任务处理速度于{}统计, 约 {}条/小时, 预计还需 {}".format(
                             calculate_speed_time,
                             deal_speed,
@@ -899,18 +906,15 @@ class BatchSpider(BatchParser, Scheduler):
 
         batch_date = tools.get_current_date(self._date_format)
 
-        sql = (
-            "insert into %s (batch_date, done_count, total_count, `interval`, interval_unit, create_time) values ('%s', %s, %s, %s, '%s', CURRENT_TIME)"
-            % (
-                self._batch_record_table,
-                batch_date,
-                0,
-                total_task_count,
-                self._batch_interval
-                if self._batch_interval >= 1
-                else self._batch_interval * 24,
-                "day" if self._batch_interval >= 1 else "hour",
-            )
+        sql = "insert into %s (batch_date, done_count, total_count, `interval`, interval_unit, create_time) values ('%s', %s, %s, %s, '%s', CURRENT_TIME)" % (
+            self._batch_record_table,
+            batch_date,
+            0,
+            total_task_count,
+            self._batch_interval
+            if self._batch_interval >= 1
+            else self._batch_interval * 24,
+            "day" if self._batch_interval >= 1 else "hour",
         )
 
         affect_count = self._mysqldb.add(sql)  # None / 0 / 1 (1 为成功)
