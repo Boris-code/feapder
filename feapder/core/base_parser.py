@@ -111,7 +111,7 @@ class BaseParser(object):
 
     @property
     def name(self):
-        return self.__class__.__name__
+        return id(self)
 
     def close(self):
         pass
