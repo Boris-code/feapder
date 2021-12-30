@@ -54,13 +54,13 @@ COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
 # SPIDER
 SPIDER_THREAD_COUNT = 1  # 爬虫并发数
 SPIDER_SLEEP_TIME = (
-    0
-)  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+    0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+)
 SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 SPIDER_AUTO_START_REQUESTS = (
-    True
-)  # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
+    True  # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
+)
 KEEP_ALIVE = False  # 爬虫是否常驻
 
 # 浏览器渲染
@@ -76,6 +76,7 @@ WEBDRIVER = dict(
     executable_path=None,  # 浏览器路径，默认为默认路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
     custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
+    xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
 )
 
 # 爬虫启动时，重新抓取失败的requests

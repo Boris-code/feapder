@@ -30,8 +30,8 @@
 #     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
 #     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
 # ]
-# EXPORT_DATA_MAX_FAILED_TIMES = 10 # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
-# EXPORT_DATA_MAX_RETRY_TIMES = 10 # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
+# EXPORT_DATA_MAX_FAILED_TIMES = 10  # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
+# EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
 #
 # # 爬虫相关
 # # COLLECTOR
@@ -40,7 +40,9 @@
 #
 # # SPIDER
 # SPIDER_THREAD_COUNT = 1  # 爬虫并发数
-# SPIDER_SLEEP_TIME = 0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+# SPIDER_SLEEP_TIME = (
+#     0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+# )
 # SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
 # SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 # KEEP_ALIVE = False  # 爬虫是否常驻
@@ -58,6 +60,7 @@
 #     executable_path=None,  # 浏览器路径，默认为默认路径
 #     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
 #     custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
+#     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
 # )
 #
 # # 爬虫启动时，重新抓取失败的requests
@@ -93,7 +96,6 @@
 # ITEM_FILTER_SETTING = dict(
 #     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
 # )
-# REQUEST_FILTER_ENABLE = False  # request 去重
 # REQUEST_FILTER_SETTING = dict(
 #     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
 #     expire_time=2592000,  # 过期时间1个月
@@ -103,12 +105,12 @@
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
-# DINGDING_WARNING_ALL = False # 是否提示所有人， 默认为False
+# DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # # 邮件报警
 # EMAIL_SENDER = ""  # 发件人
 # EMAIL_PASSWORD = ""  # 授权码
 # EMAIL_RECEIVER = ""  # 收件人 支持列表，可指定多个
-# EMAIL_SMTPSERVER = "smtp.163.com" # 邮件服务器 默认为163邮箱
+# EMAIL_SMTPSERVER = "smtp.163.com"  # 邮件服务器 默认为163邮箱
 # # 企业微信报警
 # WECHAT_WARNING_URL = ""  # 企业微信机器人api
 # WECHAT_WARNING_PHONE = ""  # 报警人 将会在群内@此人, 支持列表，可指定多人
@@ -122,7 +124,7 @@
 # LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
 # LOG_LEVEL = "DEBUG"
 # LOG_COLOR = True  # 是否带有颜色
-# LOG_IS_WRITE_TO_CONSOLE = True # 是否打印到控制台
+# LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 # LOG_IS_WRITE_TO_FILE = False  # 是否写文件
 # LOG_MODE = "w"  # 写文件的模式
 # LOG_MAX_BYTES = 10 * 1024 * 1024  # 每个日志文件的最大字节数
@@ -134,4 +136,4 @@
 # project_path = os.path.abspath(os.path.dirname(__file__))
 # os.chdir(project_path)  # 切换工作路经
 # sys.path.insert(0, project_path)
-# print('当前工作路径为 ' + os.getcwd())
+# print("当前工作路径为 " + os.getcwd())

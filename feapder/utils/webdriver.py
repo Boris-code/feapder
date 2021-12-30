@@ -8,9 +8,12 @@ Created on 2021/3/18 4:59 下午
 @email: boris_liu@foxmail.com
 """
 
+import json
+import os
 import queue
 import threading
-import os
+from typing import Optional
+
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
@@ -19,6 +22,22 @@ from feapder.utils.log import log
 from feapder.utils.tools import Singleton
 
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
+
+
+class XhrRequest:
+    def __init__(self, url, data, headers):
+        self.url = url
+        self.data = data
+        self.headers = headers
+
+
+class XhrResponse:
+    def __init__(self, request: XhrRequest, url, headers, content, status_code):
+        self.request = request
+        self.url = url
+        self.headers = headers
+        self.content = content
+        self.status_code = status_code
 
 
 class WebDriver(RemoteWebDriver):
@@ -37,7 +56,8 @@ class WebDriver(RemoteWebDriver):
         window_size=(1024, 800),
         executable_path=None,
         custom_argument=None,
-        **kwargs
+        xhr_url_regexes: list = None,
+        **kwargs,
     ):
         """
         webdirver 封装，支持chrome、phantomjs 和 firefox
@@ -50,6 +70,7 @@ class WebDriver(RemoteWebDriver):
             timeout: 请求超时时间
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
+            xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
             **kwargs:
         """
         self._load_images = load_images
@@ -60,6 +81,10 @@ class WebDriver(RemoteWebDriver):
         self._window_size = window_size
         self._executable_path = executable_path
         self._custom_argument = custom_argument
+        self._xhr_url_regexes = xhr_url_regexes
+
+        if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
+            raise Exception("xhr_url_regexes only support by chrome now! eg: driver_type=WebDriver.CHROME")
 
         if driver_type == WebDriver.CHROME:
             self.driver = self.chrome_driver()
@@ -200,6 +225,20 @@ class WebDriver(RemoteWebDriver):
             js = f.read()
         driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
 
+        if self._xhr_url_regexes:
+            assert isinstance(self._xhr_url_regexes, list)
+            with open(
+                os.path.join(os.path.dirname(__file__), "./js/intercept.js")
+            ) as f:
+                js = f.read()
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+            )
+            js = f"window.__urlRegexes = {self._xhr_url_regexes}"
+            driver.execute_cdp_cmd(
+                "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+            )
+
         return driver
 
     def phantomjs_driver(self):
@@ -268,6 +307,27 @@ class WebDriver(RemoteWebDriver):
     @property
     def user_agent(self):
         return self.driver.execute_script("return navigator.userAgent;")
+
+    def xhr_response(self, xhr_url_regex) -> Optional[XhrResponse]:
+        data = self.driver.execute_script(
+            f'return window.__ajaxData["{xhr_url_regex}"];'
+        )
+        if not data:
+            return None
+
+        request = XhrRequest(**data["request"])
+        response = XhrResponse(request, **data["response"])
+        return response
+
+    def xhr_text(self, xhr_url_regex) -> Optional[str]:
+        response = self.xhr_response(xhr_url_regex)
+        if not response:
+            return None
+        return response.content
+
+    def xhr_json(self, xhr_url_regex) -> Optional[dict]:
+        text = self.xhr_text(xhr_url_regex)
+        return json.loads(text)
 
     def __getattr__(self, name):
         if self.driver:
