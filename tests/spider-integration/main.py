@@ -10,6 +10,7 @@ Created on 2021-03-02 23:38:24
 from feapder import Spider
 
 from spiders import *
+from spiders.param_parser import ParamParser
 
 
 def spider_integration_test():
@@ -18,8 +19,10 @@ def spider_integration_test():
     """
     spider = Spider(redis_key="feapder:test_spider_integration")
     # 集成
-    spider.add_parser(sina_news_parser.SinaNewsParser)
-    spider.add_parser(tencent_news_parser.TencentNewsParser)
+    # spider.add_parser(sina_news_parser.SinaNewsParser)
+    # spider.add_parser(tencent_news_parser.TencentNewsParser)
+    spider.add_parser(ParamParser, abc='123')
+    spider.add_parser(ParamParser, abc='456')
 
     spider.start()
 
