@@ -45,6 +45,7 @@ from requests.cookies import RequestsCookieJar
 from w3lib.url import canonicalize_url as _canonicalize_url
 
 import feapder.setting as setting
+from feapder.db.redisdb import RedisDB
 from feapder.utils.email_sender import EmailSender
 from feapder.utils.log import log
 
@@ -62,14 +63,7 @@ redisdb = None
 def get_redisdb():
     global redisdb
     if not redisdb:
-        ip, port = setting.REDISDB_IP_PORTS.split(":")
-        redisdb = redis.Redis(
-            host=ip,
-            port=port,
-            db=setting.REDISDB_DB,
-            password=setting.REDISDB_USER_PASS,
-            decode_responses=True,
-        )  # redis默认端口是6379
+        redisdb = RedisDB()
     return redisdb
 
 
@@ -2283,10 +2277,10 @@ def reach_freq_limit(rate_limit, *key):
     msg_md5 = get_md5(*key)
     key = "rate_limit:{}".format(msg_md5)
     try:
-        if get_redisdb().get(key):
+        if get_redisdb().strget(key):
             return True
 
-        get_redisdb().set(key, time.time(), ex=rate_limit)
+        get_redisdb().strset(key, time.time(), ex=rate_limit)
     except redis.exceptions.ConnectionError as e:
         # 使用内存做频率限制
         global freq_limit_record
