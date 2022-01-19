@@ -67,7 +67,9 @@ class EmailSender(object):
         message["From"] = formataddr(
             (self.sender, self.username)
         )  # 括号里的对应发件人邮箱昵称、发件人邮箱账号
-        message["To"] = formataddr((receivers[0], receivers[0]))  # ",".join(receivers)
+        message["To"] = ",".join(
+            [formataddr((receiver, receiver)) for receiver in receivers]
+        )
 
         message["Subject"] = Header(title, "utf-8")
 
