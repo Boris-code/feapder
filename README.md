@@ -25,7 +25,6 @@
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
 
-
 ## 环境要求：
 
 - Python 3.6.0+
@@ -100,12 +99,10 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 1. start_requests： 生产任务
 2. parse： 解析数据
 
-## 相关文章
+## 爬虫工具推荐
 
-[使用feapder开发爬虫是一种怎样的体验
-](https://mp.weixin.qq.com/s/WfClSbsjrn_4aPyI5hsalg)
-
-[爬虫 | 如何快速的将请求头转为json格式](https://mp.weixin.qq.com/s/BgAGo7HwlHxL8jDL5TSuHQ)
+1. 验证码识别库：https://github.com/sml2h3/ddddocr
+2. 爬虫在线工具库：http://www.spidertools.cn
 
 ## 微信赞赏
 
