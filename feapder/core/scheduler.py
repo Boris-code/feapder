@@ -285,7 +285,8 @@ class Scheduler(threading.Thread):
                 self.__add_task()
 
     def all_thread_is_done(self):
-        for i in range(3):  # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
+        # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
+        for i in range(3):
             # 检测 collector 状态
             if (
                 self._collector.is_collector_task()
@@ -388,7 +389,7 @@ class Scheduler(threading.Thread):
         failed_count = self._redisdb.zget_count(self._tab_failed_requests)
         if failed_count > setting.WARNING_FAILED_COUNT:
             # 发送报警
-            msg = "《%s》爬虫当前失败任务 %s, 请检查爬虫是否正常" % (self._spider_name, failed_count)
+            msg = "《%s》爬虫当前失败任务数：%s, 请检查爬虫是否正常" % (self._spider_name, failed_count)
             log.error(msg)
             self.send_msg(
                 msg,
