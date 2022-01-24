@@ -486,7 +486,7 @@ def emit_store(
     *,
     classify: str = "",
     tags: dict = None,
-    measurement: str,
+    measurement: str = None,
     timestamp=None,
 ):
     """
