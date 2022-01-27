@@ -8,6 +8,8 @@ Created on 2018-07-26 22:28:10
 @email:  boris_liu@foxmail.com
 """
 
+import re
+
 import feapder.utils.tools as tools
 
 
@@ -72,12 +74,12 @@ class Item(metaclass=ItemMetaclass):
     @item_name.setter
     def item_name(self, name):
         self.__name__ = name
-        self.__table_name__ = self.name_underline.replace("_item", "")
+        self.__table_name__ = re.sub("_item$", "", self.name_underline)
 
     @property
     def table_name(self):
         if not self.__table_name__:
-            self.__table_name__ = self.name_underline.replace("_item", "")
+            self.__table_name__ = re.sub("_item$", "", self.name_underline)
         return self.__table_name__
 
     @table_name.setter
