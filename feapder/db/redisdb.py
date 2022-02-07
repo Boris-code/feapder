@@ -127,7 +127,7 @@ class RedisDB:
         try:
             if not self._url:
                 if not self._ip_ports:
-                    raise Exception("未设置 redis 连接信息")
+                    raise ConnectionError("未设置 redis 连接信息")
 
                 ip_ports = (
                     self._ip_ports
@@ -184,7 +184,7 @@ class RedisDB:
                 self._is_redis_cluster = False
 
         except Exception as e:
-            raise
+            raise e
 
         # 不要写成self._redis.ping() 否则循环调用了
         return self.__redis.ping()
