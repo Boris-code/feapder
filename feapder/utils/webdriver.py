@@ -57,6 +57,7 @@ class WebDriver(RemoteWebDriver):
         executable_path=None,
         custom_argument=None,
         xhr_url_regexes: list = None,
+        download_path=None,
         **kwargs,
     ):
         """
@@ -71,6 +72,7 @@ class WebDriver(RemoteWebDriver):
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
             xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
+            download_path: 如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
             **kwargs:
         """
         self._load_images = load_images
@@ -82,6 +84,7 @@ class WebDriver(RemoteWebDriver):
         self._executable_path = executable_path
         self._custom_argument = custom_argument
         self._xhr_url_regexes = xhr_url_regexes
+        self._download_path = download_path
 
         if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
             raise Exception("xhr_url_regexes only support by chrome now! eg: driver_type=WebDriver.CHROME")
@@ -208,6 +211,14 @@ class WebDriver(RemoteWebDriver):
                 "--window-size={},{}".format(self._window_size[0], self._window_size[1])
             )
 
+        if self._download_path:
+            os.makedirs(self._download_path, exist_ok=True)
+            prefs = {
+                'download.prompt_for_download': False, 
+                'download.default_directory': self._download_path
+            }
+            chrome_options.add_experimental_option("prefs", prefs)
+
         # 添加自定义的配置参数
         if self._custom_argument:
             for arg in self._custom_argument:
@@ -238,6 +249,17 @@ class WebDriver(RemoteWebDriver):
             driver.execute_cdp_cmd(
                 "Page.addScriptToEvaluateOnNewDocument", {"source": js}
             )
+        
+        if self._download_path:
+            driver.command_executor._commands["send_command"] = ("POST", '/session/$sessionId/chromium/send_command')
+            params = {
+                'cmd': 'Page.setDownloadBehavior', 
+                'params': {
+                    'behavior': 'allow', 
+                    'downloadPath': self._download_path
+                }
+            }
+            driver.execute("send_command", params)
 
         return driver
 
