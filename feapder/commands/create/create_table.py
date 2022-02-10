@@ -8,8 +8,9 @@ Created on 2018-08-28 17:38:43
 @email:  boris_liu@foxmail.com
 """
 
-import sys
 import time
+
+import pyperclip
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
@@ -62,18 +63,15 @@ class CreateTable:
         ---------
         @result:
         """
-        data = ""
-        while True:
-            line = sys.stdin.readline().strip()
-            if not line:
-                break
-            data += line
+        input("请复制json格式数据, 复制后按任意键读取剪切板内容\n")
 
-        return tools.get_json(data)
+        text = pyperclip.paste()
+        print(text + "\n")
+
+        return tools.get_json(text)
 
     def create(self, table_name):
         # 输入表字段
-        print('请输入表数据 json格式 如 {"name":"张三"}\n等待输入：\n')
         data = self.get_data()
 
         if not isinstance(data, dict):
@@ -98,8 +96,10 @@ class CreateTable:
 
             comment = input("%s : %s  -> comment：" % (key, key_type))
 
-            other_key += "`{key}` {key_type} COMMENT '{comment}',\n                ".format(
-                key=key, key_type=key_type, comment=comment
+            other_key += (
+                "`{key}` {key_type} COMMENT '{comment}',\n                ".format(
+                    key=key, key_type=key_type, comment=comment
+                )
             )
 
         print("\n")
@@ -107,8 +107,10 @@ class CreateTable:
         while True:
             is_need_batch_date = input("是否添加batch_date 字段 （y/n）:")
             if is_need_batch_date == "y":
-                other_key += "`{key}` {key_type} COMMENT '{comment}',\n                ".format(
-                    key="batch_date", key_type="date", comment="批次时间"
+                other_key += (
+                    "`{key}` {key_type} COMMENT '{comment}',\n                ".format(
+                        key="batch_date", key_type="date", comment="批次时间"
+                    )
                 )
                 break
             elif is_need_batch_date == "n":
@@ -133,3 +135,4 @@ class CreateTable:
         print(sql)
         self._db.execute(sql)
         print("\n%s 创建成功" % table_name)
+        print("注意手动检查下字段类型，确保无误！！！")

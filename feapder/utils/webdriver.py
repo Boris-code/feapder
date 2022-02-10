@@ -12,7 +12,7 @@ import json
 import os
 import queue
 import threading
-from typing import Optional
+from typing import Optional, Union
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -343,10 +343,18 @@ class WebDriver(RemoteWebDriver):
         response = XhrResponse(request, **data["response"])
         return response
 
+    def xhr_data(self, xhr_url_regex) -> Union[str, dict, None]:
+        response = self.xhr_response(xhr_url_regex)
+        if not response:
+            return None
+        return response.content
+
     def xhr_text(self, xhr_url_regex) -> Optional[str]:
         response = self.xhr_response(xhr_url_regex)
         if not response:
             return None
+        if isinstance(response.content, dict):
+            return json.dumps(response.content, ensure_ascii=False)
         return response.content
 
     def xhr_json(self, xhr_url_regex) -> Optional[dict]:

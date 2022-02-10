@@ -8,7 +8,7 @@ Created on 2018-08-28 17:38:43
 @email:  boris_liu@foxmail.com
 """
 
-import sys
+import pyperclip
 
 import feapder.utils.tools as tools
 
@@ -21,10 +21,14 @@ class CreateJson:
         ---------
         @result:
         """
-        print("请输入需要转换的内容： （xxx:xxx格式，支持多行）")
+        input("请复制需要转换的内容（xxx:xxx格式，支持多行），复制后按任意键读取剪切板内容\n")
+
+        text = pyperclip.paste()
+        print(text + "\n")
+
         data = []
-        while True:
-            line = sys.stdin.readline().strip().replace("\t", " " * 4)
+        for line in text.split("\n"):
+            line = line.strip().replace("\t", " " * 4)
             if not line:
                 break
 

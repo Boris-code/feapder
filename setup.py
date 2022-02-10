@@ -50,6 +50,7 @@ requires = [
     "urllib3>=1.25.8",
     "loguru>=0.5.3",
     "influxdb>=5.3.1",
+    "pyperclip>=1.8.2",
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]

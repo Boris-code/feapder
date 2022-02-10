@@ -9,7 +9,8 @@ Created on 2021/4/25 10:22 上午
 """
 
 import json
-import sys
+
+import pyperclip
 
 from feapder.utils.tools import get_cookies_from_str, print_pretty
 
@@ -17,21 +18,17 @@ from feapder.utils.tools import get_cookies_from_str, print_pretty
 class CreateCookies:
     def get_data(self):
         """
-        @summary: 从控制台读取多行
+        @summary: 从剪切板中读取内容
         ---------
         ---------
         @result:
         """
-        print("请输入浏览器cookie (列表或字符串格式)")
-        data = []
-        while True:
-            line = sys.stdin.readline().strip()
-            if not line:
-                break
+        input("请复制浏览器cookie (列表或字符串格式), 复制后按任意键读取剪切板内容\n")
 
-            data.append(line)
+        text = pyperclip.paste()
+        print(text + "\n")
 
-        return "".join(data)
+        return text
 
     def create(self):
         data = self.get_data()
