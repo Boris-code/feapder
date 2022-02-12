@@ -224,8 +224,20 @@ class PaserControl(threading.Thread):
                                     self._request_buffer.put_request(result)
                                     del_request_redis_after_request_to_db = True
 
-                            # else:
-                            #     raise TypeError('Expect Request、Item、callback func, bug get type: {}'.format(type(result)))
+                            elif result is not None:
+                                function_name = "{}.{}".format(
+                                    parser.name,
+                                    (
+                                        request.callback
+                                        and callable(request.callback)
+                                        and getattr(request.callback, "__name__")
+                                        or request.callback
+                                    )
+                                    or "parse",
+                                )
+                                raise TypeError(
+                                    f"{function_name} result expect Request、Item or callback, bug get type: {type(result)}"
+                                )
 
                     except Exception as e:
                         exception_type = (
@@ -581,6 +593,20 @@ class AirSpiderParserControl(PaserControl):
 
                             elif isinstance(result, Item):
                                 self._item_buffer.put_item(result)
+                            elif result is not None:
+                                function_name = "{}.{}".format(
+                                    parser.name,
+                                    (
+                                        request.callback
+                                        and callable(request.callback)
+                                        and getattr(request.callback, "__name__")
+                                        or request.callback
+                                    )
+                                    or "parse",
+                                )
+                                raise TypeError(
+                                    f"{function_name} result expect Request or Item, bug get type: {type(result)}"
+                                )
 
                     except Exception as e:
                         exception_type = (

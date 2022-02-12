@@ -288,7 +288,7 @@ class DebugSpider(Spider):
 
             tables = redis.getkeys(delete_tab)
             for table in tables:
-                log.info("正在删除表 %s" % table)
+                log.debug("正在清理表 %s" % table)
                 redis.clear(table)
 
     def __start_requests(self):
