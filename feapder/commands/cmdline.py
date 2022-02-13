@@ -13,6 +13,7 @@ from os.path import dirname, join
 
 from feapder.commands import create_builder
 from feapder.commands import shell
+from feapder.commands import zip
 
 
 def _print_commands():
@@ -23,7 +24,11 @@ def _print_commands():
     print("\nUsage:")
     print("  feapder <command> [options] [args]\n")
     print("Available commands:")
-    cmds = {"create": "create project、spider、item and so on", "shell": "debug response"}
+    cmds = {
+        "create": "create project、spider、item and so on",
+        "shell": "debug response",
+        "zip": "zip project",
+    }
     for cmdname, cmdclass in sorted(cmds.items()):
         print("  %-13s %s" % (cmdname, cmdclass))
 
@@ -41,6 +46,8 @@ def execute():
         create_builder.main()
     elif command == "shell":
         shell.main()
+    elif command == "zip":
+        zip.main()
     else:
         _print_commands()
 
