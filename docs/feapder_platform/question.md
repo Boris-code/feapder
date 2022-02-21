@@ -75,4 +75,24 @@ INFLUXDB_PORT_UDP=8089
     ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/17/16318842799082.jpg)
 2. 进入容器 `docker exec -it 容器ID bash`
 
-5. 接来下就和在centos服务器上操作一样了，你可以`pip`安装依赖
+3. 接来下就和在centos服务器上操作一样了，你可以`pip`安装依赖
+
+## 授权问题
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/02/21/16454346779741.jpg)
+
+此问题为服务器时间和时区问题, 可以在服务器上输入 `date` ，命令检查时间及时区是否正确
+
+正常应该为 `Mon Feb 21 17:03:11 CST 2022` 注意是 CST 不是 UTC
+
+修改时区及矫正时间命令
+
+```
+# 改时区
+rm -f /etc/localtime
+ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+# 校对时间
+clock --hctosys
+```
+ 
