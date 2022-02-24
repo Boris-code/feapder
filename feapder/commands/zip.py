@@ -23,8 +23,13 @@ def is_ignore_file(ignore_files: list, filename):
 
 def zip(dir_path, zip_name, ignore_dirs: list = None, ignore_files: list = None):
     print(f"正在压缩 {dir_path} >> {zip_name}")
+    ignore_files.append(os.path.basename(zip_name))
     with zipfile.ZipFile(zip_name, "w") as file:
-        for path, dirs, filenames in os.walk(dir_path):
+        dir_name = os.path.basename(dir_path)
+        parent_dir = os.path.dirname(dir_path)
+        if parent_dir:
+            os.chdir(parent_dir)
+        for path, dirs, filenames in os.walk(dir_name):
             # 修改原dirs，方式遍历忽略文件夹里的文件
             if ignore_dirs:
                 dirs[:] = [d for d in dirs if d not in ignore_dirs]
