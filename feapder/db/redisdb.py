@@ -849,3 +849,75 @@ class RedisDB:
 
     def __getattr__(self, name):
         return getattr(self._redis, name)
+
+    def current_status(self, show_key=True, filter_key_by_used_memory=10 * 1024 * 1024):
+        """
+        统计redis当前使用情况
+        Args:
+            show_key: 是否统计每个key的内存
+            filter_key_by_used_memory: 根据内存的使用量过滤key 只显示使用量大于指定内存的key
+
+        Returns:
+
+        """
+        from prettytable import PrettyTable
+        from tqdm import tqdm
+
+        status_msg = ""
+
+        print("正在查询最大连接数...")
+        clients_count = self._redis.execute_command("info clients")
+        max_clients_count = self._redis.execute_command("config get maxclients")
+        status_msg += ": ".join(max_clients_count) + "\n"
+        status_msg += clients_count + "\n"
+
+        print("正在查询整体内存使用情况...")
+        total_status = self._redis.execute_command("info memory")
+        status_msg += total_status + "\n"
+
+        if show_key:
+            print("正在查询每个key占用内存情况等信息...")
+            table = PrettyTable(
+                field_names=[
+                    "type",
+                    "key",
+                    "value_count",
+                    "used_memory_human",
+                    "used_memory",
+                ],
+                sortby="used_memory",
+                reversesort=True,
+                header_style="title",
+            )
+
+            keys = self._redis.execute_command("keys *")
+            for key in tqdm(keys):
+                key_type = self._redis.execute_command("type {}".format(key))
+                if key_type == "set":
+                    value_count = self._redis.scard(key)
+                elif key_type == "zset":
+                    value_count = self._redis.zcard(key)
+                elif key_type == "list":
+                    value_count = self._redis.llen(key)
+                elif key_type == "hash":
+                    value_count = self._redis.hlen(key)
+                elif key_type == "string":
+                    value_count = self._redis.strlen(key)
+                elif key_type == "none":
+                    continue
+                else:
+                    raise TypeError("尚不支持 {} 类型的key".format(key_type))
+
+                used_memory = self._redis.execute_command("memory usage {}".format(key))
+                if used_memory >= filter_key_by_used_memory:
+                    used_memory_human = (
+                        "%0.2fMB" % (used_memory / 1024 / 1024) if used_memory else 0
+                    )
+
+                    table.add_row(
+                        [key_type, key, value_count, used_memory_human, used_memory]
+                    )
+
+            status_msg += str(table)
+
+        return status_msg
