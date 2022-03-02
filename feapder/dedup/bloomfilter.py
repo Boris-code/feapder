@@ -14,7 +14,6 @@ import threading
 import time
 from struct import unpack, pack
 
-from feapder.db.redisdb import RedisDB
 from feapder.utils.redis_lock import RedisLock
 from . import bitarray
 
@@ -273,7 +272,7 @@ class ScalableBloomFilter(object):
                     if self.name
                     else "ScalableBloomFilter"
                 )
-                with RedisLock(key=key) as lock:
+                with RedisLock(key=key, redis_url=self.redis_url) as lock:
                     if lock.locked:
                         while True:
                             if self.filters[-1].is_at_capacity:

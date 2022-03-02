@@ -17,13 +17,16 @@ from feapder.utils.log import log
 class RedisLock:
     redis_cli = None
 
-    def __init__(self, key, redis_cli=None, wait_timeout=0, lock_timeout=86400):
+    def __init__(
+        self, key, *, wait_timeout=0, lock_timeout=86400, redis_cli=None, redis_url=None
+    ):
         """
         redis超时锁
         :param key: 存储锁的key redis_lock:[key]
-        :param redis_cli: redis客户端对象
         :param wait_timeout: 等待加锁超时时间，为0时则不等待加锁，加锁失败
         :param lock_timeout: 锁超时时间 为0时则不会超时，直到锁释放或意外退出，默认超时为1天
+        :param redis_cli: redis客户端对象
+        :param redis_url: redis连接地址，若redis_cli传值，则不使用redis_url
 
         用法示例:
         with RedisLock(key="test") as _lock:
@@ -32,6 +35,7 @@ class RedisLock:
                 # do somethings
         """
         self.redis_conn = redis_cli
+        self.redis_url = redis_url
         self.lock_key = "redis_lock:{}".format(key)
         # 锁超时时间
         self.lock_timeout = lock_timeout
@@ -43,7 +47,7 @@ class RedisLock:
     @property
     def redis_conn(self):
         if not self.__class__.redis_cli:
-            self.__class__.redis_cli = RedisDB().get_redis_obj()
+            self.__class__.redis_cli = RedisDB(url=self.redis_url).get_redis_obj()
 
         return self.__class__.redis_cli
 
