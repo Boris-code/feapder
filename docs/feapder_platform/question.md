@@ -55,10 +55,6 @@ INFLUXDB_PORT_UDP=8089
 2. 查看镜像`docker images`，若不存在爬虫镜像`registry.cn-hangzhou.aliyuncs.com/feapderd/feapder`，可能自动拉取失败了，可手动拉取，拉取命令：`docker pull registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:版本号`，版本号在`.env`里查看
 3. 重启docker服务，Centos对应的命令为：`service docker restart`，其他自行查资料
 
-## 提示运行成功，但无任务实例
-
-查看不到任务实例的原因可能是服务端内网地址配置错误了，爬虫实例没注册进来。可通过常用命令里的查看爬虫日志看具体问题
-
 ## 依赖包安装失败，可手动安装包
 
 1. 在项目配置处将 requirements.txt 一栏置空，使其不自动安装依赖

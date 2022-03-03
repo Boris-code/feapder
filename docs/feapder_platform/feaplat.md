@@ -5,73 +5,57 @@
 **feaplat**命名源于 feapder 与 platform 的缩写
 
 读音： `[ˈfiːplæt] `
-’
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
+
+## 特性
+
+1. 支持任何python脚本，包括不限于`feapder`、`scrapy`
+2. 支持浏览器渲染，支持有头模式。浏览器支持`playwright`、`selenium`
+3. 支持部署服务，可自动负载均衡
+4. 支持服务器集群管理
+5. 支持监控，监控内容可自定义
+6. 支持起多个实例，如分布式爬虫场景
+7. 支持弹性伸缩
+8. 支持4种定时启动方式
+9. 支持自定义worker镜像，如自定义java的运行环境、机器学习环境等，即根据自己的需求自定义（feaplat分为`master-调度端`和`worker-运行任务端`）
+10. docker一键部署，架设在docker swarm集群上
+
+
 ## 为什么用feaplat爬虫管理系统
 
 **市面上的爬虫管理系统**
 
 ![feapderd](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/feapderd.png)
 
-需要先部署好master、worker节点，worker节点常驻，等待master的指令执行任务。一个worker节点里可能同时跑了多个爬虫，一旦一个爬虫内存泄露等原因，可能会引发worker节点崩溃，影响该节点里的全部任务。并且worker数量不能弹性伸缩，无法利用云原生的优势
+worker节点常驻，且运行多个任务，不能弹性伸缩，任务之前会相互影响，稳定性得不到保障
 
 **feaplat爬虫管理系统**
 
 ![pic](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/pic.gif)
 
-根据配置的爬虫数动态生成worker，爬虫启动时才创建，爬虫结束时销毁。一个worker内只跑一个爬虫，各个爬虫或任务之间互不影响，稳定性强。系统架设在`docker swarm`集群上，一台服务器宕机，worker会自动迁移到其他服务器节点。
-
-![-w1736](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/16270242301134.jpg)
-
-
-
-## 特性
-
-1. 爬虫管理系统不仅支持 `feapder`、`scrapy`，且**支持执行任何脚本**，可以把该系统理解成脚本托管的平台 。
-
-2. 支持集群
-3. 工作节点根据配置定时启动，执行完释放，不常驻
-4. 一个worker内只运行一个爬虫，worker彼此之间隔离，互不影响。
-5. 支持**管理员**和**普通用户**两种角色
-6. 可自定义爬虫端镜像
+worker节点根据任务动态生成，一个worker只运行一个任务实例，任务做完worker销毁，稳定性高；多个服务器间自动均衡分配，弹性伸缩
 
 
 ## 功能概览
 
-[点我观看视频](http://markdown-media.oss-cn-beijing.aliyuncs.com/爬虫管理平台完整版.mp4)
-
 ### 1. 项目管理
-
-项目列表
-![-w1786](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254967791920.jpg)
 
 添加/编辑项目
 ![-w1785](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254968151490.jpg)
 
 ### 2. 任务管理
 
-任务列表
-![-w1791](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254968630425.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/03/16463109796998.jpg)
 
-定时支持 crontab、时间间隔、指定日期、只运行一次 四种方式。只运行一次的定时方式会在创建任务后立即运行
-![-w1731](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254968513292.jpg)
 
 ### 3. 任务实例
 
-列表
-![-w1785](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254981090479.jpg)
-
 日志
-![-w1742](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254983085371.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/03/16463117042527.jpg)
 
 
-### 4. 用户管理
-
-用户分为**管理员**和**普通用户**两种角色，管理员可看到全部项目，普通用户只可看到自己创建的项目，且只有管理员可看到用户管理面板
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/16260660857747.jpg)
-
-
-### 5. 爬虫监控
+### 4. 爬虫监控
 
 feaplat支持对feapder爬虫的运行情况进行监控，除了数据监控和请求监控外，用户还可自定义监控内容，详情参考[自定义监控](source_code/监控打点?id=自定义监控)
 
@@ -155,10 +139,6 @@ docker-compose up -d
 ```
 
 - 若端口冲突，可修改.env文件，参考[常见问题](feapder_platform/question?id=修改端口)
-
-- 首次运行时，检查下后端日志，看是否运行成功，若报mysql连接错误，重启一次即可解决。这是因为第一次初始化环境，可能后端先于mysql运行了。
-    - 查看后端日志命令：`docker logs -f feapder_backend`
-    - 重启命令：`docker-compose restart`
 
 #### 3. 访问爬虫管理系统
 
