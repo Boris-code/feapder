@@ -17,6 +17,8 @@ from typing import Optional, Union
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
+from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
@@ -58,6 +60,7 @@ class WebDriver(RemoteWebDriver):
         custom_argument=None,
         xhr_url_regexes: list = None,
         download_path=None,
+        auto_install_driver=False,
         **kwargs,
     ):
         """
@@ -73,6 +76,7 @@ class WebDriver(RemoteWebDriver):
             executable_path: 浏览器路径，默认为默认路径
             xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
             download_path: 文件下载保存路径；如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
+            auto_install_driver: 自动下载浏览器驱动 支持chrome 和 firefox
             **kwargs:
         """
         self._load_images = load_images
@@ -85,6 +89,7 @@ class WebDriver(RemoteWebDriver):
         self._custom_argument = custom_argument
         self._xhr_url_regexes = xhr_url_regexes
         self._download_path = download_path
+        self._auto_install_driver = auto_install_driver
 
         if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
             raise Exception(
@@ -165,6 +170,13 @@ class WebDriver(RemoteWebDriver):
                 firefox_profile=firefox_profile,
                 executable_path=self._executable_path,
             )
+        elif self._auto_install_driver:
+            driver = webdriver.Firefox(
+                capabilities=firefox_capabilities,
+                options=firefox_options,
+                firefox_profile=firefox_profile,
+                executable_path=GeckoDriverManager(print_first_line=False).install(),
+            )
         else:
             driver = webdriver.Firefox(
                 capabilities=firefox_capabilities,
@@ -229,6 +241,11 @@ class WebDriver(RemoteWebDriver):
         if self._executable_path:
             driver = webdriver.Chrome(
                 options=chrome_options, executable_path=self._executable_path
+            )
+        elif self._auto_install_driver:
+            driver = webdriver.Chrome(
+                options=chrome_options,
+                executable_path=ChromeDriverManager(print_first_line=False).install(),
             )
         else:
             driver = webdriver.Chrome(options=chrome_options)

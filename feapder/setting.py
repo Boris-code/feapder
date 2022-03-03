@@ -77,6 +77,7 @@ WEBDRIVER = dict(
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
     custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
+    auto_install_driver=False,  # 自动下载浏览器驱动 支持chrome 和 firefox
 )
 
 # 爬虫启动时，重新抓取失败的requests

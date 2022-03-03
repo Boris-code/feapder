@@ -51,6 +51,7 @@ requires = [
     "loguru>=0.5.3",
     "influxdb>=5.3.1",
     "pyperclip>=1.8.2",
+    "webdriver-manager>=3.5.3",
 ]
 
 memory_dedup_requires = ["bitarray>=1.5.3"]
