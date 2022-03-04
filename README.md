@@ -5,7 +5,9 @@
 ![](https://img.shields.io/github/stars/Boris-code/feapder?style=social)
 ![](https://img.shields.io/github/forks/Boris-code/feapder?style=social)
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/04/16463743547431.jpg)
+<a href="http://feapder.com" target="_blank">
+<img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/04/16463743547431.jpg">
+</a>
 
 ## 简介
 
@@ -22,7 +24,7 @@
 ![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
 ![-w657](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
 
-监控面板：[点击查看详情](http://feapder.com/#/feapder_platform/feaplat)
+监控面板：<a href="http://feapder.com/#/feapder_platform/feaplat" target="_blank">点击查看详情</a>
 
 ### 2. 简单易用，框架内置3种爬虫，适应各种需求场景
 
