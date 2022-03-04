@@ -4,6 +4,9 @@
 ![](https://img.shields.io/github/watchers/Boris-code/feapder?style=social)
 ![](https://img.shields.io/github/stars/Boris-code/feapder?style=social)
 ![](https://img.shields.io/github/forks/Boris-code/feapder?style=social)
+[![Downloads](https://pepy.tech/badge/feapder)](https://pepy.tech/project/feapder)
+[![Downloads](https://pepy.tech/badge/feapder/month)](https://pepy.tech/project/feapder)
+[![Downloads](https://pepy.tech/badge/feapder/week)](https://pepy.tech/project/feapder)
 
 ## 简介
 
