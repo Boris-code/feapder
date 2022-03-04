@@ -5,19 +5,36 @@
 ![](https://img.shields.io/github/stars/Boris-code/feapder?style=social)
 ![](https://img.shields.io/github/forks/Boris-code/feapder?style=social)
 
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/04/16463743547431.jpg)
+
 ## 简介
 
-**feapder** 是一款上手简单，功能强大的Python爬虫框架，使用方式类似scrapy，方便由scrapy框架切换过来，框架内置3种爬虫：
-
-- `AirSpider`爬虫比较轻量，学习成本低。面对一些数据量较少，无需断点续爬，无需分布式采集的需求，可采用此爬虫。
-
-- `Spider`是一款基于redis的分布式爬虫，适用于海量数据采集，支持断点续爬、爬虫报警、数据自动入库等功能
-
-- `BatchSpider`是一款分布式批次爬虫，对于需要周期性采集的数据，优先考虑使用本爬虫。
-
-**feapder**支持**断点续爬**、**数据防丢**、**监控报警**、**浏览器渲染下载**、数据自动入库**Mysql**或**Mongo**，还可通过编写[pipeline](source_code/pipeline)对接其他存储
+**feapder是一款上手简单，功能强大的Python爬虫框架**
 
 读音: `[ˈfiːpdə]`
+
+### 1.拥有强大的监控，保障数据质量
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
+
+![-w501](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
+
+![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
+![-w657](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
+
+监控面板：[点击查看详情](http://feapder.com/#/feapder_platform/feaplat)
+
+### 2. 简单易用，框架内置3种爬虫，适应各种需求场景
+
+- `AirSpider` 轻量爬虫：学习成本低，可快速上手
+
+- `Spider` 分布式爬虫：支持断点续爬、爬虫报警、数据自动入库等功能
+
+- `BatchSpider` 批次爬虫：可周期性的采集数据，自动将数据按照指定的采集周期划分。（如每7天全量更新一次商品销量的需求）
+
+**feapder**对外暴露的接口类似scrapy，可由scrapy快速迁移过来。支持**断点续爬**、**数据防丢**、**监控报警**、**浏览器渲染下载**、**海量数据去重**等功能
+
+### 3. 文档地址
 
 - 官方文档：http://feapder.com
 - 国内文档：https://boris-code.gitee.io/feapder
@@ -101,8 +118,8 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## 爬虫工具推荐
 
-1. 验证码识别库：https://github.com/sml2h3/ddddocr
-2. 爬虫在线工具库：http://www.spidertools.cn
+1. 爬虫在线工具库：http://www.spidertools.cn
+2. 验证码识别库：https://github.com/sml2h3/ddddocr
 
 ## 微信赞赏
 
