@@ -120,8 +120,9 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## 爬虫工具推荐
 
-1. 验证码识别库：https://github.com/sml2h3/ddddocr
-2. 爬虫在线工具库：http://www.spidertools.cn
+1. 爬虫在线工具库：http://www.spidertools.cn
+2. 验证码识别库：https://github.com/sml2h3/ddddocr
+
 
 ## 微信赞赏
 
