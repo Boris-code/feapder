@@ -358,8 +358,12 @@ class Request(object):
 
             browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
 
+            url = self.url
+            if self.requests_kwargs.get("params"):
+                url = tools.joint_url(self.url, self.requests_kwargs.get("params"))
+
             try:
-                browser.get(self.url)
+                browser.get(url)
                 if cookies:
                     browser.cookies = cookies
                 if self.render_time:
