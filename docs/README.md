@@ -18,14 +18,15 @@
 
 ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
 
-![-w501](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
-
-![-w416](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
-![-w657](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
-
 监控面板：[点击查看详情](http://feapder.com/#/feapder_platform/feaplat)
 
-### 2. 简单易用，框架内置3种爬虫，适应各种需求场景
+### 2. 内置多维度的报警（支持 钉钉、企业微信、邮箱）
+
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
+
+### 3. 简单易用，内置三种爬虫，可应对各种需求场景
 
 - `AirSpider` 轻量爬虫：学习成本低，可快速上手
 
@@ -35,10 +36,11 @@
 
 **feapder**对外暴露的接口类似scrapy，可由scrapy快速迁移过来。支持**断点续爬**、**数据防丢**、**监控报警**、**浏览器渲染下载**、**海量数据去重**等功能
 
-### 3. 文档地址
+## 文档地址
 
 - 官方文档：http://feapder.com
 - 国内文档：https://boris-code.gitee.io/feapder
+- 境外文档：https://boris.org.cn/feapder
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
