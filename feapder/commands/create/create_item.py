@@ -145,7 +145,8 @@ class CreateItem:
             file.write(item_template)
             print("\n%s 生成成功" % item_file)
 
-        self._create_init.create()
+        if os.path.basename(os.path.dirname(os.path.abspath(item_file))) == "items":
+            self._create_init.create()
 
     def create(self, tables_name, support_dict):
         input_tables_name = tables_name

@@ -85,7 +85,8 @@ class CreateSpider:
             file.write(spider)
             print("\n%s 生成成功" % spider_name)
 
-        self._create_init.create()
+        if os.path.basename(os.path.dirname(os.path.abspath(spider_file))) == "spiders":
+            self._create_init.create()
 
     def create(self, spider_name, spider_type):
         # 检查spider_name
