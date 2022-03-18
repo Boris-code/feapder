@@ -24,10 +24,14 @@ class ${spider_name}(feapder.BatchSpider):
     )
 
     def start_requests(self, task):
-        yield feapder.Request("https://www.baidu.com")
+        yield feapder.Request("https://spidertools.cn")
 
     def parse(self, request, response):
-        print(response)
+        # 提取网站title
+        print(response.xpath("//title/text()").extract_first())
+        # 提取网站描述
+        print(response.xpath("//meta[@name='description']/@content").extract_first())
+        print("网站地址: ", response.url)
 
 
 if __name__ == "__main__":
