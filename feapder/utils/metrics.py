@@ -300,6 +300,7 @@ def init(
     use_udp=False,
     timeout=10,
     time_precision="s",
+    ssl=False,
     **kwargs,
 ):
     """
@@ -320,6 +321,7 @@ def init(
         use_udp: 是否使用udp协议打点
         timeout: 与influxdb建立连接时的超时时间
         time_precision: 打点精度 默认秒
+        ssl: 是否使用https协议
         **kwargs: 可传递MetricsEmitter类的参数
 
     Returns:
@@ -361,6 +363,7 @@ def init(
         timeout=timeout,
         username=influxdb_user,
         password=influxdb_password,
+        ssl=ssl,
     )
     # 创建数据库
     if influxdb_database:
