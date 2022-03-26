@@ -2453,9 +2453,9 @@ def wechat_warning(
         return False
 
 
-def send_msg(msg, level="debug", message_prefix=""):
+def send_msg(msg, level="DEBUG", message_prefix=""):
     if setting.WARNING_LEVEL == "ERROR":
-        if level != "error":
+        if level.upper() != "ERROR":
             return
 
     if setting.DINGDING_WARNING_URL:
