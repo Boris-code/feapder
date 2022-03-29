@@ -8,6 +8,7 @@ Created on 2018-09-06 14:21
 @email: boris_liu@foxmail.com
 """
 import asyncio
+import base64
 import calendar
 import codecs
 import configparser  # 读配置文件的
@@ -1742,28 +1743,10 @@ def get_sha1(*args):
     return sha1.hexdigest()  # 40位
 
 
-def get_base64(secret, message):
-    """
-    @summary: 数字证书签名算法是："HMAC-SHA256"
-              参考：https://www.jokecamp.com/blog/examples-of-creating-base64-hashes-using-hmac-sha256-in-different-languages/
-    ---------
-    @param secret: 秘钥
-    @param message: 消息
-    ---------
-    @result: 签名输出类型是："base64"
-    """
-
-    import hashlib
-    import hmac
-    import base64
-
-    message = bytes(message, "utf-8")
-    secret = bytes(secret, "utf-8")
-
-    signature = base64.b64encode(
-        hmac.new(secret, message, digestmod=hashlib.sha256).digest()
-    ).decode("utf8")
-    return signature
+def get_base64(data):
+    if data is None:
+        return data
+    return base64.b64encode(str(data).encode()).decode("utf8")
 
 
 def get_uuid(key1="", key2=""):
