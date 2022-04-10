@@ -18,7 +18,7 @@ from .create_init import CreateInit
 
 def deal_file_info(file):
     file = file.replace("{DATE}", tools.get_current_date())
-    file = file.replace("{USER}", getpass.getuser())
+    file = file.replace("{USER}", os.getenv("FEAPDER_USER") or getpass.getuser())
 
     return file
 
