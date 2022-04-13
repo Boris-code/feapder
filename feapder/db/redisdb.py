@@ -63,7 +63,7 @@ class RedisDB:
         url=None,
         decode_responses=True,
         service_name=None,
-        max_connections=32,
+        max_connections=1000,
         **kwargs,
     ):
         """
@@ -75,6 +75,7 @@ class RedisDB:
             url:
             decode_responses:
             service_name: 适用于redis哨兵模式
+            max_connections: 同一个redis对象使用的并发数（连接池的最大连接数），超过这个数量会抛出redis.ConnectionError
         """
 
         # 可能会改setting中的值，所以此处不能直接赋值为默认值，需要后加载赋值

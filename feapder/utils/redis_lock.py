@@ -53,15 +53,17 @@ class RedisLock:
 
     @redis_conn.setter
     def redis_conn(self, cli):
-        self.__class__.redis_cli = cli
+        if cli:
+            self.__class__.redis_cli = cli
 
     def __enter__(self):
         if not self.locked:
             self.acquire()
-            # 延长锁的时间
-            thread = threading.Thread(target=self.prolong_life)
-            thread.setDaemon(True)
-            thread.start()
+            if self.locked:
+                # 延长锁的时间
+                thread = threading.Thread(target=self.prolong_life)
+                thread.setDaemon(True)
+                thread.start()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
