@@ -118,7 +118,7 @@
 # WECHAT_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # # 时间间隔
 # WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
-# WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / ERROR
+# WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / INFO / ERROR
 # WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
 #
 # LOG_NAME = os.path.basename(os.getcwd())
