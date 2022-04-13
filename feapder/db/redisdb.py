@@ -607,8 +607,8 @@ class RedisDB:
         """
 
         datas = None
-
-        count = count if count <= self.lget_count(table) else self.lget_count(table)
+        lcount = self.lget_count(table)
+        count = count if count <= lcount else lcount
 
         if count:
             if count > 1:
