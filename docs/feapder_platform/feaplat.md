@@ -87,6 +87,13 @@ yum install -y yum-utils device-mapper-persistent-data lvm2 && python2 /usr/bin/
 ```shell
 yum install -y yum-utils device-mapper-persistent-data lvm2 && python2 /usr/bin/yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo && yum install docker-ce -y
 ```
+或者使用国内 daocloud 一键安装命令
+```
+curl -sSL https://get.daocloud.io/docker | sh
+```
+
+
+
 启动
 ```shell
 systemctl enable docker
