@@ -12,9 +12,9 @@ import feapder
 
 
 class TestAirSpider(feapder.AirSpider):
-    # __custom_setting__ = dict(
-    #     LOG_LEVEL = "INFO"
-    # )
+    __custom_setting__ = dict(
+        USE_SESSION = True
+    )
 
     def start_callback(self):
         print("爬虫开始")

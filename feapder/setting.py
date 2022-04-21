@@ -112,6 +112,10 @@ DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit
 # requests 使用session
 USE_SESSION = False
 
+# 下载
+DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
+SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
+
 # 去重
 ITEM_FILTER_ENABLE = False  # item 去重
 ITEM_FILTER_SETTING = dict(
