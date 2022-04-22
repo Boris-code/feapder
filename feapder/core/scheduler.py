@@ -18,7 +18,7 @@ from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.collector import Collector
 from feapder.core.handle_failed_requests import HandleFailedRequests
-from feapder.core.parser_control import PaserControl
+from feapder.core.parser_control import ParserControl
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
 from feapder.network.request import Request
@@ -89,7 +89,7 @@ class Scheduler(threading.Thread):
         self._collector = Collector(redis_key)
         self._parsers = []
         self._parser_controls = []
-        self._parser_control_obj = PaserControl
+        self._parser_control_obj = ParserControl
 
         # 兼容老版本的参数
         if "auto_stop_when_spider_done" in kwargs:
@@ -398,7 +398,7 @@ class Scheduler(threading.Thread):
             )
 
         # parser_control实时统计已做任务数及失败任务数，若成功率<0.5 则报警
-        failed_task_count, success_task_count = PaserControl.get_task_status_count()
+        failed_task_count, success_task_count = ParserControl.get_task_status_count()
         total_count = success_task_count + failed_task_count
         if total_count > 0:
             task_success_rate = success_task_count / total_count

@@ -8,9 +8,9 @@ Created on 2016-12-23 11:24
 @email: boris_liu@foxmail.com
 """
 
-import collections
 import threading
 import time
+from queue import Queue, Empty
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
@@ -34,7 +34,7 @@ class Collector(threading.Thread):
 
         self._thread_stop = False
 
-        self._todo_requests = collections.deque()
+        self._todo_requests = Queue()
 
         self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
@@ -67,7 +67,7 @@ class Collector(threading.Thread):
 
     def __input_data(self):
         current_timestamp = tools.get_current_timestamp()
-        if len(self._todo_requests) >= self._request_count:
+        if self._todo_requests.qsize() >= self._request_count:
             return
 
         request_count = self._request_count  # 先赋值
@@ -158,19 +158,19 @@ class Collector(threading.Thread):
                 request_dict = None
 
             if request_dict:
-                self._todo_requests.append(request_dict)
+                self._todo_requests.put(request_dict)
 
-    def get_requests(self, count):
-        requests = []
-        count = count if count <= len(self._todo_requests) else len(self._todo_requests)
-        while count:
-            requests.append(self._todo_requests.popleft())
-            count -= 1
-
-        return requests
+    def get_request(self):
+        try:
+            request = self._todo_requests.get(timeout=1)
+            return request
+        except Empty as e:
+            return None
 
     def get_requests_count(self):
-        return len(self._todo_requests) or self._db.zget_count(self._tab_requests) or 0
+        return (
+            self._todo_requests.qsize() or self._db.zget_count(self._tab_requests) or 0
+        )
 
     def is_collector_task(self):
         return self._is_collector_task
