@@ -125,7 +125,7 @@ Item详细介绍参考[Item](source_code/Item.md)
     
 可以看到，代码中 `to_DebugSpider`方法可以将原爬虫直接转为debug爬虫，然后通过传递request参数抓取指定的任务。
 
-通常结合断点来进行调试，bebug模式下，运行产生的数据默认不入库
+通常结合断点来进行调试，debug模式下，运行产生的数据默认不入库
 
 除了指定request参数外，还可以指定`request_dict`参数，request_dict接收字典类型，如`request_dict={"url":"http://www.baidu.com"}`, 其作用于传递request一致。request 与 request_dict 二者选一传递即可
 
