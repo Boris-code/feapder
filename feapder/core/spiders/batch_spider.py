@@ -173,11 +173,14 @@ class BatchSpider(BatchParser, Scheduler):
 
     def add_parser(self, parser, **kwargs):
         parser = parser(
-            self._task_table,
-            self._batch_record_table,
-            self._task_state,
-            self._date_format,
-            self._mysqldb,
+            task_table=self._task_table,
+            batch_record_table=self._batch_record_table,
+            batch_name=self._batch_name,
+            batch_interval=self._batch_interval,
+            task_keys=self._task_keys,
+            task_state=self._task_state,
+            date_format=self._date_format,
+            mysqldb=self._mysqldb,
             **kwargs,
         )  # parser 实例化
         self._parsers.append(parser)
