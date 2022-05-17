@@ -206,11 +206,20 @@ class Request(object):
             if callable(self.callback)
             else self.callback
         )
-        self.download_midware = (
-            getattr(self.download_midware, "__name__")
-            if callable(self.download_midware)
-            else self.download_midware
-        )
+
+        if isinstance(self.download_midware, (tuple, list)):
+            self.download_midware = [
+                getattr(download_midware, "__name__")
+                if callable(download_midware)
+                else download_midware
+                for download_midware in self.download_midware
+            ]
+        else:
+            self.download_midware = (
+                getattr(self.download_midware, "__name__")
+                if callable(self.download_midware)
+                else self.download_midware
+            )
 
         for key, value in self.__dict__.items():
             if (
