@@ -46,9 +46,9 @@ redis_key为redis中存储任务等信息的key前缀，如redis_key="feapder:sp
 key的命名方式为[配置文件](source_code/配置文件.md)中定义的
 
     # 任务表模版
-    TAB_REQUSETS = "{redis_key}:z_requsets"
+    TAB_REQUESTS = "{redis_key}:z_requsets"
     # 任务失败模板
-    TAB_FAILED_REQUSETS = "{redis_key}:z_failed_requsets"
+    TAB_FAILED_REQUESTS = "{redis_key}:z_failed_requsets"
     # 爬虫状态表模版
     TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
     # item 表模版

@@ -33,6 +33,7 @@ class ParserControl(threading.Thread):
     # 实时统计已做任务数及失败任务数，若失败任务数/已做任务数>0.5 则报警
     _success_task_count = 0
     _failed_task_count = 0
+    _total_task_count = 0
 
     def __init__(self, collector, redis_key, request_buffer, item_buffer):
         super(ParserControl, self).__init__()
@@ -66,7 +67,7 @@ class ParserControl(threading.Thread):
 
     @classmethod
     def get_task_status_count(cls):
-        return cls._failed_task_count, cls._success_task_count
+        return cls._failed_task_count, cls._success_task_count, cls._total_task_count
 
     def deal_request(self, request):
         response = None
@@ -80,6 +81,7 @@ class ParserControl(threading.Thread):
             if parser.name == request.parser_name:
                 used_download_midware_enable = False
                 try:
+                    self.__class__._total_task_count += 1
                     # 记录需下载的文档
                     self.record_download_status(
                         ParserControl.DOWNLOAD_TOTAL, parser.name
@@ -185,7 +187,7 @@ class ParserControl(threading.Thread):
                                     "request_obj": result,
                                     "request_redis": None,
                                 }
-                                requests.append(request_dict)
+                                self.deal_request(request_dict)
                             else:  # 异步
                                 # 将next_request 入库
                                 self._request_buffer.put_request(result)
@@ -465,6 +467,7 @@ class AirSpiderParserControl(ParserControl):
         for parser in self._parsers:
             if parser.name == request.parser_name:
                 try:
+                    self.__class__._total_task_count += 1
                     # 记录需下载的文档
                     self.record_download_status(
                         ParserControl.DOWNLOAD_TOTAL, parser.name
@@ -556,7 +559,7 @@ class AirSpiderParserControl(ParserControl):
 
                             # 判断是同步的callback还是异步的
                             if result.request_sync:  # 同步
-                                requests.append(result)
+                                self.deal_request(result)
                             else:  # 异步
                                 # 将next_request 入库
                                 self._memory_db.add(result)

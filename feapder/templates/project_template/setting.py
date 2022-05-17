@@ -35,18 +35,15 @@
 #
 # # 爬虫相关
 # # COLLECTOR
-# COLLECTOR_SLEEP_TIME = 1  # 从任务队列中获取任务到内存队列的间隔
 # COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
 #
 # # SPIDER
 # SPIDER_THREAD_COUNT = 1  # 爬虫并发数
-# SPIDER_SLEEP_TIME = (
-#     0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
-# )
-# SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
+# # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+# SPIDER_SLEEP_TIME = 0
 # SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
 # KEEP_ALIVE = False  # 爬虫是否常驻
-#
+
 # # 浏览器渲染
 # WEBDRIVER = dict(
 #     pool_size=1,  # 浏览器的数量

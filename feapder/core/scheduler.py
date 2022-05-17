@@ -29,6 +29,7 @@ from feapder.utils import metrics
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
 SPIDER_LAST_TASK_COUNT_RECORD_TIME_KEY = "last_task_count_record_time"
+HEARTBEAT_TIME_KEY = "heartbeat_time"
 
 
 class Scheduler(threading.Thread):
@@ -46,7 +47,7 @@ class Scheduler(threading.Thread):
         batch_interval=0,
         wait_lock=True,
         task_table=None,
-        **kwargs
+        **kwargs,
     ):
         """
         @summary: 调度器
@@ -116,22 +117,22 @@ class Scheduler(threading.Thread):
             else lambda: log.info("\n********** feapder end **********")
         )
 
-        self._thread_count = (
-            setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
-        )
+        if thread_count:
+            setattr(setting, "SPIDER_THREAD_COUNT", thread_count)
+        self._thread_count = setting.SPIDER_THREAD_COUNT
 
         self._spider_name = redis_key
         self._project_name = redis_key.split(":")[0]
 
-        self._tab_spider_time = setting.TAB_SPIDER_TIME.format(redis_key=redis_key)
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
-        self._tab_requests = setting.TAB_REQUSETS.format(redis_key=redis_key)
-        self._tab_failed_requests = setting.TAB_FAILED_REQUSETS.format(
+        self._tab_requests = setting.TAB_REQUESTS.format(redis_key=redis_key)
+        self._tab_failed_requests = setting.TAB_FAILED_REQUESTS.format(
             redis_key=redis_key
         )
-
+        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
         self._is_notify_end = False  # 是否已经通知结束
         self._last_task_count = 0  # 最近一次任务数量
+        self._last_check_task_count_time = 0
         self._redisdb = RedisDB()
 
         self._project_total_state_table = "{}_total_state".format(self._project_name)
@@ -149,6 +150,8 @@ class Scheduler(threading.Thread):
         self.wait_lock = wait_lock
 
         self.init_metrics()
+        # 重置丢失的任务
+        self.reset_task()
 
     def init_metrics(self):
         """
@@ -171,6 +174,7 @@ class Scheduler(threading.Thread):
 
         while True:
             try:
+                self.heartbeat()
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
@@ -329,62 +333,6 @@ class Scheduler(threading.Thread):
         else:
             return
 
-        # 检查redis中任务状态，若连续20分钟内任务数量未发生变化（parser可能卡死），则发出报警信息
-        task_count = self._redisdb.zget_count(self._tab_requests)
-
-        if task_count:
-            if task_count != self._last_task_count:
-                self._last_task_count = task_count
-                self._redisdb.hset(
-                    self._tab_spider_time,
-                    SPIDER_LAST_TASK_COUNT_RECORD_TIME_KEY,
-                    tools.get_current_timestamp(),
-                )  # 多进程会重复发消息， 使用reids记录上次统计时间
-            else:
-                # 判断时间间隔是否超过20分钟
-                lua = """
-                    -- local key = KEYS[1]
-                    local field = ARGV[1]
-                    local current_timestamp = ARGV[2]
-
-                    -- 取值
-                    local last_timestamp = redis.call('hget', KEYS[1], field)
-                    if last_timestamp and current_timestamp - last_timestamp >= 1200 then
-                        return current_timestamp - last_timestamp -- 返回任务停滞时间 秒
-                    end
-
-                    if not last_timestamp then
-                        redis.call('hset', KEYS[1], field, current_timestamp)
-                    end
-
-                    return 0
-
-                """
-                redis_obj = self._redisdb.get_redis_obj()
-                cmd = redis_obj.register_script(lua)
-                overtime = cmd(
-                    keys=[self._tab_spider_time],
-                    args=[
-                        SPIDER_LAST_TASK_COUNT_RECORD_TIME_KEY,
-                        tools.get_current_timestamp(),
-                    ],
-                )
-
-                if overtime:
-                    # 发送报警
-                    msg = "《{}》爬虫任务停滞 {}，请检查爬虫是否正常".format(
-                        self._spider_name, tools.format_seconds(overtime)
-                    )
-                    log.error(msg)
-                    self.send_msg(
-                        msg,
-                        level="error",
-                        message_prefix="《{}》爬虫任务停滞".format(self._spider_name),
-                    )
-
-        else:
-            self._last_task_count = 0
-
         # 检查失败任务数量 超过1000 报警，
         failed_count = self._redisdb.zget_count(self._tab_failed_requests)
         if failed_count > setting.WARNING_FAILED_COUNT:
@@ -398,7 +346,11 @@ class Scheduler(threading.Thread):
             )
 
         # parser_control实时统计已做任务数及失败任务数，若成功率<0.5 则报警
-        failed_task_count, success_task_count = ParserControl.get_task_status_count()
+        (
+            failed_task_count,
+            success_task_count,
+            total_task_count,
+        ) = ParserControl.get_task_status_count()
         total_count = success_task_count + failed_task_count
         if total_count > 0:
             task_success_rate = success_task_count / total_count
@@ -416,6 +368,30 @@ class Scheduler(threading.Thread):
                     level="error",
                     message_prefix="《%s》爬虫当前任务成功率报警" % (self._spider_name),
                 )
+
+        # 判断任务数是否变化
+        current_time = tools.get_current_timestamp()
+        if (
+            current_time - self._last_check_task_count_time
+            > setting.WARNING_CHECK_TASK_COUNT_INTERVAL
+        ):
+            if self._last_task_count and self._last_task_count == total_task_count:
+                # 发送报警
+                msg = "《{}》爬虫任务停滞 {}，请检查爬虫是否正常".format(
+                    self._spider_name,
+                    tools.format_seconds(
+                        current_time - self._last_check_task_count_time
+                    ),
+                )
+                log.error(msg)
+                self.send_msg(
+                    msg,
+                    level="error",
+                    message_prefix="《{}》爬虫任务停滞".format(self._spider_name),
+                )
+            else:
+                self._last_task_count = total_task_count
+                self._last_check_task_count_time = current_time
 
         # 检查入库失败次数
         if self._item_buffer.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
@@ -439,7 +415,7 @@ class Scheduler(threading.Thread):
                 delete_tab = self._redis_key + delete_tab
             tables = redis.getkeys(delete_tab)
             for table in tables:
-                if table != self._tab_spider_time:
+                if table != self._tab_spider_status:
                     log.info("正在删除key %s" % table)
                     redis.clear(table)
 
@@ -473,10 +449,10 @@ class Scheduler(threading.Thread):
             parser.start_callback()
 
         # 记录开始时间
-        if not self._redisdb.hexists(self._tab_spider_time, SPIDER_START_TIME_KEY):
+        if not self._redisdb.hexists(self._tab_spider_status, SPIDER_START_TIME_KEY):
             current_timestamp = tools.get_current_timestamp()
             self._redisdb.hset(
-                self._tab_spider_time, SPIDER_START_TIME_KEY, current_timestamp
+                self._tab_spider_status, SPIDER_START_TIME_KEY, current_timestamp
             )
 
             # 发送消息
@@ -505,7 +481,7 @@ class Scheduler(threading.Thread):
 
         # 计算抓取时长
         data = self._redisdb.hget(
-            self._tab_spider_time, SPIDER_START_TIME_KEY, is_pop=True
+            self._tab_spider_status, SPIDER_START_TIME_KEY, is_pop=True
         )
         if data:
             begin_timestamp = int(data)
@@ -530,7 +506,7 @@ class Scheduler(threading.Thread):
         if self._batch_interval:
             current_timestamp = tools.get_current_timestamp()
             self._redisdb.hset(
-                self._tab_spider_time, SPIDER_END_TIME_KEY, current_timestamp
+                self._tab_spider_status, SPIDER_END_TIME_KEY, current_timestamp
             )
 
     def is_reach_next_spider_time(self):
@@ -538,7 +514,7 @@ class Scheduler(threading.Thread):
             return True
 
         last_spider_end_time = self._redisdb.hget(
-            self._tab_spider_time, SPIDER_END_TIME_KEY
+            self._tab_spider_status, SPIDER_END_TIME_KEY
         )
         if last_spider_end_time:
             last_spider_end_time = int(last_spider_end_time)
@@ -576,3 +552,36 @@ class Scheduler(threading.Thread):
             return
 
         super().join()
+
+    def heartbeat(self):
+        self._redisdb.hset(
+            self._tab_spider_status, HEARTBEAT_TIME_KEY, tools.get_current_timestamp()
+        )
+
+    def have_alive_spider(self, heartbeat_interval=10):
+        heartbeat_time = self._redisdb.hget(self._tab_spider_status, HEARTBEAT_TIME_KEY)
+        if heartbeat_time:
+            heartbeat_time = int(heartbeat_time)
+            current_timestamp = tools.get_current_timestamp()
+            if current_timestamp > heartbeat_time + heartbeat_interval:
+                return True
+        return False
+
+    def reset_task(self, heartbeat_interval=10):
+        """
+        重置丢失的任务
+        Returns:
+
+        """
+        if self.have_alive_spider(heartbeat_interval=heartbeat_interval):
+            current_timestamp = tools.get_current_timestamp()
+            datas = self._redisdb.zrangebyscore_set_score(
+                self._tab_requests,
+                priority_min=current_timestamp,
+                priority_max=current_timestamp + setting.REQUEST_LOST_TIMEOUT,
+                score=300,
+                count=None,
+            )
+            lose_count = len(datas)
+            if lose_count:
+                log.info("重置丢失任务完毕，共{}条".format(len(datas)))

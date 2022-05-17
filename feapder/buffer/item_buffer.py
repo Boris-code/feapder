@@ -43,7 +43,7 @@ class ItemBuffer(threading.Thread):
 
             self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
 
-            self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
+            self._table_request = setting.TAB_REQUESTS.format(redis_key=redis_key)
             self._table_failed_items = setting.TAB_FAILED_ITEMS.format(
                 redis_key=redis_key
             )

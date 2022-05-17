@@ -96,7 +96,7 @@ class Spider(
         while True:
             try:
                 # 检查redis中是否有任务
-                tab_requests = setting.TAB_REQUSETS.format(redis_key=self._redis_key)
+                tab_requests = setting.TAB_REQUESTS.format(redis_key=self._redis_key)
                 todo_task_count = redisdb.zget_count(tab_requests)
 
                 if todo_task_count < self._min_task_count:  # 添加任务
@@ -191,6 +191,7 @@ class Spider(
 
         while True:
             try:
+                self.heartbeat()
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
@@ -230,12 +231,10 @@ class DebugSpider(Spider):
     """
 
     __debug_custom_setting__ = dict(
-        COLLECTOR_SLEEP_TIME=1,
         COLLECTOR_TASK_COUNT=1,
         # SPIDER
         SPIDER_THREAD_COUNT=1,
         SPIDER_SLEEP_TIME=0,
-        SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
         REQUEST_LOST_TIMEOUT=600,  # 10分钟
         PROXY_ENABLE=False,

@@ -24,7 +24,7 @@ class HandleFailedRequests(object):
         self._redisdb = RedisDB()
         self._request_buffer = RequestBuffer(self._redis_key)
 
-        self._table_failed_request = setting.TAB_FAILED_REQUSETS.format(
+        self._table_failed_request = setting.TAB_FAILED_REQUESTS.format(
             redis_key=redis_key
         )
 
