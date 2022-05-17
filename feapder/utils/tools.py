@@ -211,6 +211,7 @@ def func_timeout(timeout):
     Returns:
 
     """
+
     def wapper(func):
         def handle(
             signum, frame
@@ -484,11 +485,9 @@ def fit_url(urls, identis):
 
 
 def get_param(url, key):
-    params = url.split("?")[-1].split("&")
-    for param in params:
-        key_value = param.split("=", 1)
-        if key == key_value[0]:
-            return key_value[1]
+    match = re.search(f"{key}=([^&]+)", url)
+    if match:
+        return match.group(1)
     return None
 
 
@@ -802,7 +801,7 @@ def get_text(soup, *args):
         return ""
 
 
-def del_html_tag(content, except_line_break=False, save_img=False, white_replaced=""):
+def del_html_tag(content, except_line_break=False, save_img=False, white_replaced=" "):
     """
     删除html标签
     @param content: html内容
@@ -830,7 +829,7 @@ def del_html_tag(content, except_line_break=False, save_img=False, white_replace
 
     else:
         content = replace_str(content, "<(.|\n)*?>")
-        content = replace_str(content, "\s", white_replaced)
+        content = replace_str(content, "\s+", white_replaced)
         content = content.strip()
 
     return content
