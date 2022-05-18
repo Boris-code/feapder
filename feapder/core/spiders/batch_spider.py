@@ -16,7 +16,6 @@ from collections.abc import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
-from feapder.buffer.item_buffer import MAX_ITEM_COUNT
 from feapder.core.base_parser import BatchParser
 from feapder.core.scheduler import Scheduler
 from feapder.db.mysqldb import MysqlDB
@@ -346,7 +345,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                 if (
                                     self._item_buffer.get_items_count()
-                                    >= MAX_ITEM_COUNT
+                                    >= setting.ITEM_MAX_CACHED_COUNT
                                 ):
                                     self._item_buffer.flush()
 
@@ -358,7 +357,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                     if (
                                         self._item_buffer.get_items_count()
-                                        >= MAX_ITEM_COUNT
+                                        >= setting.ITEM_MAX_CACHED_COUNT
                                     ):
                                         self._item_buffer.flush()
 
@@ -394,7 +393,10 @@ class BatchSpider(BatchParser, Scheduler):
                             self._item_buffer.put_item(request)
                             result_type = 2
 
-                            if self._item_buffer.get_items_count() >= MAX_ITEM_COUNT:
+                            if (
+                                self._item_buffer.get_items_count()
+                                >= setting.ITEM_MAX_CACHED_COUNT
+                            ):
                                 self._item_buffer.flush()
 
                         elif callable(request):  # callbale的request可能是更新数据库操作的函数
@@ -405,7 +407,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                 if (
                                     self._item_buffer.get_items_count()
-                                    >= MAX_ITEM_COUNT
+                                    >= setting.ITEM_MAX_CACHED_COUNT
                                 ):
                                     self._item_buffer.flush()
 

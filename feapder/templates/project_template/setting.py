@@ -69,6 +69,12 @@
 # REQUEST_LOST_TIMEOUT = 600  # 10分钟
 # # request网络请求超时时间
 # REQUEST_TIMEOUT = 22  # 等待服务器响应的超时时间，浮点数，或(connect timeout, read timeout)元组
+# # item在内存队列中最大缓存数量
+# ITEM_MAX_CACHED_COUNT = 5000
+# # item每批入库的最大数量
+# ITEM_UPLOAD_BATCH_MAX_SIZE = 1000
+# # item入库时间间隔
+# ITEM_UPLOAD_INTERVAL = 1
 #
 # # 下载缓存 利用redis缓存，但由于内存大小限制，所以建议仅供开发调试代码时使用，防止每次debug都需要网络请求
 # RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True
@@ -99,11 +105,16 @@
 #     expire_time=2592000,  # 过期时间1个月
 # )
 #
-# # 报警 支持钉钉、企业微信、邮件
+# # 报警 支持钉钉、飞书、企业微信、邮件
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
 # DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 # DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
+# # 飞书报警
+# # https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN#e1cdee9f
+# FEISHU_WARNING_URL = ""  # 飞书机器人api
+# FEISHU_WARNING_USER = None  # 报警人 {"open_id":"ou_xxxxx", "name":"xxxx"} 或 [{"open_id":"ou_xxxxx", "name":"xxxx"}]
+# FEISHU_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # # 邮件报警
 # EMAIL_SENDER = ""  # 发件人
 # EMAIL_PASSWORD = ""  # 授权码

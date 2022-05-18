@@ -2531,6 +2531,60 @@ def wechat_warning(
         return False
 
 
+def feishu_warning(message, message_prefix=None, rate_limit=None, url=None, user=None):
+    """
+
+    Args:
+        message:
+        message_prefix:
+        rate_limit:
+        url:
+        user: {"open_id":"ou_xxxxx", "name":"xxxx"} 或 [{"open_id":"ou_xxxxx", "name":"xxxx"}]
+
+    Returns:
+
+    """
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.FEISHU_WARNING_URL
+    user = user or setting.FEISHU_WARNING_USER
+
+    if not all([url, message]):
+        return
+
+    if reach_freq_limit(rate_limit, url, user, message_prefix or message):
+        log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
+        return
+
+    if isinstance(user, dict):
+        user = [user] if user else []
+
+    at = ""
+    if setting.FEISHU_WARNING_ALL:
+        at = '<at user_id="all">所有人</at>'
+    elif user:
+        at = " ".join(
+            [f'<at user_id="{u.get("open_id")}">{u.get("name")}</at>' for u in user]
+        )
+
+    data = {"msg_type": "text", "content": {"text": at + message}}
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data).encode("utf8")
+        )
+        result = response.json()
+        response.close()
+        if result.get("StatusCode") == 0:
+            return True
+        else:
+            raise Exception(result.get("msg"))
+    except Exception as e:
+        log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
+        return False
+
+
 def send_msg(msg, level="DEBUG", message_prefix=""):
     if setting.WARNING_LEVEL == "ERROR":
         if level.upper() != "ERROR":
@@ -2549,6 +2603,10 @@ def send_msg(msg, level="DEBUG", message_prefix=""):
     if setting.WECHAT_WARNING_URL:
         keyword = "feapder报警系统\n"
         wechat_warning(keyword + msg, message_prefix=message_prefix)
+
+    if setting.FEISHU_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        feishu_warning(keyword + msg, message_prefix=message_prefix)
 
 
 ###################
