@@ -129,7 +129,6 @@ class Scheduler(threading.Thread):
         self._tab_failed_requests = setting.TAB_FAILED_REQUESTS.format(
             redis_key=redis_key
         )
-        self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
         self._is_notify_end = False  # 是否已经通知结束
         self._last_task_count = 0  # 最近一次任务数量
         self._last_check_task_count_time = 0
@@ -409,15 +408,13 @@ class Scheduler(threading.Thread):
         elif not isinstance(delete_tables_list, (list, tuple)):
             delete_tables_list = [delete_tables_list]
 
-        redis = RedisDB()
         for delete_tab in delete_tables_list:
             if not delete_tab.startswith(self._redis_key):
                 delete_tab = self._redis_key + delete_tab
-            tables = redis.getkeys(delete_tab)
+            tables = self._redisdb.getkeys(delete_tab)
             for table in tables:
-                if table != self._tab_spider_status:
-                    log.info("正在删除key %s" % table)
-                    redis.clear(table)
+                log.debug("正在删除key %s" % table)
+                self._redisdb.clear(table)
 
     def _stop_all_thread(self):
         self._request_buffer.stop()

@@ -45,6 +45,7 @@ class Collector(threading.Thread):
                 self.__input_data()
             except Exception as e:
                 log.exception(e)
+                time.sleep(0.1)
 
             self._is_collector_task = False
 
@@ -53,11 +54,11 @@ class Collector(threading.Thread):
         self._started.clear()
 
     def __input_data(self):
-        if (
+        if setting.COLLECTOR_TASK_COUNT / setting.SPIDER_THREAD_COUNT > 1 and (
             self._todo_requests.qsize() > setting.SPIDER_THREAD_COUNT
             or self._todo_requests.qsize() >= self._todo_requests.maxsize
         ):
-            time.sleep(1)
+            time.sleep(0.1)
             return
 
         current_timestamp = tools.get_current_timestamp()
@@ -76,7 +77,7 @@ class Collector(threading.Thread):
             # 存request
             self.__put_requests(requests_list)
         else:
-            time.sleep(1)
+            time.sleep(0.1)
 
     def __put_requests(self, requests_list):
         for request in requests_list:
