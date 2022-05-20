@@ -50,6 +50,26 @@ class Response(res):
         self.encoding_errors = "strict"  # strict / replace / ignore
 
     @classmethod
+    def from_text(
+        cls,
+        text: str,
+        url: str = "",
+        cookies: dict = None,
+        headers: dict = None,
+        encoding="utf-8",
+    ):
+        response_dict = {
+            "_content": text.encode(encoding=encoding),
+            "cookies": cookies or {},
+            "encoding": encoding,
+            "headers": headers or {},
+            "status_code": 200,
+            "elapsed": 0,
+            "url": url,
+        }
+        return cls.from_dict(response_dict)
+
+    @classmethod
     def from_dict(cls, response_dict):
         """
         利用字典获取Response对象
