@@ -46,13 +46,13 @@ EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包�
 
 # 爬虫相关
 # COLLECTOR
-COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
+COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量
 
 # SPIDER
-SPIDER_THREAD_COUNT = 1  # 爬虫并发数
+SPIDER_THREAD_COUNT = 32  # 爬虫并发数
 # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 SPIDER_SLEEP_TIME = 0
-SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
+SPIDER_MAX_RETRY_TIMES = 10  # 每个请求最大重试次数
 # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
 SPIDER_AUTO_START_REQUESTS = True
 KEEP_ALIVE = False  # 爬虫是否常驻
