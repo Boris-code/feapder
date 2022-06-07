@@ -9,6 +9,7 @@ Created on 2021/3/18 4:59 下午
 """
 
 import json
+import logging
 import os
 import queue
 import threading
@@ -21,10 +22,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
 from feapder import setting
-from feapder.utils.log import log
+from feapder.utils.log import log, OTHERS_LOG_LEVAL
 from feapder.utils.tools import Singleton
 
-# TODO 屏蔽webdriver_manager日志
+# 屏蔽webdriver_manager日志
+logging.getLogger("WDM").setLevel(OTHERS_LOG_LEVAL)
+
 
 class XhrRequest:
     def __init__(self, url, data, headers):
@@ -255,9 +258,13 @@ class WebDriver(RemoteWebDriver):
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
-            with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:
+            with open(
+                os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")
+            ) as f:
                 js = f.read()
-                driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
+                driver.execute_cdp_cmd(
+                    "Page.addScriptToEvaluateOnNewDocument", {"source": js}
+                )
 
         if self._xhr_url_regexes:
             assert isinstance(self._xhr_url_regexes, list)
