@@ -138,6 +138,6 @@ class RedisBitArray(BitArray):
         if count:
             return int(count)
         else:
-            count = self.redis_db.bitcount(self.name)
+            count = self.redis_db.bitcount(self.name)  # 被设置为 1 的比特位的数量
             self.redis_db.strset(self.count_cached_name, count, ex=1800)  # 半小时过期
             return count

@@ -145,24 +145,18 @@ class BloomFilter(object):
         比较耗时 半小时检查一次
         @return:
         """
-        # if self._is_at_capacity:
-        #     return self._is_at_capacity
-        #
-        # if not self._check_capacity_time or time.time() - self._check_capacity_time > 1800:
-        #     bit_count = self.bitarray.count()
-        #     if bit_count and bit_count / self.num_bits > 0.5:
-        #         self._is_at_capacity = True
-        #
-        #     self._check_capacity_time = time.time()
-        #
-        # return self._is_at_capacity
-
         if self._is_at_capacity:
             return self._is_at_capacity
 
-        bit_count = self.bitarray.count()
-        if bit_count and bit_count / self.num_bits > 0.5:
-            self._is_at_capacity = True
+        if (
+            not self._check_capacity_time
+            or time.time() - self._check_capacity_time > 1800
+        ):
+            bit_count = self.bitarray.count()
+            if bit_count and bit_count / self.num_bits > 0.5:
+                self._is_at_capacity = True
+
+            self._check_capacity_time = time.time()
 
         return self._is_at_capacity
 
@@ -173,8 +167,8 @@ class BloomFilter(object):
         @param keys: list or one key
         @return:
         """
-        if self.is_at_capacity:
-            raise IndexError("BloomFilter is at capacity")
+        # if self.is_at_capacity:
+        #     raise IndexError("BloomFilter is at capacity")
 
         is_list = isinstance(keys, list)
 

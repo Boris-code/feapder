@@ -54,3 +54,10 @@ def test_filter():
     datas = ["xxx", "bbb", "ccc"]
     dedup.filter_exist_data(datas)
     assert datas == ["ccc"]
+
+def test_ScalableBloomFilter():
+    dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0", initial_capacity=10)
+    for i in range(1000):
+        print(dedup.add(i))
+
+test_ScalableBloomFilter()
