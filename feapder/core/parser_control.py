@@ -448,7 +448,7 @@ class AirSpiderParserControl(ParserControl):
                 request = self._memory_db.get()
                 if not request:
                     if not self.is_show_tip:
-                        log.debug("parser 等待任务...")
+                        log.debug("等待任务...")
                         self.is_show_tip = True
 
                     time.sleep(1)
