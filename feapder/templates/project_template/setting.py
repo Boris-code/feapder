@@ -58,7 +58,7 @@
 #     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
 #     custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
 #     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
-#     auto_install_driver=False,  # 自动下载浏览器驱动 支持chrome 和 firefox
+#     auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
 # )
 #
 # # 爬虫启动时，重新抓取失败的requests
@@ -89,7 +89,7 @@
 # RANDOM_HEADERS = True
 # # UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，'mobile' 若不指定则随机类型
 # USER_AGENT_TYPE = "chrome"
-# # 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
+# # 默认使用的浏览器头
 # DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 # # requests 使用session
 # USE_SESSION = False

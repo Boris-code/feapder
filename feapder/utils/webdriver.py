@@ -20,11 +20,11 @@ from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
+from feapder import setting
 from feapder.utils.log import log
 from feapder.utils.tools import Singleton
 
-DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
-
+# TODO 屏蔽webdriver_manager日志
 
 class XhrRequest:
     def __init__(self, url, data, headers):
@@ -80,7 +80,7 @@ class WebDriver(RemoteWebDriver):
             **kwargs:
         """
         self._load_images = load_images
-        self._user_agent = user_agent or DEFAULT_USERAGENT
+        self._user_agent = user_agent or setting.DEFAULT_USERAGENT
         self._proxy = proxy
         self._headless = headless
         self._timeout = timeout
@@ -175,7 +175,7 @@ class WebDriver(RemoteWebDriver):
                 capabilities=firefox_capabilities,
                 options=firefox_options,
                 firefox_profile=firefox_profile,
-                executable_path=GeckoDriverManager(print_first_line=False).install(),
+                executable_path=GeckoDriverManager().install(),
             )
         else:
             driver = webdriver.Firefox(
@@ -245,7 +245,7 @@ class WebDriver(RemoteWebDriver):
         elif self._auto_install_driver:
             driver = webdriver.Chrome(
                 options=chrome_options,
-                executable_path=ChromeDriverManager(print_first_line=False).install(),
+                executable_path=ChromeDriverManager().install(),
             )
         else:
             driver = webdriver.Chrome(options=chrome_options)
