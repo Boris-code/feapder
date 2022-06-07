@@ -60,7 +60,8 @@ class WebDriver(RemoteWebDriver):
         custom_argument=None,
         xhr_url_regexes: list = None,
         download_path=None,
-        auto_install_driver=False,
+        auto_install_driver=True,
+        use_stealth_js=True,
         **kwargs,
     ):
         """
@@ -77,6 +78,7 @@ class WebDriver(RemoteWebDriver):
             xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
             download_path: 文件下载保存路径；如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
             auto_install_driver: 自动下载浏览器驱动 支持chrome 和 firefox
+            use_stealth_js: 使用stealth.min.js隐藏浏览器特征
             **kwargs:
         """
         self._load_images = load_images
@@ -90,6 +92,7 @@ class WebDriver(RemoteWebDriver):
         self._xhr_url_regexes = xhr_url_regexes
         self._download_path = download_path
         self._auto_install_driver = auto_install_driver
+        self._use_stealth_js = use_stealth_js
 
         if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
             raise Exception(
@@ -251,9 +254,10 @@ class WebDriver(RemoteWebDriver):
             driver = webdriver.Chrome(options=chrome_options)
 
         # 隐藏浏览器特征
-        with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:
-            js = f.read()
-        driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
+        if self._use_stealth_js:
+            with open(os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")) as f:
+                js = f.read()
+                driver.execute_cdp_cmd("Page.addScriptToEvaluateOnNewDocument", {"source": js})
 
         if self._xhr_url_regexes:
             assert isinstance(self._xhr_url_regexes, list)
