@@ -213,9 +213,9 @@ STOP_LOGS = [
 ]
 
 # 关闭日志打印
+OTHERS_LOG_LEVAL = eval("logging." + setting.OTHERS_LOG_LEVAL)
 for STOP_LOG in STOP_LOGS:
-    log_level = eval("logging." + setting.OTHERS_LOG_LEVAL)
-    logging.getLogger(STOP_LOG).setLevel(log_level)
+    logging.getLogger(STOP_LOG).setLevel(OTHERS_LOG_LEVAL)
 
 # print(logging.Logger.manager.loggerDict) # 取使用debug模块的name
 

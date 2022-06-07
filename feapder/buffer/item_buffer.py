@@ -12,8 +12,8 @@ import importlib
 import threading
 from queue import Queue
 
-import feapder.setting as setting
 import feapder.utils.tools as tools
+from feapder import setting
 from feapder.db.redisdb import RedisDB
 from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
@@ -22,8 +22,6 @@ from feapder.pipelines.mysql_pipeline import MysqlPipeline
 from feapder.utils import metrics
 from feapder.utils.log import log
 
-MAX_ITEM_COUNT = 5000  # 缓存中最大item数
-UPLOAD_BATCH_MAX_SIZE = 1000
 
 MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
@@ -41,9 +39,9 @@ class ItemBuffer(threading.Thread):
             self._redis_key = redis_key
             self._task_table = task_table
 
-            self._items_queue = Queue(maxsize=MAX_ITEM_COUNT)
+            self._items_queue = Queue(maxsize=setting.ITEM_MAX_CACHED_COUNT)
 
-            self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
+            self._table_request = setting.TAB_REQUESTS.format(redis_key=redis_key)
             self._table_failed_items = setting.TAB_FAILED_ITEMS.format(
                 redis_key=redis_key
             )
@@ -103,7 +101,7 @@ class ItemBuffer(threading.Thread):
         self._thread_stop = False
         while not self._thread_stop:
             self.flush()
-            tools.delay_time(1)
+            tools.delay_time(setting.ITEM_UPLOAD_INTERVAL)
 
         self.close()
 
@@ -146,7 +144,7 @@ class ItemBuffer(threading.Thread):
                 else:  # request-redis
                     requests.append(data)
 
-                if data_count >= UPLOAD_BATCH_MAX_SIZE:
+                if data_count >= setting.ITEM_UPLOAD_BATCH_MAX_SIZE:
                     self.__add_item_to_db(
                         items, update_items, requests, callbacks, items_fingerprints
                     )

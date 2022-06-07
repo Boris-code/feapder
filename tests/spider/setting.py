@@ -22,8 +22,8 @@ COLLECTOR_SLEEP_TIME = 1 # 从任务队列中获取任务到内存队列的间�
 COLLECTOR_TASK_COUNT = 100 # 每次获取任务数量
 #
 # # SPIDER
-SPIDER_THREAD_COUNT = 1 # 爬虫并发数
-# SPIDER_SLEEP_TIME = 0 # 下载时间间隔（解析完一个response后休眠时间）
+SPIDER_THREAD_COUNT = 100 # 爬虫并发数
+SPIDER_SLEEP_TIME = 0 # 下载时间间隔（解析完一个response后休眠时间）
 # SPIDER_MAX_RETRY_TIMES = 100 # 每个请求最大重试次数
 
 # # 重新尝试失败的requests 当requests重试次数超过允许的最大重试次数算失败

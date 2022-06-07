@@ -16,7 +16,6 @@ from collections.abc import Iterable
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
-from feapder.buffer.item_buffer import MAX_ITEM_COUNT
 from feapder.core.base_parser import BatchParser
 from feapder.core.scheduler import Scheduler
 from feapder.db.mysqldb import MysqlDB
@@ -126,11 +125,11 @@ class BatchSpider(BatchParser, Scheduler):
         self._check_task_interval = check_task_interval
         self._task_limit = task_limit  # mysql中一次取的任务数量
         self._related_task_tables = [
-            setting.TAB_REQUSETS.format(redis_key=redis_key)
+            setting.TAB_REQUESTS.format(redis_key=redis_key)
         ]  # 自己的task表也需要检查是否有任务
         if related_redis_key:
             self._related_task_tables.append(
-                setting.TAB_REQUSETS.format(redis_key=related_redis_key)
+                setting.TAB_REQUESTS.format(redis_key=related_redis_key)
             )
 
         self._related_batch_record = related_batch_record
@@ -160,6 +159,7 @@ class BatchSpider(BatchParser, Scheduler):
         self._spider_deal_speed_cached = None
 
         self._is_more_parsers = True  # 多模版类爬虫
+        self.reset_task(heartbeat_interval=60)
 
     def init_property(self):
         """
@@ -217,7 +217,7 @@ class BatchSpider(BatchParser, Scheduler):
                 is_first_check = False
 
                 # 检查redis中是否有任务 任务小于_min_task_count 则从mysql中取
-                tab_requests = setting.TAB_REQUSETS.format(redis_key=self._redis_key)
+                tab_requests = setting.TAB_REQUESTS.format(redis_key=self._redis_key)
                 todo_task_count = self._redisdb.zget_count(tab_requests)
 
                 tasks = []
@@ -345,7 +345,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                 if (
                                     self._item_buffer.get_items_count()
-                                    >= MAX_ITEM_COUNT
+                                    >= setting.ITEM_MAX_CACHED_COUNT
                                 ):
                                     self._item_buffer.flush()
 
@@ -357,7 +357,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                     if (
                                         self._item_buffer.get_items_count()
-                                        >= MAX_ITEM_COUNT
+                                        >= setting.ITEM_MAX_CACHED_COUNT
                                     ):
                                         self._item_buffer.flush()
 
@@ -393,7 +393,10 @@ class BatchSpider(BatchParser, Scheduler):
                             self._item_buffer.put_item(request)
                             result_type = 2
 
-                            if self._item_buffer.get_items_count() >= MAX_ITEM_COUNT:
+                            if (
+                                self._item_buffer.get_items_count()
+                                >= setting.ITEM_MAX_CACHED_COUNT
+                            ):
                                 self._item_buffer.flush()
 
                         elif callable(request):  # callbale的request可能是更新数据库操作的函数
@@ -404,7 +407,7 @@ class BatchSpider(BatchParser, Scheduler):
 
                                 if (
                                     self._item_buffer.get_items_count()
-                                    >= MAX_ITEM_COUNT
+                                    >= setting.ITEM_MAX_CACHED_COUNT
                                 ):
                                     self._item_buffer.flush()
 
@@ -699,16 +702,9 @@ class BatchSpider(BatchParser, Scheduler):
                         )  # 有可能插入不成功，但是任务表已经重置了，不过由于当前时间为下一批次的时间，检查批次是否结束时不会检查任务表，所以下次执行时仍然会重置
                         if is_success:
                             # 看是否有等待任务的worker，若有则需要等会再下发任务，防止work批次时间没来得及更新
-                            current_timestamp = tools.get_current_timestamp()
-                            spider_count = self._redisdb.zget_count(
-                                self._tab_spider_status,
-                                priority_min=current_timestamp
-                                - (setting.COLLECTOR_SLEEP_TIME + 10),
-                                priority_max=current_timestamp,
-                            )
-                            if spider_count:
+                            if self.have_alive_spider(heartbeat_interval=60):
                                 log.info(
-                                    f"插入新批次记录成功，检测到有{spider_count}个爬虫进程在等待任务，本批任务1分钟后开始下发, 防止爬虫端缓存的批次时间没来得及更新"
+                                    f"插入新批次记录成功，检测到有爬虫进程在等待任务，本批任务1分钟后开始下发, 防止爬虫端缓存的批次时间没来得及更新"
                                 )
                                 tools.delay_time(60)
                             else:
@@ -1027,6 +1023,7 @@ class BatchSpider(BatchParser, Scheduler):
 
             while True:
                 try:
+                    self.heartbeat()
                     if (
                         self.task_is_done() and self.all_thread_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
@@ -1078,12 +1075,10 @@ class DebugBatchSpider(BatchSpider):
     """
 
     __debug_custom_setting__ = dict(
-        COLLECTOR_SLEEP_TIME=1,
         COLLECTOR_TASK_COUNT=1,
         # SPIDER
         SPIDER_THREAD_COUNT=1,
         SPIDER_SLEEP_TIME=0,
-        SPIDER_TASK_COUNT=1,
         SPIDER_MAX_RETRY_TIMES=10,
         REQUEST_LOST_TIMEOUT=600,  # 10分钟
         PROXY_ENABLE=False,

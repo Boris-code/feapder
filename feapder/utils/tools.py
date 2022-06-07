@@ -21,6 +21,7 @@ import os
 import pickle
 import random
 import re
+import signal
 import socket
 import ssl
 import string
@@ -133,6 +134,100 @@ def memoizemethod_noargs(method):
         return cache[self]
 
     return new_method
+
+
+def retry(retry_times=3, interval=0):
+    """
+    普通函数的重试装饰器
+    Args:
+        retry_times: 重试次数
+        interval: 每次重试之间的间隔
+
+    Returns:
+
+    """
+
+    def _retry(func):
+        @functools.wraps(func)  # 将函数的原来属性付给新函数
+        def wapper(*args, **kwargs):
+            for i in range(retry_times):
+                try:
+                    return func(*args, **kwargs)
+                except Exception as e:
+                    log.error(
+                        "函数 {} 执行失败 重试 {} 次. error {}".format(func.__name__, i + 1, e)
+                    )
+                    time.sleep(interval)
+                    if i + 1 >= retry_times:
+                        raise e
+
+        return wapper
+
+    return _retry
+
+
+def retry_asyncio(retry_times=3, interval=0):
+    """
+    协程的重试装饰器
+    Args:
+        retry_times: 重试次数
+        interval: 每次重试之间的间隔
+
+    Returns:
+
+    """
+
+    def _retry(func):
+        @functools.wraps(func)  # 将函数的原来属性付给新函数
+        async def wapper(*args, **kwargs):
+            for i in range(retry_times):
+                try:
+                    return await func(*args, **kwargs)
+                except Exception as e:
+                    log.error(
+                        "函数 {} 执行失败 重试 {} 次. error {}".format(func.__name__, i + 1, e)
+                    )
+                    await asyncio.sleep(interval)
+                    if i + 1 >= retry_times:
+                        raise e
+
+        return wapper
+
+    return _retry
+
+
+def func_timeout(timeout):
+    """
+    函数运行时间限制装饰器
+    注: 不支持window
+    Args:
+        timeout: 超时的时间
+
+    Eg:
+        @set_timeout(3)
+        def test():
+            ...
+
+    Returns:
+
+    """
+
+    def wapper(func):
+        def handle(
+            signum, frame
+        ):  # 收到信号 SIGALRM 后的回调函数，第一个参数是信号的数字，第二个参数是the interrupted stack frame.
+            raise TimeoutError
+
+        def new_method(*args, **kwargs):
+            signal.signal(signal.SIGALRM, handle)  # 设置信号和回调函数
+            signal.alarm(timeout)  # 设置 timeout 秒的闹钟
+            r = func(*args, **kwargs)
+            signal.alarm(0)  # 关闭闹钟
+            return r
+
+        return new_method
+
+    return wapper
 
 
 ########################【网页解析相关】###############################
@@ -390,11 +485,9 @@ def fit_url(urls, identis):
 
 
 def get_param(url, key):
-    params = url.split("?")[-1].split("&")
-    for param in params:
-        key_value = param.split("=", 1)
-        if key == key_value[0]:
-            return key_value[1]
+    match = re.search(f"{key}=([^&]+)", url)
+    if match:
+        return match.group(1)
     return None
 
 
@@ -708,7 +801,7 @@ def get_text(soup, *args):
         return ""
 
 
-def del_html_tag(content, except_line_break=False, save_img=False, white_replaced=""):
+def del_html_tag(content, except_line_break=False, save_img=False, white_replaced=" "):
     """
     删除html标签
     @param content: html内容
@@ -736,7 +829,7 @@ def del_html_tag(content, except_line_break=False, save_img=False, white_replace
 
     else:
         content = replace_str(content, "<(.|\n)*?>")
-        content = replace_str(content, "\s", white_replaced)
+        content = replace_str(content, "\s+", white_replaced)
         content = content.strip()
 
     return content
@@ -2438,6 +2531,60 @@ def wechat_warning(
         return False
 
 
+def feishu_warning(message, message_prefix=None, rate_limit=None, url=None, user=None):
+    """
+
+    Args:
+        message:
+        message_prefix:
+        rate_limit:
+        url:
+        user: {"open_id":"ou_xxxxx", "name":"xxxx"} 或 [{"open_id":"ou_xxxxx", "name":"xxxx"}]
+
+    Returns:
+
+    """
+    # 为了加载最新的配置
+    rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
+    url = url or setting.FEISHU_WARNING_URL
+    user = user or setting.FEISHU_WARNING_USER
+
+    if not all([url, message]):
+        return
+
+    if reach_freq_limit(rate_limit, url, user, message_prefix or message):
+        log.info("报警时间间隔过短，此次报警忽略。 内容 {}".format(message))
+        return
+
+    if isinstance(user, dict):
+        user = [user] if user else []
+
+    at = ""
+    if setting.FEISHU_WARNING_ALL:
+        at = '<at user_id="all">所有人</at>'
+    elif user:
+        at = " ".join(
+            [f'<at user_id="{u.get("open_id")}">{u.get("name")}</at>' for u in user]
+        )
+
+    data = {"msg_type": "text", "content": {"text": at + message}}
+    headers = {"Content-Type": "application/json"}
+
+    try:
+        response = requests.post(
+            url, headers=headers, data=json.dumps(data).encode("utf8")
+        )
+        result = response.json()
+        response.close()
+        if result.get("StatusCode") == 0:
+            return True
+        else:
+            raise Exception(result.get("msg"))
+    except Exception as e:
+        log.error("报警发送失败。 报警内容 {}, error: {}".format(message, e))
+        return False
+
+
 def send_msg(msg, level="DEBUG", message_prefix=""):
     if setting.WARNING_LEVEL == "ERROR":
         if level.upper() != "ERROR":
@@ -2456,6 +2603,10 @@ def send_msg(msg, level="DEBUG", message_prefix=""):
     if setting.WECHAT_WARNING_URL:
         keyword = "feapder报警系统\n"
         wechat_warning(keyword + msg, message_prefix=message_prefix)
+
+    if setting.FEISHU_WARNING_URL:
+        keyword = "feapder报警系统\n"
+        feishu_warning(keyword + msg, message_prefix=message_prefix)
 
 
 ###################

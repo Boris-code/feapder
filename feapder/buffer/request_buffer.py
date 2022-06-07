@@ -34,8 +34,8 @@ class RequestBuffer(threading.Thread):
             self._del_requests_deque = collections.deque()
             self._db = RedisDB()
 
-            self._table_request = setting.TAB_REQUSETS.format(redis_key=redis_key)
-            self._table_failed_request = setting.TAB_FAILED_REQUSETS.format(
+            self._table_request = setting.TAB_REQUESTS.format(redis_key=redis_key)
+            self._table_failed_request = setting.TAB_FAILED_REQUESTS.format(
                 redis_key=redis_key
             )
 

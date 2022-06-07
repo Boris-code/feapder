@@ -19,6 +19,7 @@ from requests.cookies import RequestsCookieJar
 from requests.models import Response as res
 from w3lib.encoding import http_content_type_encoding, html_body_declared_encoding
 
+from feapder import setting
 from feapder.network.selector import Selector
 from feapder.utils.log import log
 
@@ -47,6 +48,26 @@ class Response(res):
         self._encoding = None
 
         self.encoding_errors = "strict"  # strict / replace / ignore
+
+    @classmethod
+    def from_text(
+        cls,
+        text: str,
+        url: str = "",
+        cookies: dict = None,
+        headers: dict = None,
+        encoding="utf-8",
+    ):
+        response_dict = {
+            "_content": text.encode(encoding=encoding),
+            "cookies": cookies or {},
+            "encoding": encoding,
+            "headers": headers or {},
+            "status_code": 200,
+            "elapsed": 0,
+            "url": url,
+        }
+        return cls.from_dict(response_dict)
 
     @classmethod
     def from_dict(cls, response_dict):
@@ -247,7 +268,8 @@ class Response(res):
                 self._cached_text = self._get_unicode_html(self.content)
 
             if self._cached_text:
-                self._cached_text = self._absolute_links(self._cached_text)
+                if setting.MAKE_ABSOLUTE_LINKS:
+                    self._cached_text = self._absolute_links(self._cached_text)
                 self._cached_text = self._del_special_character(self._cached_text)
 
         return self._cached_text
@@ -255,7 +277,8 @@ class Response(res):
     @text.setter
     def text(self, html):
         self._cached_text = html
-        self._cached_text = self._absolute_links(self._cached_text)
+        if setting.MAKE_ABSOLUTE_LINKS:
+            self._cached_text = self._absolute_links(self._cached_text)
         self._cached_text = self._del_special_character(self._cached_text)
         self._cached_selector = Selector(self.text)
 

@@ -10,5 +10,5 @@ Created on 2021-02-08 16:01:50
 from spiders import *
 
 if __name__ == "__main__":
-    spider = test_spider.TestSpider(redis_key="feapder3:test_spider", thread_count=1)
+    spider = test_spider.TestSpider(redis_key="feapder3:test_spider", thread_count=100, keep_alive=False)
     spider.start()

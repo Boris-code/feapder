@@ -34,9 +34,9 @@ class AirSpider(BaseParser, Thread):
         for key, value in self.__class__.__custom_setting__.items():
             setattr(setting, key, value)
 
-        self._thread_count = (
-            setting.SPIDER_THREAD_COUNT if not thread_count else thread_count
-        )
+        if thread_count:
+            setattr(setting, "SPIDER_THREAD_COUNT", thread_count)
+        self._thread_count = setting.SPIDER_THREAD_COUNT
 
         self._memory_db = MemoryDB()
         self._parser_controls = []

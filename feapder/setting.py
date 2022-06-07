@@ -4,15 +4,13 @@ import os
 
 # redis 表名
 # 任务表模版
-TAB_REQUSETS = "{redis_key}:z_requsets"
+TAB_REQUESTS = "{redis_key}:z_requests"
 # 任务失败模板
-TAB_FAILED_REQUSETS = "{redis_key}:z_failed_requsets"
+TAB_FAILED_REQUESTS = "{redis_key}:z_failed_requests"
 # 数据保存失败模板
 TAB_FAILED_ITEMS = "{redis_key}:s_failed_items"
 # 爬虫状态表模版
-TAB_SPIDER_STATUS = "{redis_key}:z_spider_status"
-# 爬虫时间记录表
-TAB_SPIDER_TIME = "{redis_key}:h_spider_time"
+TAB_SPIDER_STATUS = "{redis_key}:h_spider_status"
 # 用户池
 TAB_USER_POOL = "{redis_key}:h_{user_type}_pool"
 
@@ -48,19 +46,15 @@ EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包�
 
 # 爬虫相关
 # COLLECTOR
-COLLECTOR_SLEEP_TIME = 1  # 从任务队列中获取任务到内存队列的间隔
-COLLECTOR_TASK_COUNT = 10  # 每次获取任务数量
+COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量
 
 # SPIDER
-SPIDER_THREAD_COUNT = 1  # 爬虫并发数
-SPIDER_SLEEP_TIME = (
-    0  # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
-)
-SPIDER_TASK_COUNT = 1  # 每个parser从内存队列中获取任务的数量
-SPIDER_MAX_RETRY_TIMES = 100  # 每个请求最大重试次数
-SPIDER_AUTO_START_REQUESTS = (
-    True  # 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
-)
+SPIDER_THREAD_COUNT = 32  # 爬虫并发数
+# 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
+SPIDER_SLEEP_TIME = 0
+SPIDER_MAX_RETRY_TIMES = 10  # 每个请求最大重试次数
+# 是否主动执行添加 设置为False 需要手动调用start_monitor_task，适用于多进程情况下
+SPIDER_AUTO_START_REQUESTS = True
 KEEP_ALIVE = False  # 爬虫是否常驻
 
 # 浏览器渲染
@@ -75,9 +69,13 @@ WEBDRIVER = dict(
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
-    custom_argument=["--ignore-certificate-errors"],  # 自定义浏览器渲染参数
+    custom_argument=[
+        "--ignore-certificate-errors",
+        "--disable-blink-features=AutomationControlled",
+    ],  # 自定义浏览器渲染参数
     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
-    auto_install_driver=False,  # 自动下载浏览器驱动 支持chrome 和 firefox
+    auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
+    use_stealth_js=True,  # 使用stealth.min.js隐藏浏览器特征
 )
 
 # 爬虫启动时，重新抓取失败的requests
@@ -88,6 +86,12 @@ SAVE_FAILED_REQUEST = True
 REQUEST_LOST_TIMEOUT = 600  # 10分钟
 # request网络请求超时时间
 REQUEST_TIMEOUT = 22  # 等待服务器响应的超时时间，浮点数，或(connect timeout, read timeout)元组
+# item在内存队列中最大缓存数量
+ITEM_MAX_CACHED_COUNT = 5000
+# item每批入库的最大数量
+ITEM_UPLOAD_BATCH_MAX_SIZE = 1000
+# item入库时间间隔
+ITEM_UPLOAD_INTERVAL = 1
 
 # 下载缓存 利用redis缓存，但由于内存大小限制，所以建议仅供开发调试代码时使用，防止每次debug都需要网络请求
 RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True
@@ -107,10 +111,15 @@ PROXY_ENABLE = True
 RANDOM_HEADERS = True
 # UserAgent类型 支持 'chrome', 'opera', 'firefox', 'internetexplorer', 'safari'，'mobile' 若不指定则随机类型
 USER_AGENT_TYPE = "chrome"
-# 默认使用的浏览器头 RANDOM_HEADERS=True时不生效
+# 默认使用的浏览器头
 DEFAULT_USERAGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36"
 # requests 使用session
 USE_SESSION = False
+
+# 下载
+DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
+SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
+MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # 去重
 ITEM_FILTER_ENABLE = False  # item 去重
@@ -123,11 +132,16 @@ REQUEST_FILTER_SETTING = dict(
     expire_time=2592000,  # 过期时间1个月
 )
 
-# 报警 支持钉钉、企业微信、邮件
+# 报警 支持钉钉、飞书、企业微信、邮件
 # 钉钉报警
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
+# 飞书报警
+# https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN#e1cdee9f
+FEISHU_WARNING_URL = ""  # 飞书机器人api
+FEISHU_WARNING_USER = None  # 报警人 {"open_id":"ou_xxxxx", "name":"xxxx"} 或 [{"open_id":"ou_xxxxx", "name":"xxxx"}]
+FEISHU_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # 邮件报警
 EMAIL_SENDER = ""  # 发件人
 EMAIL_PASSWORD = ""  # 授权码
@@ -141,6 +155,7 @@ WECHAT_WARNING_ALL = False  # 是否提示所有人， 默认为False
 WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / INFO / ERROR
 WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
+WARNING_CHECK_TASK_COUNT_INTERVAL = 1200  # 检查已做任务数量的时间间隔，若两次时间间隔之间，任务数无变化则报警
 
 # 日志
 LOG_NAME = os.path.basename(os.getcwd())

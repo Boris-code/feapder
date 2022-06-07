@@ -8,8 +8,9 @@ Created on 2018-07-25 11:49:08
 @email:  boris_liu@foxmail.com
 """
 
+import importlib
+
 import requests
-from requests.adapters import HTTPAdapter
 from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -17,6 +18,7 @@ import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
+from feapder.network.downloader import Downloader
 from feapder.network.proxy_pool import ProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
@@ -26,8 +28,13 @@ from feapder.utils.webdriver import WebDriverPool
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
+def import_cls(cls_info) -> Downloader:
+    module, class_name = cls_info.rsplit(".", 1)
+    cls = importlib.import_module(module).__getattribute__(class_name)
+    return cls()
+
+
 class Request(object):
-    session = None
     webdriver_pool: WebDriverPool = None
     user_agent_pool = user_agent
     proxies_pool: ProxyPool = None
@@ -36,8 +43,9 @@ class Request(object):
     cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
     cached_expire_time = 1200  # 缓存过期时间
 
-    local_filepath = None
-    oss_handler = None
+    # 下载器
+    downloader = import_cls(setting.DOWNLOADER)
+    session_downloader = import_cls(setting.SESSION_DOWNLOADER)
 
     __REQUEST_ATTRS__ = {
         # 'method', 'url', 必须传递 不加入**kwargs中
@@ -176,20 +184,6 @@ class Request(object):
         return self.priority < other.priority
 
     @property
-    def _session(self):
-        use_session = (
-            setting.USE_SESSION if self.use_session is None else self.use_session
-        )  # self.use_session 优先级高
-        if use_session and not self.__class__.session:
-            self.__class__.session = requests.Session()
-            # pool_connections – 缓存的 urllib3 连接池个数  pool_maxsize – 连接池中保存的最大连接数
-            http_adapter = HTTPAdapter(pool_connections=1000, pool_maxsize=1000)
-            # 任何使用该session会话的 HTTP 请求，只要其 URL 是以给定的前缀开头，该传输适配器就会被使用到。
-            self.__class__.session.mount("http", http_adapter)
-
-        return self.__class__.session
-
-    @property
     def _webdriver_pool(self):
         if not self.__class__.webdriver_pool:
             self.__class__.webdriver_pool = WebDriverPool(**setting.WEBDRIVER)
@@ -212,11 +206,20 @@ class Request(object):
             if callable(self.callback)
             else self.callback
         )
-        self.download_midware = (
-            getattr(self.download_midware, "__name__")
-            if callable(self.download_midware)
-            else self.download_midware
-        )
+
+        if isinstance(self.download_midware, (tuple, list)):
+            self.download_midware = [
+                getattr(download_midware, "__name__")
+                if callable(download_midware)
+                else download_midware
+                for download_midware in self.download_midware
+            ]
+        else:
+            self.download_midware = (
+                getattr(self.download_midware, "__name__")
+                if callable(self.download_midware)
+                else self.download_midware
+            )
 
         for key, value in self.__dict__.items():
             if (
@@ -392,11 +395,13 @@ class Request(object):
                 raise e
 
         elif use_session:
-            response = self._session.request(method, self.url, **self.requests_kwargs)
-            response = Response(response)
+            response = self.session_downloader.download(
+                method, self.url, **self.requests_kwargs
+            )
         else:
-            response = requests.request(method, self.url, **self.requests_kwargs)
-            response = Response(response)
+            response = self.downloader.download(
+                method, self.url, **self.requests_kwargs
+            )
 
         if save_cached:
             self.save_cached(response, expire_time=self.__class__.cached_expire_time)

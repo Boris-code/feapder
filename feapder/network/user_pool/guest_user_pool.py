@@ -125,11 +125,8 @@ class GuestUserPool(UserPoolInterface):
 
                 if not user_id and block:
                     self._keep_alive = False
-                    with RedisLock(
-                        key=self._tab_user_pool, lock_timeout=3600, wait_timeout=10
-                    ) as _lock:
-                        if _lock.locked:
-                            self.run()
+                    self._min_users = 1
+                    self.run()
                     continue
 
                 return user_str and GuestUser(**eval(user_str))
