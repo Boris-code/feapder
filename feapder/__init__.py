@@ -7,8 +7,9 @@ Created on 2020/4/21 10:41 PM
 @author: Boris
 @email: boris_liu@foxmail.com
 """
-import os, sys
+import os
 import re
+import sys
 
 sys.path.insert(0, re.sub(r"([\\/]items$)|([\\/]spiders$)", "", os.getcwd()))
 
