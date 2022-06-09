@@ -92,6 +92,8 @@ ITEM_MAX_CACHED_COUNT = 5000
 ITEM_UPLOAD_BATCH_MAX_SIZE = 1000
 # item入库时间间隔
 ITEM_UPLOAD_INTERVAL = 1
+# 内存任务队列最大缓存的任务数，默认不限制；仅对AirSpider有效。
+TASK_MAX_CACHED_SIZE = 0
 
 # 下载缓存 利用redis缓存，但由于内存大小限制，所以建议仅供开发调试代码时使用，防止每次debug都需要网络请求
 RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True

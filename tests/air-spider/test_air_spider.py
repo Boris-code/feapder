@@ -13,7 +13,8 @@ import feapder
 
 class TestAirSpider(feapder.AirSpider):
     __custom_setting__ = dict(
-        USE_SESSION = True
+        USE_SESSION=True,
+        TASK_MAX_CACHED_SIZE=10,
     )
 
     def start_callback(self):
@@ -23,7 +24,9 @@ class TestAirSpider(feapder.AirSpider):
         print("爬虫结束")
 
     def start_requests(self, *args, **kws):
-        yield feapder.Request("https://www.baidu.com")
+        for i in range(200):
+            print(i)
+            yield feapder.Request("https://www.baidu.com")
 
     def download_midware(self, request):
         # request.headers = {'User-Agent': ""}
@@ -33,11 +36,10 @@ class TestAirSpider(feapder.AirSpider):
 
     def validate(self, request, response):
         if response.status_code != 200:
-            raise Exception("response code not 200") # 重试
+            raise Exception("response code not 200")  # 重试
 
         # if "哈哈" not in response.text:
         #     return False # 抛弃当前请求
-
 
     def parse(self, request, response):
         print(response.bs4().title)
@@ -45,4 +47,4 @@ class TestAirSpider(feapder.AirSpider):
 
 
 if __name__ == "__main__":
-    TestAirSpider().start()
+    TestAirSpider(thread_count=1).start()

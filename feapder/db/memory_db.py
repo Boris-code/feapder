@@ -9,10 +9,12 @@ Created on 2020/4/21 11:42 PM
 """
 from queue import PriorityQueue
 
+from feapder import setting
+
 
 class MemoryDB:
     def __init__(self):
-        self.priority_queue = PriorityQueue()
+        self.priority_queue = PriorityQueue(maxsize=setting.TASK_MAX_CACHED_SIZE)
 
     def add(self, item):
         """
