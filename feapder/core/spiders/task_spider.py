@@ -13,6 +13,7 @@ import os
 import time
 import warnings
 from collections.abc import Iterable
+from typing import List, Tuple, Dict, Union
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
@@ -35,7 +36,8 @@ class TaskSpider(TaskParser, Scheduler):
         self,
         redis_key,
         task_table,
-        task_keys,
+        task_table_type="mysql",
+        task_keys=None,
         task_state="state",
         min_task_count=10000,
         check_task_interval=5,
@@ -53,10 +55,11 @@ class TaskSpider(TaskParser, Scheduler):
         **kwargs,
     ):
         """
-        @summary: 批次爬虫
-        必要条件
-        1、需有任务表
-            任务表中必须有id 及 任务状态字段 如 state。如指定parser_name字段，则任务会自动下发到对应的parser下, 否则会下发到所有的parser下。其他字段可根据爬虫需要的参数自行扩充
+        @summary: 任务爬虫
+        必要条件 需要指定任务表，可以是redis表或者mysql表作为任务种子
+        redis任务种子表：zset类型。值为 {"xxx":xxx, "xxx2":"xxx2"}；若为集成模式，需指定parser_name字段，如{"xxx":xxx, "xxx2":"xxx2", "parser_name":"TestTaskSpider"}
+        mysql任务表：
+            任务表中必须有id及任务状态字段 如 state, 其他字段可根据爬虫需要的参数自行扩充。若为集成模式，需指定parser_name字段。
 
             参考建表语句如下：
             CREATE TABLE `table_name` (
@@ -69,7 +72,8 @@ class TaskSpider(TaskParser, Scheduler):
             ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
         ---------
-        @param task_table: mysql中的任务表
+        @param task_table: mysql中的任务表 或 redis中存放任务种子的key，zset类型
+        @param task_table_type: 任务表类型 支持 redis 、mysql
         @param task_keys: 需要获取的任务字段 列表 [] 如需指定解析的parser，则需将parser_name字段取出来。
         @param task_state: mysql中任务表的任务状态字段
         @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务
@@ -111,6 +115,10 @@ class TaskSpider(TaskParser, Scheduler):
 
         self._task_table = task_table  # mysql中的任务表
         self._task_keys = task_keys  # 需要获取的任务字段
+        self._task_table_type = task_table_type
+
+        if self._task_table_type == "mysql" and not self._task_keys:
+            raise Exception("需指定任务字段 使用task_keys")
 
         self._task_state = task_state  # mysql中任务表的state字段名
         self._min_task_count = min_task_count  # redis 中最少任务数
@@ -197,24 +205,17 @@ class TaskSpider(TaskParser, Scheduler):
                 todo_task_count = self._redisdb.zget_count(tab_requests)
 
                 tasks = []
-                if todo_task_count < self._min_task_count:  # 从mysql中取任务
-                    log.info("redis 中剩余任务%s 数量过小 从mysql中取任务追加" % todo_task_count)
-                    tasks = self.get_todo_task_from_mysql()
-                    if not tasks:  # 状态为0的任务已经做完，需要检查状态为2的任务是否丢失
-                        # redis 中无待做任务，此时mysql中状态为2的任务为丢失任务。需重新做
-                        if todo_task_count == 0:
-                            log.info("无待做任务，尝试取丢失的任务")
-                            tasks = self.get_doing_task_from_mysql()
-                            if not tasks:
-                                log.info("无丢失任务，任务均已做完, 爬虫结束")
-                                if self._keep_alive:
-                                    log.info("爬虫常驻, 等待新任务")
-                                    time.sleep(self._check_task_interval)
-                                    continue
-                                else:
-                                    break
-                    else:
-                        log.info("mysql 中取到待做任务 %s 条" % len(tasks))
+                if todo_task_count < self._min_task_count:
+                    tasks = self.get_task(todo_task_count)
+                    if not tasks:
+                        if not todo_task_count:
+                            if self._keep_alive:
+                                log.info("任务均已做完，爬虫常驻, 等待新任务")
+                                time.sleep(self._check_task_interval)
+                                continue
+                            else:
+                                log.info("任务均已做完，爬虫结束")
+                                break
 
                 else:
                     log.info("redis 中尚有%s条积压任务，暂时不派发新任务" % todo_task_count)
@@ -224,7 +225,7 @@ class TaskSpider(TaskParser, Scheduler):
                         # log.info('任务正在进行 redis中剩余任务 %s' % todo_task_count)
                         pass
                     else:
-                        log.info("mysql 中无待做任务 redis中剩余任务 %s" % todo_task_count)
+                        log.info("无待做种子 redis中剩余任务 %s" % todo_task_count)
                 else:
                     # make start requests
                     self.distribute_task(tasks)
@@ -234,6 +235,35 @@ class TaskSpider(TaskParser, Scheduler):
                 log.exception(e)
 
             time.sleep(self._check_task_interval)
+
+    def get_task(self, todo_task_count) -> List[Union[Tuple, Dict]]:
+        """
+        获取任务
+        Args:
+            todo_task_count: redis里剩余的任务数
+
+        Returns:
+
+        """
+        tasks = []
+        if self._task_table_type == "mysql":
+            # 从mysql中取任务
+            log.info("redis 中剩余任务%s 数量过小 从mysql中取任务追加" % todo_task_count)
+            tasks = self.get_todo_task_from_mysql()
+            if not tasks:  # 状态为0的任务已经做完，需要检查状态为2的任务是否丢失
+                # redis 中无待做任务，此时mysql中状态为2的任务为丢失任务。需重新做
+                if todo_task_count == 0:
+                    log.info("无待做任务，尝试取丢失的任务")
+                    tasks = self.get_doing_task_from_mysql()
+        elif self._task_table_type == "redis":
+            log.info("redis 中剩余任务%s 数量过小 从redis种子任务表中取任务追加" % todo_task_count)
+            tasks = self.get_task_from_redis()
+        else:
+            raise Exception(
+                f"task_table_type expect mysql or redis，bug got {self._task_table_type}"
+            )
+
+        return tasks
 
     def distribute_task(self, tasks):
         """
@@ -247,9 +277,13 @@ class TaskSpider(TaskParser, Scheduler):
             for task in tasks:
                 for parser in self._parsers:  # 寻找task对应的parser
                     if parser.name in task:
-                        task = PerfectDict(
-                            _dict=dict(zip(self._task_keys, task)), _values=list(task)
-                        )
+                        if isinstance(task, dict):
+                            task = PerfectDict(_dict=task)
+                        else:
+                            task = PerfectDict(
+                                _dict=dict(zip(self._task_keys, task)),
+                                _values=list(task),
+                            )
                         requests = parser.start_requests(task)
                         if requests and not isinstance(requests, Iterable):
                             raise Exception(
@@ -297,9 +331,12 @@ class TaskSpider(TaskParser, Scheduler):
         else:  # task没对应的parser 则将task下发到所有的parser
             for task in tasks:
                 for parser in self._parsers:
-                    task = PerfectDict(
-                        _dict=dict(zip(self._task_keys, task)), _values=list(task)
-                    )
+                    if isinstance(task, dict):
+                        task = PerfectDict(_dict=task)
+                    else:
+                        task = PerfectDict(
+                            _dict=dict(zip(self._task_keys, task)), _values=list(task)
+                        )
                     requests = parser.start_requests(task)
                     if requests and not isinstance(requests, Iterable):
                         raise Exception(
@@ -338,25 +375,10 @@ class TaskSpider(TaskParser, Scheduler):
         self._request_buffer.flush()
         self._item_buffer.flush()
 
-    def __get_task_state_count(self):
-        sql = "select {state}, count(1) from {task_table}{task_condition} group by {state}".format(
-            state=self._task_state,
-            task_table=self._task_table,
-            task_condition=self._task_condition_prefix_where,
-        )
-        task_state_count = self._mysqldb.find(sql)
-
-        task_state = {
-            "total_count": sum(count for state, count in task_state_count),
-            "done_count": sum(
-                count for state, count in task_state_count if state in (1, -1)
-            ),
-            "failed_count": sum(
-                count for state, count in task_state_count if state == -1
-            ),
-        }
-
-        return task_state
+    def get_task_from_redis(self):
+        tasks = self._redisdb.zget(self._task_table, count=self._task_limit)
+        tasks = [eval(task) for task in tasks]
+        return tasks
 
     def get_todo_task_from_mysql(self):
         """
@@ -439,52 +461,6 @@ class TaskSpider(TaskParser, Scheduler):
         )
         return self._mysqldb.update(sql)
 
-    def get_deal_speed(self, total_count, done_count, last_batch_date):
-        """
-        获取处理速度
-        @param total_count: 总数量
-        @param done_count: 做完数量
-        @param last_batch_date: 批次时间 datetime
-        @return:
-            deal_speed （条/小时）, need_time （秒）, overflow_time（秒） （ overflow_time < 0 时表示提前多少秒完成 )
-            或
-            None
-        """
-        if not self._spider_last_done_count:
-            now_date = datetime.datetime.now()
-            self._spider_last_done_count = done_count
-            self._spider_last_done_time = now_date
-
-        if done_count > self._spider_last_done_count:
-            now_date = datetime.datetime.now()
-
-            time_interval = (now_date - self._spider_last_done_time).total_seconds()
-            deal_speed = (
-                done_count - self._spider_last_done_count
-            ) / time_interval  # 条/秒
-            need_time = (total_count - done_count) / deal_speed  # 单位秒
-            overflow_time = (
-                (now_date - last_batch_date).total_seconds()
-                + need_time
-                - datetime.timedelta(days=self._batch_interval).total_seconds()
-            )  # 溢出时间 秒
-            calculate_speed_time = now_date.strftime("%Y-%m-%d %H:%M:%S")  # 统计速度时间
-
-            deal_speed = int(deal_speed * 3600)  # 条/小时
-
-            # 更新最近已做任务数及时间
-            self._spider_last_done_count = done_count
-            self._spider_last_done_time = now_date
-
-            self._spider_deal_speed_cached = (
-                deal_speed,
-                need_time,
-                overflow_time,
-                calculate_speed_time,
-            )
-
-        return self._spider_deal_speed_cached
-
     def related_spider_is_done(self):
         """
         相关连的爬虫是否跑完
@@ -515,22 +491,29 @@ class TaskSpider(TaskParser, Scheduler):
 
     def task_is_done(self):
         """
-        @summary: 检查任务状态 是否做完 同时更新批次时间 (不能挂 挂了批次时间就不更新了)
+        @summary: 检查种子表是否做完
         ---------
         ---------
         @result: True / False （做完 / 未做完）
         """
-
         is_done = False
-        sql = "select 1 from %s where (%s = 0 or %s=2)%s limit 1" % (
-            self._task_table,
-            self._task_state,
-            self._task_state,
-            self._task_condition_prefix_and,
-        )
-        tasks = self._mysqldb.find(sql)  # [(1,)]  / []
-        if not tasks:
-            log.info("任务表中任务均已完成")
+        if self._task_table_type == "mysql":
+            sql = "select 1 from %s where (%s = 0 or %s=2)%s limit 1" % (
+                self._task_table,
+                self._task_state,
+                self._task_state,
+                self._task_condition_prefix_and,
+            )
+            count = self._mysqldb.find(sql)  # [(1,)]  / []
+        elif self._task_table_type == "redis":
+            count = self._redisdb.zget_count(self._task_table)
+        else:
+            raise Exception(
+                f"task_table_type expect mysql or redis，bug got {self._task_table_type}"
+            )
+
+        if not count:
+            log.info("种子表中任务均已完成")
             is_done = True
 
         return is_done
@@ -552,7 +535,7 @@ class TaskSpider(TaskParser, Scheduler):
                 try:
                     self.heartbeat()
                     if (
-                        self.task_is_done() and self.all_thread_is_done()
+                        self.all_thread_is_done() and self.task_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                         if not self._is_notify_end:
                             self.spider_end()
