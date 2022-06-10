@@ -13,6 +13,7 @@ from feapder import ArgumentParser
 
 class TestTaskSpider(feapder.TaskSpider):
     def add_task(self):
+        # 加种子任务
         self._redisdb.zadd(self._task_table, {"id": 1, "url": "https://www.baidu.com"})
 
     def start_requests(self, task):
