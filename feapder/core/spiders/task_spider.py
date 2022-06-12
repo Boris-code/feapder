@@ -76,9 +76,9 @@ class TaskSpider(TaskParser, Scheduler):
         @param task_table_type: 任务表类型 支持 redis 、mysql
         @param task_keys: 需要获取的任务字段 列表 [] 如需指定解析的parser，则需将parser_name字段取出来。
         @param task_state: mysql中任务表的任务状态字段
-        @param min_task_count: redis 中最少任务数, 少于这个数量会从mysql的任务表取任务
+        @param min_task_count: redis 中最少任务数, 少于这个数量会从种子表中取任务
         @param check_task_interval: 检查是否还有任务的时间间隔；
-        @param task_limit: 从数据库中取任务的数量
+        @param task_limit: 每次从数据库中取任务的数量
         @param redis_key: 任务等数据存放在redis中的key前缀
         @param thread_count: 线程数，默认为配置文件中的线程数
         @param begin_callback: 爬虫开始回调函数
