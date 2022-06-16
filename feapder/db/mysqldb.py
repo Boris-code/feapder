@@ -155,7 +155,7 @@ class MysqlDB:
         return len(self.connect_pool._idle_cache)
 
     @auto_retry
-    def find(self, sql, limit=0, to_json=False, need_convert=True):
+    def find(self, sql, limit=0, to_json=False, conver_col=True):
         """
         @summary:
         无数据： 返回()
@@ -165,7 +165,7 @@ class MysqlDB:
         @param sql:
         @param limit:
         @param to_json 是否将查询结果转为json
-        @param need_convert 是否将查询结果的col值转为python中对应数据类型
+        @param conver_col 是否处理查询结果，如date类型转字符串，json字符串转成json。仅当to_json=True时生效
         ---------
         @result:
         """
@@ -185,9 +185,6 @@ class MysqlDB:
 
             # 处理数据
             def convert(col):
-                # 判断是否需要将值转换 默认为True
-                if not need_convert:
-                    return col
                 if isinstance(col, (datetime.date, datetime.time)):
                     return str(col)
                 elif isinstance(col, str) and (
@@ -203,10 +200,12 @@ class MysqlDB:
                     return col
 
             if limit == 1:
-                result = [convert(col) for col in result]
+                if conver_col:
+                    result = [convert(col) for col in result]
                 result = dict(zip(columns, result))
             else:
-                result = [[convert(col) for col in row] for row in result]
+                if conver_col:
+                    result = [[convert(col) for col in row] for row in result]
                 result = [dict(zip(columns, r)) for r in result]
 
         self.close_connection(conn, cursor)
