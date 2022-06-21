@@ -15,15 +15,29 @@ from feapder.commands import create_builder
 from feapder.commands import shell
 from feapder.commands import zip
 
+HELP = """
+███████╗███████╗ █████╗ ██████╗ ██████╗ ███████╗██████╗
+██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔════╝██╔══██╗
+█████╗  █████╗  ███████║██████╔╝██║  ██║█████╗  ██████╔╝
+██╔══╝  ██╔══╝  ██╔══██║██╔═══╝ ██║  ██║██╔══╝  ██╔══██╗
+██║     ███████╗██║  ██║██║     ██████╔╝███████╗██║  ██║
+╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═════╝ ╚══════╝╚═╝  ╚═╝
+
+Version: {version}
+Document: http://feapder.com
+
+Usage:
+  feapder <command> [options] [args]
+      
+Available commands:
+"""
+
 
 def _print_commands():
     with open(join(dirname(dirname(__file__)), "VERSION"), "rb") as f:
         version = f.read().decode("ascii").strip()
 
-    print("feapder {}".format(version))
-    print("\nUsage:")
-    print("  feapder <command> [options] [args]\n")
-    print("Available commands:")
+    print(HELP.rstrip().format(version=version))
     cmds = {
         "create": "create project、spider、item and so on",
         "shell": "debug response",

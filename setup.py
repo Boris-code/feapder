@@ -22,9 +22,6 @@ with open(join(dirname(__file__), "feapder/VERSION"), "rb") as fh:
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open("slogan.txt", "r") as fh:
-    slogan = fh.read()
-
 packages = setuptools.find_packages()
 packages.extend(
     [
@@ -76,5 +73,3 @@ setuptools.setup(
     include_package_data=True,
     classifiers=["Programming Language :: Python :: 3"],
 )
-
-print("\n" + slogan)
