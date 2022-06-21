@@ -39,7 +39,6 @@ from pprint import pprint
 from urllib import request
 from urllib.parse import urljoin
 
-import execjs  # pip install PyExecJS
 import redis
 import requests
 import six
@@ -50,6 +49,11 @@ import feapder.setting as setting
 from feapder.db.redisdb import RedisDB
 from feapder.utils.email_sender import EmailSender
 from feapder.utils.log import log
+
+try:
+    import execjs  # pip install PyExecJS
+except Exception as e:
+    pass
 
 os.environ["EXECJS_RUNTIME"] = "Node"  # 设置使用node执行js
 
@@ -1293,9 +1297,6 @@ def compile_js(js_func):
 
     ctx = execjs.compile(js_func)
     return ctx.call
-
-
-###############################################
 
 #############################################
 

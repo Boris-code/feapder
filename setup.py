@@ -16,11 +16,14 @@ import setuptools
 if version_info < (3, 6, 0):
     raise SystemExit("Sorry! feapder requires python 3.6.0 or later.")
 
-with open(join(dirname(__file__), "feapder/VERSION"), "rb") as f:
-    version = f.read().decode("ascii").strip()
+with open(join(dirname(__file__), "feapder/VERSION"), "rb") as fh:
+    version = fh.read().decode("ascii").strip()
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+
+with open("slogan.txt", "r") as fh:
+    slogan = fh.read()
 
 packages = setuptools.find_packages()
 packages.extend(
@@ -37,7 +40,6 @@ requires = [
     "better-exceptions>=0.2.2",
     "DBUtils>=2.0",
     "parsel>=1.5.2",
-    "PyExecJS>=1.5.1",
     "PyMySQL>=0.9.3",
     "redis>=2.10.6,<4.0.0",
     "requests>=2.22.0",
@@ -54,8 +56,7 @@ requires = [
     "webdriver-manager>=3.5.3",
 ]
 
-memory_dedup_requires = ["bitarray>=1.5.3"]
-all_requires = memory_dedup_requires
+extras_requires = ["bitarray>=1.5.3", "PyExecJS>=1.5.1"]
 
 setuptools.setup(
     name="feapder",
@@ -68,10 +69,12 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=requires,
-    extras_require={"all": all_requires},
+    extras_require={"all": extras_requires},
     entry_points={"console_scripts": ["feapder = feapder.commands.cmdline:execute"]},
     url="https://github.com/Boris-code/feapder.git",
     packages=packages,
     include_package_data=True,
     classifiers=["Programming Language :: Python :: 3"],
 )
+
+print(slogan)
