@@ -77,4 +77,4 @@ setuptools.setup(
     classifiers=["Programming Language :: Python :: 3"],
 )
 
-print(slogan)
+print("\n" + slogan)
