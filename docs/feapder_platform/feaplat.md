@@ -173,13 +173,6 @@ docker-compose up -d
 ```shell
 docker-compose stop
 ```
-删除重装，多次无法登陆时建议重新安装
-```shell
-docker-compose stop
-docker-compose rm -f
-cd feaplat
-docker-compose up -d
-```
 
 ### 5. 添加服务器（可选）
 
@@ -196,18 +189,11 @@ docker-compose up -d
 ```shell
 docker swarm join-token worker
 ```
-结果举例如下
+
+输出举例如下
+
 ```shell
 docker swarm join --token SWMTKN-1-1mix1x7noormwig1pjqzmrvgnw2m8zxqdzctqa8t3o8s25fjgg-9ot0h1gatxfh0qrxiee38xxxx 172.17.5.110:2377
-```
-PS:注意，这一步我们最重要的是拿到token，目前查看到的返回参考命令中的ip是属于内网ip，云服务器需要用公网ip。
-端口是2377(需要开放),只有在同一内网下才可直接复制到扩充服务器执行。
-
-开启并检查2377端口
-```shell
-firewall-cmd --zone=public --add-port=2377/tcp --permanent
-firewall-cmd --reload
-firewall-cmd --query-port=2377/tcp
 ```
 
 **在需扩充的服务器上执行**
@@ -216,7 +202,14 @@ firewall-cmd --query-port=2377/tcp
 docker swarm join --token [token] [ip]
 ```
 
-这条命令用于将该台服务器加入集群节点，注意上面讲的内网外网ip差异。
+若服务器彼此之间不是内网，为公网环境，则需要将ip改成公网，且开放端口2377
+
+开启并检查2377端口
+```shell
+firewall-cmd --zone=public --add-port=2377/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --query-port=2377/tcp
+```
 
 #### 3. 验证是否成功
 
