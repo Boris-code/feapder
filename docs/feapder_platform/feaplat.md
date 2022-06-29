@@ -177,13 +177,26 @@ docker-compose stop
 docker swarm join-token worker
 ```
 
+输出举例如下
+
+```shell
+docker swarm join --token SWMTKN-1-1mix1x7noormwig1pjqzmrvgnw2m8zxqdzctqa8t3o8s25fjgg-9ot0h1gatxfh0qrxiee38xxxx 172.17.5.110:2377
+```
+
 **在需扩充的服务器上执行**
 
 ```shell
 docker swarm join --token [token] [ip]
 ```
 
-这条命令用于将该台服务器加入集群节点
+若服务器彼此之间不是内网，为公网环境，则需要将ip改成公网，且开放端口2377
+
+开启并检查2377端口
+```shell
+firewall-cmd --zone=public --add-port=2377/tcp --permanent
+firewall-cmd --reload
+firewall-cmd --query-port=2377/tcp
+```
 
 #### 3. 验证是否成功
 
