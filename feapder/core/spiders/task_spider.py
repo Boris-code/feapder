@@ -526,6 +526,9 @@ class TaskSpider(TaskParser, Scheduler):
         @result:
         """
         try:
+            if not self.is_reach_next_spider_time():
+                return
+
             if not self._parsers:  # 不是add_parser 模式
                 self._parsers.append(self)
 
