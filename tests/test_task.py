@@ -13,10 +13,10 @@ from feapder.utils.perfect_dict import PerfectDict
 
 task_key = ["id", "url"]
 task = [1, "http://www.badu.com"]
-task = Task(_dict=dict(zip(task_key, task)), _values=task)
+task = PerfectDict(_dict=dict(zip(task_key, task)), _values=task)
 
-task = Task(id=1, url="http://www.badu.com")
-task = Task({"id":"1", "url":"http://www.badu.com"})
+task = PerfectDict(id=1, url="http://www.badu.com")
+task = PerfectDict({"id":"1", "url":"http://www.badu.com"})
 
 print(task)
 id, url = task
