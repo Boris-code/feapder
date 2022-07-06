@@ -614,7 +614,7 @@ class DebugTaskSpider(TaskSpider):
     ):
         """
         @param task_id:  任务id
-        @param task:  任务  task 与 task_id 二者选一即可
+        @param task:  任务  task 与 task_id 二者选一即可。如 task = {"url":""}
         @param save_to_db: 数据是否入库 默认否
         @param update_stask: 是否更新任务 默认否
         @param args:
@@ -625,7 +625,7 @@ class DebugTaskSpider(TaskSpider):
         )
 
         if not task and not task_id:
-            raise Exception("task_id 与 task 不能同时为null")
+            raise Exception("task_id 与 task 不能同时为空")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
         if save_to_db and not self.__class__.__custom_setting__.get("ITEM_PIPELINES"):
@@ -664,7 +664,6 @@ class DebugTaskSpider(TaskSpider):
                 raise Exception("未获取到任务 请检查 task_id: {} 是否存在".format(self._task_id))
             self.distribute_task(tasks)
 
-        os.environ.setdefault("batch_date", "1970-00-00")
         log.debug("下发任务完毕")
 
     def get_todo_task_from_mysql(self):
