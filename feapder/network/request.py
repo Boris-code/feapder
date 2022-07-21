@@ -8,6 +8,7 @@ Created on 2018-07-25 11:49:08
 @email:  boris_liu@foxmail.com
 """
 
+import copy
 import importlib
 
 import requests
@@ -511,4 +512,4 @@ class Request(object):
         return cls(**request_dict)
 
     def copy(self):
-        return self.__class__.from_dict(self.to_dict)
+        return self.__class__.from_dict(copy.deepcopy(self.to_dict))
