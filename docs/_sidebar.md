@@ -11,6 +11,7 @@
   * [使用前必读](usage/使用前必读.md)
   * [轻量爬虫-AirSpider](usage/AirSpider.md)
   * [分布式爬虫-Spider](usage/Spider.md)
+  * [任务爬虫-TaskSpider](usage/TaskSpider.md)
   * [批次爬虫-BatchSpider](usage/BatchSpider.md)
   * [爬虫集成](usage/爬虫集成.md)
 

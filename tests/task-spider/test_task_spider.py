@@ -68,8 +68,8 @@ def start2(args):
 if __name__ == "__main__":
     parser = ArgumentParser(description="测试TaskSpider")
 
-    parser.add_argument("--start", type=int, nargs=1, help="(1|2）", function=start)
-    parser.add_argument("--start2", type=int, nargs=1, help="(1|2）", function=start2)
+    parser.add_argument("--start", type=int, nargs=1, help="用mysql做种子表 (1|2）", function=start)
+    parser.add_argument("--start2", type=int, nargs=1, help="用redis做种子表 (1|2）", function=start2)
 
     parser.start()
 
