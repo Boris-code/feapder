@@ -805,36 +805,44 @@ def get_text(soup, *args):
         return ""
 
 
-def del_html_tag(content, except_line_break=False, save_img=False, white_replaced=" "):
+def del_html_tag(content, save_line_break=True, save_p=False, save_img=False):
     """
     删除html标签
     @param content: html内容
-    @param except_line_break: 保留p标签
-    @param save_img: 保留图片
-    @param white_replaced: 空白符替换
+    @param save_p: 保留p标签
+    @param save_img: 保留图片标签
+    @param save_line_break: 保留\n换行
     @return:
     """
-    content = replace_str(content, "(?i)<script(.|\n)*?</script>")  # (?)忽略大小写
-    content = replace_str(content, "(?i)<style(.|\n)*?</style>")
-    content = replace_str(content, "<!--(.|\n)*?-->")
-    content = replace_str(
-        content, "(?!&[a-z]+=)&[a-z]+;?"
-    )  # 干掉&nbsp等无用的字符 但&xxx= 这种表示参数的除外
-    if except_line_break:
-        content = content.replace("</p>", "/p")
-        content = replace_str(content, "<[^p].*?>")
-        content = content.replace("/p", "</p>")
-        content = replace_str(content, "[ \f\r\t\v]")
+    # js
+    content = re.sub("(?i)<script(.|\n)*?</script>", "", content)  # (?)忽略大小写
+    # css
+    content = re.sub("(?i)<style(.|\n)*?</style>", "", content)  # (?)忽略大小写
+    # 注释
+    content = re.sub("<!--(.|\n)*?-->", "", content)
+    # 干掉&nbsp;等无用的字符 但&xxx= 这种表示参数的除外
+    content = re.sub("(?!&[a-z]+=)&[a-z]+;?", "", content)
 
+    if save_p and save_img:
+        content = re.sub("<(?!(p[ >]|/p>|img ))(.|\n)+?>", "", content)
+    elif save_p:
+        content = re.sub("<(?!(p[ >]|/p>))(.|\n)+?>", "", content)
     elif save_img:
-        content = replace_str(content, "(?!<img.+?>)<.+?>")  # 替换掉除图片外的其他标签
-        content = replace_str(content, "(?! +)\s+", "\n")  # 保留空格
-        content = content.strip()
-
+        content = re.sub("<(?!img )(.|\n)+?>", "", content)
+    elif save_line_break:
+        content = re.sub("<(?!/p>)(.|\n)+?>", "", content)
+        content = re.sub("</p>", "\n", content)
     else:
-        content = replace_str(content, "<(.|\n)*?>")
-        content = replace_str(content, "\s+", white_replaced)
-        content = content.strip()
+        content = re.sub("<(.|\n)*?>", "", content)
+
+    if save_line_break:
+        # 把非换行符的空白符替换为一个空格
+        content = re.sub("[^\S\n]+", " ", content)
+        # 把多个换行符替换为一个换行符 如\n\n\n 或 \n \n \n 替换为\n
+        content = re.sub("(\n ?)+", "\n", content)
+    else:
+        content = re.sub("\s+", " ", content)
+    content = content.strip()
 
     return content
 
@@ -1297,6 +1305,7 @@ def compile_js(js_func):
 
     ctx = execjs.compile(js_func)
     return ctx.call
+
 
 #############################################
 
