@@ -121,6 +121,7 @@ USE_SESSION = False
 # 下载
 DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
 SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
+RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
 MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # 去重

@@ -37,9 +37,21 @@ SPECIAL_CHARACTER_PATTERNS = [
 
 
 class Response(res):
-    def __init__(self, response):
+    def __init__(self, response, make_absolute_links=None):
+        """
+
+        Args:
+            response: requests请求返回的response
+            make_absolute_links: 是否自动补全url
+        """
         super(Response, self).__init__()
         self.__dict__.update(response.__dict__)
+
+        self.make_absolute_links = (
+            make_absolute_links
+            if make_absolute_links is not None
+            else setting.MAKE_ABSOLUTE_LINKS
+        )
 
         self._cached_selector = None
         self._cached_text = None
@@ -268,7 +280,7 @@ class Response(res):
                 self._cached_text = self._get_unicode_html(self.content)
 
             if self._cached_text:
-                if setting.MAKE_ABSOLUTE_LINKS:
+                if self.make_absolute_links:
                     self._cached_text = self._absolute_links(self._cached_text)
                 self._cached_text = self._del_special_character(self._cached_text)
 
@@ -277,7 +289,7 @@ class Response(res):
     @text.setter
     def text(self, html):
         self._cached_text = html
-        if setting.MAKE_ABSOLUTE_LINKS:
+        if self.make_absolute_links:
             self._cached_text = self._absolute_links(self._cached_text)
         self._cached_text = self._del_special_character(self._cached_text)
         self._cached_selector = Selector(self.text)
@@ -361,7 +373,7 @@ class Response(res):
 
     def close_browser(self, request):
         if hasattr(self, "browser"):
-            request._webdriver_pool.remove(self.browser)
+            request.render_downloader.close(self.browser)
             del self.browser
 
     def __del__(self):

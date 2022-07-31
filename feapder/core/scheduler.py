@@ -468,8 +468,7 @@ class Scheduler(threading.Thread):
 
         if not self._keep_alive:
             # 关闭webdirver
-            if Request.webdriver_pool:
-                Request.webdriver_pool.close()
+            Request.render_downloader.close_all()
 
             # 关闭打点
             metrics.close()

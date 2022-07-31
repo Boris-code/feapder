@@ -11,13 +11,15 @@ Created on 2022/4/10 5:57 下午
 import requests
 from requests.adapters import HTTPAdapter
 
-from feapder.network.downloader import Downloader
+from feapder.network.downloader.base import Downloader
 from feapder.network.response import Response
 
 
 class RequestsDownloader(Downloader):
-    def download(self, method, url, **kwargs) -> Response:
-        response = requests.request(method, url, **kwargs)
+    def download(self, request) -> Response:
+        response = requests.request(
+            request.method, request.url, **request.requests_kwargs
+        )
         response = Response(response)
         return response
 
@@ -36,7 +38,9 @@ class RequestsSessionDownloader(Downloader):
 
         return self.__class__.session
 
-    def download(self, method, url, **kwargs) -> Response:
-        response = self._session.request(method, url, **kwargs)
+    def download(self, request) -> Response:
+        response = self._session.request(
+            request.method, request.url, **request.requests_kwargs
+        )
         response = Response(response)
         return response

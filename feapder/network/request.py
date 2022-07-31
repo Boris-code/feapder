@@ -10,33 +10,31 @@ Created on 2018-07-25 11:49:08
 
 import copy
 import importlib
+from typing import Union
 
 import requests
-from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
-from feapder.network.downloader import Downloader
+from feapder.network.downloader.base import Downloader, RenderDownloader
 from feapder.network.proxy_pool import ProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
-from feapder.utils.webdriver import WebDriverPool
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def import_cls(cls_info) -> Downloader:
+def import_cls(cls_info) -> Union[Downloader, RenderDownloader]:
     module, class_name = cls_info.rsplit(".", 1)
     cls = importlib.import_module(module).__getattribute__(class_name)
     return cls()
 
 
-class Request(object):
-    webdriver_pool: WebDriverPool = None
+class Request:
     user_agent_pool = user_agent
     proxies_pool: ProxyPool = None
 
@@ -45,8 +43,9 @@ class Request(object):
     cached_expire_time = 1200  # 缓存过期时间
 
     # 下载器
-    downloader = import_cls(setting.DOWNLOADER)
-    session_downloader = import_cls(setting.SESSION_DOWNLOADER)
+    downloader: Downloader = import_cls(setting.DOWNLOADER)
+    session_downloader: Downloader = import_cls(setting.SESSION_DOWNLOADER)
+    render_downloader: RenderDownloader = import_cls(setting.RENDER_DOWNLOADER)
 
     __REQUEST_ATTRS__ = {
         # 'method', 'url', 必须传递 不加入**kwargs中
@@ -81,6 +80,7 @@ class Request(object):
         is_abandoned=False,
         render=False,
         render_time=0,
+        make_absolute_links=None,
     )
 
     def __init__(
@@ -99,6 +99,7 @@ class Request(object):
         is_abandoned=False,
         render=False,
         render_time=0,
+        make_absolute_links=None,
         **kwargs,
     ):
         """
@@ -119,6 +120,7 @@ class Request(object):
         @param is_abandoned: 当发生异常时是否放弃重试 True/False. 默认False
         @param render: 是否用浏览器渲染
         @param render_time: 渲染时长，即打开网页等待指定时间后再获取源码
+        @param make_absolute_links: 是否转成绝对连接，默认是
         --
         以下参数与requests参数使用方式一致
         @param method: 请求方式，如POST或GET，默认根据data值是否为空来判断
@@ -142,6 +144,7 @@ class Request(object):
         """
 
         self.url = url
+        self.method = None
         self.retry_times = retry_times
         self.priority = priority
         self.parser_name = parser_name
@@ -155,6 +158,7 @@ class Request(object):
         self.is_abandoned = is_abandoned
         self.render = render
         self.render_time = render_time or setting.WEBDRIVER.get("render_time", 0)
+        self.make_absolute_links = make_absolute_links
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
@@ -183,13 +187,6 @@ class Request(object):
 
     def __lt__(self, other):
         return self.priority < other.priority
-
-    @property
-    def _webdriver_pool(self):
-        if not self.__class__.webdriver_pool:
-            self.__class__.webdriver_pool = WebDriverPool(**setting.WEBDRIVER)
-
-        return self.__class__.webdriver_pool
 
     @property
     def _proxies_pool(self):
@@ -251,11 +248,9 @@ class Request(object):
             else self.callback
         )
 
-    def get_response(self, save_cached=False):
+    def make_requests_kwargs(self):
         """
-        获取带有selector功能的response
-        @param save_cached: 保存缓存 方便调试时不用每次都重新下载
-        @return:
+        处理参数
         """
         # 设置超时默认时间
         self.requests_kwargs.setdefault(
@@ -263,7 +258,9 @@ class Request(object):
         )  # connect=22 read=22
 
         # 设置stream
-        # 默认情况下，当你进行网络请求后，响应体会立即被下载。你可以通过 stream 参数覆盖这个行为，推迟下载响应体直到访问 Response.content 属性。此时仅有响应头被下载下来了。缺点： stream 设为 True，Requests 无法将连接释放回连接池，除非你 消耗了所有的数据，或者调用了 Response.close。 这样会带来连接效率低下的问题。
+        # 默认情况下，当你进行网络请求后，响应体会立即被下载。
+        # stream=True是，调用Response.content 才会下载响应体，默认只返回header。
+        # 缺点： stream 设为 True，Requests 无法将连接释放回连接池，除非消耗了所有的数据，或者调用了 Response.close。 这样会带来连接效率低下的问题。
         self.requests_kwargs.setdefault("stream", True)
 
         # 关闭证书验证
@@ -276,6 +273,7 @@ class Request(object):
                 method = "POST"
             else:
                 method = "GET"
+        self.method = method
 
         # 随机user—agent
         headers = self.requests_kwargs.get("headers", {})
@@ -306,6 +304,14 @@ class Request(object):
                 else:
                     log.debug("暂无可用代理 ...")
 
+    def get_response(self, save_cached=False):
+        """
+        获取带有selector功能的response
+        @param save_cached: 保存缓存 方便调试时不用每次都重新下载
+        @return:
+        """
+        self.make_requests_kwargs()
+
         log.debug(
             """
                 -------------- %srequest for ----------------
@@ -328,7 +334,7 @@ class Request(object):
                     or "parse",
                 ),
                 self.url,
-                method,
+                self.requests_kwargs.get("method"),
                 self.requests_kwargs,
             )
         )
@@ -338,71 +344,19 @@ class Request(object):
         #
         # self.requests_kwargs.update(hooks={'response': hooks})
 
+        # self.use_session 优先级高
         use_session = (
             setting.USE_SESSION if self.use_session is None else self.use_session
-        )  # self.use_session 优先级高
+        )
 
         if self.render:
-            # 使用request的user_agent、cookies、proxy
-            user_agent = headers.get("User-Agent") or headers.get("user-agent")
-            cookies = self.requests_kwargs.get("cookies")
-            if cookies and isinstance(cookies, RequestsCookieJar):
-                cookies = cookies.get_dict()
-
-            if not cookies:
-                cookie_str = headers.get("Cookie") or headers.get("cookie")
-                if cookie_str:
-                    cookies = tools.get_cookies_from_str(cookie_str)
-
-            proxy = None
-            if proxies and proxies != -1:
-                proxy = proxies.get("http", "").strip("http://") or proxies.get(
-                    "https", ""
-                ).strip("https://")
-
-            browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
-
-            url = self.url
-            if self.requests_kwargs.get("params"):
-                url = tools.joint_url(self.url, self.requests_kwargs.get("params"))
-
-            try:
-                browser.get(url)
-                if cookies:
-                    browser.cookies = cookies
-                if self.render_time:
-                    tools.delay_time(self.render_time)
-
-                html = browser.page_source
-                response = Response.from_dict(
-                    {
-                        "url": browser.current_url,
-                        "cookies": browser.cookies,
-                        "_content": html.encode(),
-                        "status_code": 200,
-                        "elapsed": 666,
-                        "headers": {
-                            "User-Agent": browser.execute_script(
-                                "return navigator.userAgent"
-                            ),
-                            "Cookie": tools.cookies2str(browser.cookies),
-                        },
-                    }
-                )
-
-                response.browser = browser
-            except Exception as e:
-                self._webdriver_pool.remove(browser)
-                raise e
-
+            response = self.render_downloader.download(self)
         elif use_session:
-            response = self.session_downloader.download(
-                method, self.url, **self.requests_kwargs
-            )
+            response = self.session_downloader.download(self)
         else:
-            response = self.downloader.download(
-                method, self.url, **self.requests_kwargs
-            )
+            response = self.downloader.download(self)
+
+        response.make_absolute_links = self.make_absolute_links
 
         if save_cached:
             self.save_cached(response, expire_time=self.__class__.cached_expire_time)
