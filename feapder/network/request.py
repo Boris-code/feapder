@@ -10,6 +10,7 @@ Created on 2018-07-25 11:49:08
 
 import copy
 import importlib
+import re
 from typing import Union
 
 import requests
@@ -379,9 +380,9 @@ class Request:
         """
         proxies = self.proxies()
         if proxies:
-            return proxies.get("http", "").strip("http://") or proxies.get(
-                "https", ""
-            ).strip("https://")
+            return re.sub(
+                "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
+            )
 
     def user_agent(self):
         headers = self.requests_kwargs.get("headers")
