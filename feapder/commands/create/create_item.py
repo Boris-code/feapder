@@ -65,10 +65,15 @@ class CreateItem:
 
         return table_hump_format
 
-    def get_item_template(self):
-        template_path = os.path.abspath(
-            os.path.join(__file__, "../../../templates/item_template.tmpl")
-        )
+    def get_item_template(self, item_type):
+        if item_type == "Item":
+            template_path = os.path.abspath(
+                os.path.join(__file__, "../../../templates/item_template.tmpl")
+            )
+        else:
+            template_path = os.path.abspath(
+                os.path.join(__file__, "../../../templates/update_item_template.tmpl")
+            )
         with open(template_path, "r", encoding="utf-8") as file:
             item_template = file.read()
 
@@ -148,7 +153,7 @@ class CreateItem:
         if os.path.basename(os.path.dirname(os.path.abspath(item_file))) == "items":
             self._create_init.create()
 
-    def create(self, tables_name, support_dict):
+    def create(self, tables_name, item_type, support_dict):
         input_tables_name = tables_name
 
         tables_name = self.select_tables_name(tables_name)
@@ -161,7 +166,7 @@ class CreateItem:
             table_name = table_name[0]
 
             columns = self.select_columns(table_name)
-            item_template = self.get_item_template()
+            item_template = self.get_item_template(item_type)
             item_template = self.create_item(
                 item_template, columns, table_name, support_dict
             )

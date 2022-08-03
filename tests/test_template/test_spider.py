@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on {DATE}
+Created on 2022-08-03 17:35:15
 ---------
 @summary:
 ---------
-@author: {USER}
+@author: Boris
 """
 
 import feapder
 from feapder import ArgumentParser
 
 
-class ${spider_name}(feapder.BatchSpider):
+class TestSpider(feapder.BatchSpider):
     # 自定义数据库，若项目中有setting.py文件，此自定义可删除
     __custom_setting__ = dict(
         REDISDB_IP_PORTS="localhost:6379",
@@ -36,7 +36,7 @@ class ${spider_name}(feapder.BatchSpider):
 
 
 if __name__ == "__main__":
-    spider = ${spider_name}(
+    spider = TestSpider(
         redis_key="xxx:xxxx",  # 分布式爬虫调度信息存储位置
         task_table="",  # mysql中的任务表
         task_keys=["id", "xxx"],  # 需要获取任务表里的字段名，可添加多个
@@ -46,7 +46,7 @@ if __name__ == "__main__":
         batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24
     )
 
-    parser = ArgumentParser(description="${spider_name}爬虫")
+    parser = ArgumentParser(description="TestSpider爬虫")
 
     parser.add_argument(
         "--start_master",
@@ -65,5 +65,5 @@ if __name__ == "__main__":
     # spider.start_monitor_task() # 添加任务
 
     # 通过命令行启动
-    # python ${file_name} --start_master  # 添加任务
-    # python ${file_name} --start_worker  # 启动爬虫
+    # python test_spider.py --start_master  # 添加任务
+    # python test_spider.py --start_worker  # 启动爬虫

@@ -9,6 +9,9 @@ Created on 2021/2/8 11:21 上午
 """
 import argparse
 
+from terminal_layout import Fore
+from terminal_layout.extensions.choice import Choice, StringStyle
+
 import feapder.setting as setting
 from feapder.commands.create import *
 
@@ -22,21 +25,13 @@ def main():
     spider.add_argument(
         "-s",
         "--spider",
-        nargs="+",
-        help="创建爬虫\n"
-        "如 feapder create -s <spider_name> <spider_type> "
-        "spider_type=1  AirSpider; "
-        "spider_type=2  Spider; "
-        "spider_type=3  BatchSpider;",
+        help="创建爬虫 如 feapder create -s <spider_name>",
         metavar="",
     )
     spider.add_argument(
         "-i",
         "--item",
-        nargs="+",
-        help="创建item 如 feapder create -i test 则生成test表对应的item。 "
-        "支持like语法模糊匹配所要生产的表。 "
-        "若想生成支持字典方式赋值的item，则create -item test 1",
+        help="创建item 如 feapder create -i <table_name> 支持模糊匹配 如 feapder create -i %%table_name%%",
         metavar="",
     )
     spider.add_argument(
@@ -73,21 +68,35 @@ def main():
         setting.MYSQL_DB = args.db
 
     if args.item:
-        item_name, *support_dict = args.item
-        support_dict = bool(support_dict)
-        CreateItem().create(item_name, support_dict)
+        c = Choice(
+            "请选择Item类型 (press <esc> to exit) ",
+            ["Item", "Item 支持字典赋值", "UpdateItem", "UpdateItem 支持字典赋值"],
+            icon_style=StringStyle(fore=Fore.green),
+            selected_style=StringStyle(fore=Fore.green),
+        )
+
+        choice = c.get_choice()
+        if choice:
+            index, value = choice
+            item_name = args.item
+            item_type = "Item" if index <= 1 else "UpdateItem"
+            support_dict = index in (1, 3)
+
+            CreateItem().create(item_name, item_type, support_dict)
 
     elif args.spider:
-        spider_name, *spider_type = args.spider
-        if not spider_type:
-            spider_type = 1
-        else:
-            spider_type = spider_type[0]
-        try:
-            spider_type = int(spider_type)
-        except:
-            raise ValueError("spider_type error, support 1, 2, 3")
-        CreateSpider().create(spider_name, spider_type)
+        c = Choice(
+            "请选择爬虫模板 (press <esc> to exit) ",
+            ["AirSpider", "Spider", "TaskSpider", "BatchSpider"],
+            icon_style=StringStyle(fore=Fore.green),
+            selected_style=StringStyle(fore=Fore.green),
+        )
+
+        choice = c.get_choice()
+        if choice:
+            index, spider_type = choice
+            spider_name = args.spider
+            CreateSpider().create(spider_name, spider_type)
 
     elif args.project:
         CreateProject().create(args.project)

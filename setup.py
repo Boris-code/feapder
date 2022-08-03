@@ -51,6 +51,7 @@ requires = [
     "influxdb>=5.3.1",
     "pyperclip>=1.8.2",
     "webdriver-manager>=3.5.3",
+    "terminal-layout>=2.1.2",
 ]
 
 extras_requires = ["bitarray>=1.5.3", "PyExecJS>=1.5.1"]
