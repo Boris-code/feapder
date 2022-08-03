@@ -495,6 +495,58 @@ def get_param(url, key):
     return None
 
 
+def get_all_params(url):
+    """
+    >>> get_all_params("https://api.pinduoduo.com/api/alexa/homepage/hub?page_id=index.html?dy_sub_page=home&install_token=72b46dd5-6065-454a-8ed1-4ada787df0d6&list_id=68853135&client_time=1636438142852&top_opt_version=1&scale=2.75&support_formats=1&nuz_version=2&req_action_type=10&engine_version=2.0&launch_channel=1&pdduid=")
+    {'page_id': 'index.html?dy_sub_page=home', 'install_token': '72b46dd5-6065-454a-8ed1-4ada787df0d6', 'list_id': '68853135', 'client_time': '1636438142852', 'top_opt_version': '1', 'scale': '2.75', 'support_formats': '1', 'nuz_version': '2', 'req_action_type': '10', 'engine_version': '2.0', 'launch_channel': '1', 'pdduid': ''}
+    """
+    params_json = {}
+    params = url.split("?", 1)[-1].split("&")
+    for param in params:
+        key_value = param.split("=", 1)
+        if len(key_value) == 2:
+            params_json[key_value[0]] = unquote_url(key_value[1])
+        else:
+            params_json[key_value[0]] = ""
+
+    return params_json
+
+
+def parse_url_params(url):
+    """
+    解析yrl参数
+    :param url:
+    :return:
+
+    >>> parse_url_params("https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD")
+    ('https://www.baidu.com/s', {'wd': '你好'})
+    >>> parse_url_params("wd=%E4%BD%A0%E5%A5%BD")
+    ('', {'wd': '你好'})
+    >>> parse_url_params("https://www.baidu.com/s?wd=%E4%BD%A0%E5%A5%BD&pn=10")
+    ('https://www.baidu.com/s', {'wd': '你好', 'pn': '10'})
+    >>> parse_url_params("wd=%E4%BD%A0%E5%A5%BD&pn=10")
+    ('', {'wd': '你好', 'pn': '10'})
+    >>> parse_url_params("https://www.baidu.com")
+    ('https://www.baidu.com', {})
+    >>> parse_url_params("https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html")
+    ('https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html', {})
+    """
+    root_url = ""
+    params = {}
+    if "?" not in url:
+        if re.search("[&=]", url) and not re.search("/", url):
+            # 只有参数
+            params = get_all_params(url)
+        else:
+            root_url = url
+
+    else:
+        root_url = url.split("?", 1)[0]
+        params = get_all_params(url)
+
+    return root_url, params
+
+
 def urlencode(params):
     """
     字典类型的参数转为字符串

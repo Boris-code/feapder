@@ -69,7 +69,7 @@ def main():
 
     if args.item:
         c = Choice(
-            "请选择Item类型 (press <esc> to exit) ",
+            "请选择Item类型",
             ["Item", "Item 支持字典赋值", "UpdateItem", "UpdateItem 支持字典赋值"],
             icon_style=StringStyle(fore=Fore.green),
             selected_style=StringStyle(fore=Fore.green),
@@ -86,7 +86,7 @@ def main():
 
     elif args.spider:
         c = Choice(
-            "请选择爬虫模板 (press <esc> to exit) ",
+            "请选择爬虫模板",
             ["AirSpider", "Spider", "TaskSpider", "BatchSpider"],
             icon_style=StringStyle(fore=Fore.green),
             selected_style=StringStyle(fore=Fore.green),
@@ -121,6 +121,9 @@ def main():
 
     elif args.params:
         CreateParams().create()
+
+    else:
+        spider.print_help()
 
 
 if __name__ == "__main__":

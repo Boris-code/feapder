@@ -50,20 +50,23 @@ def _print_commands():
 
 
 def execute():
-    args = sys.argv
-    if len(args) < 2:
-        _print_commands()
-        return
+    try:
+        args = sys.argv
+        if len(args) < 2:
+            _print_commands()
+            return
 
-    command = args.pop(1)
-    if command == "create":
-        create_builder.main()
-    elif command == "shell":
-        shell.main()
-    elif command == "zip":
-        zip.main()
-    else:
-        _print_commands()
+        command = args.pop(1)
+        if command == "create":
+            create_builder.main()
+        elif command == "shell":
+            shell.main()
+        elif command == "zip":
+            zip.main()
+        else:
+            _print_commands()
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == "__main__":

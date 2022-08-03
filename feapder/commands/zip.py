@@ -51,9 +51,9 @@ def parse_args():
     )
     parser.add_argument("dir_path", type=str, help="文件夹路径")
     parser.add_argument("zip_name", type=str, nargs="?", help="压缩后的文件名，默认为文件夹名.zip")
-    parser.add_argument("-i", type=str, nargs="?", help="忽略文件，支持正则；逗号分隔")
-    parser.add_argument("-I", type=str, nargs="?", help="忽略文件夹，支持正则；逗号分隔")
-    parser.add_argument("-d", type=str, nargs="?", help="输出路径 默认为当前目录")
+    parser.add_argument("-i", help="忽略文件，逗号分隔，支持正则", metavar="")
+    parser.add_argument("-I", help="忽略文件夹，逗号分隔，支持正则 ", metavar="")
+    parser.add_argument("-o", help="输出路径，默认为当前目录", metavar="")
 
     args = parser.parse_args()
     return args
@@ -69,7 +69,7 @@ def main():
         ignore_dirs.extend(args.I.split(","))
     dir_path = args.dir_path
     zip_name = args.zip_name or os.path.basename(dir_path) + ".zip"
-    if args.d:
-        zip_name = os.path.join(args.d, os.path.basename(zip_name))
+    if args.o:
+        zip_name = os.path.join(args.o, os.path.basename(zip_name))
 
     zip(dir_path, zip_name, ignore_dirs=ignore_dirs, ignore_files=ignore_files)
