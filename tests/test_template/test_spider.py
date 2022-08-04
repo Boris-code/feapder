@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on 2022-08-03 17:35:15
+Created on 2022-08-04 17:58:45
 ---------
 @summary:
 ---------
@@ -11,7 +11,7 @@ import feapder
 from feapder import ArgumentParser
 
 
-class TestSpider(feapder.BatchSpider):
+class TestSpider(feapder.TaskSpider):
     # 自定义数据库，若项目中有setting.py文件，此自定义可删除
     __custom_setting__ = dict(
         REDISDB_IP_PORTS="localhost:6379",
@@ -25,7 +25,9 @@ class TestSpider(feapder.BatchSpider):
     )
 
     def start_requests(self, task):
-        yield feapder.Request("https://spidertools.cn")
+        task_id = task.id
+        url = task.url
+        yield feapder.Request(url, task_id=task_id)
 
     def parse(self, request, response):
         # 提取网站title
@@ -34,17 +36,25 @@ class TestSpider(feapder.BatchSpider):
         print(response.xpath("//meta[@name='description']/@content").extract_first())
         print("网站地址: ", response.url)
 
+        # mysql 需要更新任务状态为做完 即 state=1
+        yield self.update_task_batch(request.task_id)
+
 
 if __name__ == "__main__":
+    # 用mysql做任务表，需要先建好任务任务表
     spider = TestSpider(
-        redis_key="xxx:xxxx",  # 分布式爬虫调度信息存储位置
+        redis_key="xxx:xxx",  # 分布式爬虫调度信息存储位置
         task_table="",  # mysql中的任务表
-        task_keys=["id", "xxx"],  # 需要获取任务表里的字段名，可添加多个
+        task_keys=["id", "url"],  # 需要获取任务表里的字段名，可添加多个
         task_state="state",  # mysql中任务状态字段
-        batch_record_table="xxx_batch_record",  # mysql中的批次记录表
-        batch_name="xxx(周全)",  # 批次名字
-        batch_interval=7,  # 批次周期 天为单位 若为小时 可写 1 / 24
     )
+
+    # 用redis做任务表
+    # spider = TestSpider(
+    #     redis_key="xxx:xxxx",  # 分布式爬虫调度信息存储位置
+    #     task_table="", # 任务表名
+    #     task_table_type="redis", # 任务表类型为redis
+    # )
 
     parser = ArgumentParser(description="TestSpider爬虫")
 
