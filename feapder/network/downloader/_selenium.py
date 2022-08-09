@@ -42,7 +42,7 @@ class SeleniumDownloader(RenderDownloader):
             if cookie_str:
                 cookies = tools.get_cookies_from_str(cookie_str)
 
-        proxy = request.proxy
+        proxy = request.proxy()
         browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
 
         url = request.url
