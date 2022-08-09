@@ -50,6 +50,40 @@ class WebDriver(RemoteWebDriver):
     PHANTOMJS = "PHANTOMJS"
     FIREFOX = "FIREFOX"
 
+    __CHROME_ATTRS__ = {
+        "executable_path",
+        "port",
+        "options",
+        "service_args",
+        "desired_capabilities",
+        "service_log_path",
+        "chrome_options",
+        "keep_alive",
+    }
+
+    __FIREFOX_ATTRS__ = {
+        "firefox_profile",
+        "firefox_binary",
+        "timeout",
+        "capabilities",
+        "proxy",
+        "executable_path",
+        "options",
+        "service_log_path",
+        "firefox_options",
+        "service_args",
+        "desired_capabilities",
+        "log_path",
+        "keep_alive",
+    }
+    __PHANTOMJS_ATTRS__ = {
+        "executable_path",
+        "port",
+        "desired_capabilities",
+        "service_args",
+        "service_log_path",
+    }
+
     def __init__(
         self,
         load_images=True,
@@ -96,6 +130,7 @@ class WebDriver(RemoteWebDriver):
         self._download_path = download_path
         self._auto_install_driver = auto_install_driver
         self._use_stealth_js = use_stealth_js
+        self._kwargs = kwargs
 
         if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
             raise Exception(
@@ -133,6 +168,17 @@ class WebDriver(RemoteWebDriver):
         self.quit()
         return True
 
+    def filter_kwargs(self, kwargs: dict, driver_attrs: set):
+        if not kwargs:
+            return {}
+
+        data = {}
+        for key, value in kwargs.items():
+            if key in driver_attrs:
+                data[key] = value
+
+        return data
+
     def get_driver(self):
         return self.driver
 
@@ -169,26 +215,19 @@ class WebDriver(RemoteWebDriver):
             for arg in self._custom_argument:
                 firefox_options.add_argument(arg)
 
+        kwargs = self.filter_kwargs(self._kwargs, self.__FIREFOX_ATTRS__)
+
         if self._executable_path:
-            driver = webdriver.Firefox(
-                capabilities=firefox_capabilities,
-                options=firefox_options,
-                firefox_profile=firefox_profile,
-                executable_path=self._executable_path,
-            )
+            kwargs.update(executable_path=self._executable_path)
         elif self._auto_install_driver:
-            driver = webdriver.Firefox(
-                capabilities=firefox_capabilities,
-                options=firefox_options,
-                firefox_profile=firefox_profile,
-                executable_path=GeckoDriverManager().install(),
-            )
-        else:
-            driver = webdriver.Firefox(
-                capabilities=firefox_capabilities,
-                options=firefox_options,
-                firefox_profile=firefox_profile,
-            )
+            kwargs.update(executable_path=GeckoDriverManager().install())
+
+        driver = webdriver.Firefox(
+            capabilities=firefox_capabilities,
+            options=firefox_options,
+            firefox_profile=firefox_profile,
+            **kwargs,
+        )
 
         if self._window_size:
             driver.set_window_size(*self._window_size)
@@ -244,17 +283,13 @@ class WebDriver(RemoteWebDriver):
             for arg in self._custom_argument:
                 chrome_options.add_argument(arg)
 
+        kwargs = self.filter_kwargs(self._kwargs, self.__CHROME_ATTRS__)
         if self._executable_path:
-            driver = webdriver.Chrome(
-                options=chrome_options, executable_path=self._executable_path
-            )
+            kwargs.update(executable_path=self._executable_path)
         elif self._auto_install_driver:
-            driver = webdriver.Chrome(
-                options=chrome_options,
-                executable_path=ChromeDriverManager().install(),
-            )
-        else:
-            driver = webdriver.Chrome(options=chrome_options)
+            kwargs.update(executable_path=ChromeDriverManager().install())
+
+        driver = webdriver.Chrome(options=chrome_options, **kwargs)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
@@ -317,16 +352,14 @@ class WebDriver(RemoteWebDriver):
             for arg in self._custom_argument:
                 service_args.append(arg)
 
+        kwargs = self.filter_kwargs(self._kwargs, self.__PHANTOMJS_ATTRS__)
+
         if self._executable_path:
-            driver = webdriver.PhantomJS(
-                service_args=service_args,
-                desired_capabilities=dcap,
-                executable_path=self._executable_path,
-            )
-        else:
-            driver = webdriver.PhantomJS(
-                service_args=service_args, desired_capabilities=dcap
-            )
+            kwargs.update(executable_path=self._executable_path)
+
+        driver = webdriver.PhantomJS(
+            service_args=service_args, desired_capabilities=dcap, **kwargs
+        )
 
         if self._window_size:
             driver.set_window_size(self._window_size[0], self._window_size[1])
