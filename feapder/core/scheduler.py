@@ -402,19 +402,19 @@ class Scheduler(threading.Thread):
                 msg, level="error", message_prefix="《%s》爬虫导出数据失败" % (self._spider_name)
             )
 
-    def delete_tables(self, delete_tables_list):
-        if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._redis_key + "*"]
-        elif not isinstance(delete_tables_list, (list, tuple)):
-            delete_tables_list = [delete_tables_list]
+    def delete_tables(self, delete_keys):
+        if delete_keys == True:
+            delete_keys = [self._redis_key + "*"]
+        elif not isinstance(delete_keys, (list, tuple)):
+            delete_keys = [delete_keys]
 
-        for delete_tab in delete_tables_list:
-            if not delete_tab.startswith(self._redis_key):
-                delete_tab = self._redis_key + delete_tab
-            tables = self._redisdb.getkeys(delete_tab)
-            for table in tables:
-                log.debug("正在删除key %s" % table)
-                self._redisdb.clear(table)
+        for delete_key in delete_keys:
+            if not delete_key.startswith(self._redis_key):
+                delete_key = self._redis_key + delete_key
+            keys = self._redisdb.getkeys(delete_key)
+            for key in keys:
+                log.debug("正在删除key %s" % key)
+                self._redisdb.clear(key)
 
     def _stop_all_thread(self):
         self._request_buffer.stop()

@@ -274,22 +274,6 @@ class DebugSpider(Spider):
     def save_cached(self, request, response, table):
         pass
 
-    def delete_tables(self, delete_tables_list):
-        if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._redis_key + "*"]
-        elif not isinstance(delete_tables_list, (list, tuple)):
-            delete_tables_list = [delete_tables_list]
-
-        redis = RedisDB()
-        for delete_tab in delete_tables_list:
-            if delete_tab == "*":
-                delete_tab = self._redis_key + "*"
-
-            tables = redis.getkeys(delete_tab)
-            for table in tables:
-                log.debug("正在清理表 %s" % table)
-                redis.clear(table)
-
     def __start_requests(self):
         yield self._request
 

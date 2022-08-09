@@ -735,22 +735,6 @@ class DebugTaskSpider(TaskSpider):
 
             return update_item
 
-    def delete_tables(self, delete_tables_list):
-        if isinstance(delete_tables_list, bool):
-            delete_tables_list = [self._redis_key + "*"]
-        elif not isinstance(delete_tables_list, (list, tuple)):
-            delete_tables_list = [delete_tables_list]
-
-        redis = RedisDB()
-        for delete_tab in delete_tables_list:
-            if delete_tab == "*":
-                delete_tab = self._redis_key + "*"
-
-            tables = redis.getkeys(delete_tab)
-            for table in tables:
-                log.debug("正在清理表 %s" % table)
-                redis.clear(table)
-
     def run(self):
         self.start_monitor_task()
 
