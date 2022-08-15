@@ -450,8 +450,6 @@ class AirSpiderParserControl(ParserControl):
                     if not self.is_show_tip:
                         log.debug("等待任务...")
                         self.is_show_tip = True
-
-                    time.sleep(1)
                     continue
 
                 self.is_show_tip = False
@@ -459,7 +457,6 @@ class AirSpiderParserControl(ParserControl):
 
             except Exception as e:
                 log.exception(e)
-                time.sleep(3)
 
     def deal_request(self, request):
         response = None
@@ -562,7 +559,7 @@ class AirSpiderParserControl(ParserControl):
                                 self.deal_request(result)
                             else:  # 异步
                                 # 将next_request 入库
-                                self._memory_db.add(result)
+                                self._memory_db.add(result, ignore_max_size=True)
 
                         elif isinstance(result, Item):
                             self._item_buffer.put_item(result)
@@ -686,7 +683,7 @@ class AirSpiderParserControl(ParserControl):
                                     setting.SPIDER_MAX_RETRY_TIMES,
                                 )
                             )
-                            self._memory_db.add(request)
+                            self._memory_db.add(request, ignore_max_size=True)
 
                 else:
                     # 记录下载成功的文档
