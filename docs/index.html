@@ -2,160 +2,159 @@
 <html lang="zh">
 
 <head>
-    <meta charset="UTF-8">
-    <title>feapder-document</title>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
-    <meta name="description" content="feapder官方文档">
-    <meta name="keywords"
-        content="feapder官方文档,feapder文档,feapder document,feapder 教程,爬虫框架,Boris,批次爬虫,分布式爬虫">
-    <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta name="baidu-site-verification" content="code-5vXrzaZgX6" />
-    <link rel="stylesheet" href="./lib/docsify/lib/themes/vue.css">
+  <meta charset="UTF-8">
+  <title>feapder-document</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="description" content="feapder官方文档">
+  <meta name="keywords" content="feapder官方文档,feapder文档,feapder document,feapder 教程,爬虫框架,Boris,批次爬虫,分布式爬虫">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta name="baidu-site-verification" content="code-5vXrzaZgX6" />
+  <link rel="stylesheet" href="./lib/docsify/lib/themes/vue.css">
 
-    <meta name="robots" content="all"/>
+  <meta name="robots" content="all" />
 
-    <!-- 谷歌统计 -->
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-KS7S55K3YN"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
+  <!-- 谷歌统计 -->
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-KS7S55K3YN"></script>
+  <script>
+    window.dataLayer = window.dataLayer || []
+    function gtag() { dataLayer.push(arguments) }
+    gtag('js', new Date())
 
-        gtag('config', 'G-KS7S55K3YN');
-    </script>
+    gtag('config', 'G-KS7S55K3YN');
+  </script>
 
-    <!-- 百度统计 -->
-    <script>
-        var _hmt = _hmt || [];
-        (function () {
-            var hm = document.createElement("script");
-            hm.src = "https://hm.baidu.com/hm.js?f45b875b62fd14ec127215dd2057b3cd";
-            var s = document.getElementsByTagName("script")[0];
-            s.parentNode.insertBefore(hm, s);
-        })();
-    </script>
+  <!-- 百度统计 -->
+  <script>
+    var _hmt = _hmt || [];
+    (function () {
+      var hm = document.createElement("script")
+      hm.src = "https://hm.baidu.com/hm.js?f45b875b62fd14ec127215dd2057b3cd"
+      var s = document.getElementsByTagName("script")[0]
+      s.parentNode.insertBefore(hm, s)
+    })();
+  </script>
 
 
 </head>
 
 <body>
-    <div id="app"></div>
-    <!-- docsify-edit-on-github -->
-    <script src="./lib/docsify/lib/plugins/docsify-edit-on-github.js"></script>
+  <div id="app"></div>
+  <!-- docsify-edit-on-github -->
+  <script src="./lib/docsify/lib/plugins/docsify-edit-on-github.js"></script>
 
-    <script>
-        window.$docsify = {
-            name: 'feapder-document',
-            repo: 'https://github.com/Boris-code/feapder',
-            loadNavbar: true,
-            loadSidebar: true,
-            coverpage: true,
-            auto2top: true,
-            maxLevel: 2,
-            subMaxLevel: 3,
-            search: {
-                placeholder: '搜索',
-                noData: '找不到结果!',
-                depth: 3
-            },
-            alias: {
-                '/.*/_sidebar.md': '/_sidebar.md',//防止意外回退
-                '/.*/_navbar.md': '/_navbar.md'
-            },
-            ga: 'UA-144208445-1',
-            plugins: [
-                function (hook) {
-                    var header = [
-                        '<p>',
-                        '<a href="https://www.aliyun.com/sale-season/2020/procurement-new-members?userCode=44mjc0yx">',
-                        '<img src="/images/aliyun_sale.jpg" alt="阿里云" width="640px" height="60px">',
-                        '</a>',
-                        '</p>'
-                    ].join('');
-                    var footer = [
-                        '<hr/>',
-                        '<footer style="text-align: center">',
-                        '<span><a href="http://www.beian.miit.gov.cn/" target="_blank">苏ICP备19059396号-1</a></span>',
-                        '</footer>'
-                    ].join('');
-                    hook.afterEach(function (html) {
-                        // var isReadme = window.location.href.indexOf("README");
-                        var isReadme = 1; // 可以投放广告
-                        if (isReadme === -1) {
-                            return header + html + footer;
-                        } else {
-                            return html;
-                        }
-                    });
-                },
-                // docsify-edit-on-github
-                EditOnGithubPlugin.create("https://github.com/Boris-code/feapder/tree/master/docs/",
-                    null,
-                    '修正此页'
-                )
-            ]
-        }
-    </script>
-
-    <!--gitter 聊天室  -->
-    <script>
-            ((window.gitter = {}).chat = {}).options = {
-            //需要在gitter上创建rootm
-            room: 'feapder/community',
-            preload: true,
-            activation: true
-        };
-    </script>
-    <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
-
-    <!-- 评论 -->
-    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
-    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
-    <script>
-        var path = location.href.match(/(?<=#)[^?]*/g)
-        path = path ? path[0] : "/"
-        const gitalk = new Gitalk({
-            clientID: '9bbc1bce85637dc3fd74',
-            clientSecret: 'fff857ba856732b11b0e38e18103ff3444c667d6',
-            repo: 'feapder',
-            owner: 'Boris-code',
-            admin: 'Boris-code',
-            proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',
-            id: decodeURI(path), // 取地址#xxx? 中的xxx， 防止默认的评论id超过50字
-            // facebook-like distraction free mode
-            distractionFreeMode: false
-        })
-        // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。
-        window.onhashchange = function (event) {
-            if (event.newURL.indexOf("#") !== -1 && event.oldURL.indexOf("#") !== -1) {
-                if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
-                    if (event.newURL.indexOf("?") === -1) {
-                        location.replace(event.newURL)
-                        location.reload()
-                    }
-                }
+  <script>
+    window.$docsify = {
+      name: 'feapder-document',
+      repo: 'https://github.com/Boris-code/feapder',
+      loadNavbar: true,
+      loadSidebar: true,
+      coverpage: true,
+      auto2top: true,
+      maxLevel: 2,
+      subMaxLevel: 3,
+      search: {
+        placeholder: '搜索',
+        noData: '找不到结果!',
+        depth: 3
+      },
+      alias: {
+        '/.*/_sidebar.md': '/_sidebar.md',//防止意外回退
+        '/.*/_navbar.md': '/_navbar.md'
+      },
+      ga: 'UA-144208445-1',
+      plugins: [
+        function (hook) {
+          var header = [
+            '<p>',
+            '<a href="https://www.aliyun.com/sale-season/2020/procurement-new-members?userCode=44mjc0yx">',
+            '<img src="/images/aliyun_sale.jpg" alt="阿里云" width="640px" height="60px">',
+            '</a>',
+            '</p>'
+          ].join('')
+          var footer = [
+            '<hr/>',
+            '<footer style="text-align: center">',
+            '<span><a href="https://beian.miit.gov.cn/" target="_blank">辽ICP备2021010524号-2</a></span>',
+            '</footer>'
+          ].join('')
+          hook.afterEach(function (html) {
+            // var isReadme = window.location.href.indexOf("README");
+            var isReadme = 1 // 可以投放广告
+            if (isReadme === -1) {
+              return header + html + footer
+            } else {
+              return html + footer
             }
+          })
+        },
+        // docsify-edit-on-github
+        EditOnGithubPlugin.create("https://github.com/Boris-code/feapder/tree/master/docs/",
+          null,
+          '修正此页'
+        )
+      ]
+    }
+  </script>
+
+  <!--gitter 聊天室  -->
+  <script>
+      ((window.gitter = {}).chat = {}).options = {
+      //需要在gitter上创建rootm
+      room: 'feapder/community',
+      preload: true,
+      activation: true
+    };
+  </script>
+  <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
+
+  <!-- 评论 -->
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
+  <script>
+    var path = location.href.match(/(?<=#)[^?]*/g)
+    path = path ? path[0] : "/"
+    const gitalk = new Gitalk({
+      clientID: '9bbc1bce85637dc3fd74',
+      clientSecret: 'fff857ba856732b11b0e38e18103ff3444c667d6',
+      repo: 'feapder',
+      owner: 'Boris-code',
+      admin: 'Boris-code',
+      proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',
+      id: decodeURI(path), // 取地址#xxx? 中的xxx， 防止默认的评论id超过50字
+      // facebook-like distraction free mode
+      distractionFreeMode: false
+    })
+    // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。
+    window.onhashchange = function (event) {
+      if (event.newURL.indexOf("#") !== -1 && event.oldURL.indexOf("#") !== -1) {
+        if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
+          if (event.newURL.indexOf("?") === -1) {
+            location.replace(event.newURL)
+            location.reload()
+          }
         }
+      }
+    }
         // 由于docsify/lib/plugins/gitalk.min.js文件中已经有下面代码了，所以不需要在写一次了
         // gitalk.render('gitalk-container');    // 渲染Gitalk评论组件
-    </script>
+  </script>
 
-    <!-- 其他插件 -->
-    <script src="./lib/docsify/lib/docsify.min.js"></script>
-    <script src="./lib/docsify/lib/plugins/ga.js"></script>
-    <script src="./lib/docsify/lib/plugins/search.js"></script>
-    <script src="./lib/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-    <script src="./lib/prismjs/components/prism-bash.js"></script>
-    <script src="./lib/prismjs/components/prism-java.js"></script>
-    <script src="./lib/prismjs/components/prism-sql.js"></script>
-    <script src="./lib/prismjs/components/prism-yaml.js"></script>
-    <script src="./lib/prismjs/components/prism-python.js"></script>
-    <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
-    <!-- 分页导航 -->
-    <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+  <!-- 其他插件 -->
+  <script src="./lib/docsify/lib/docsify.min.js"></script>
+  <script src="./lib/docsify/lib/plugins/ga.js"></script>
+  <script src="./lib/docsify/lib/plugins/search.js"></script>
+  <script src="./lib/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+  <script src="./lib/prismjs/components/prism-bash.js"></script>
+  <script src="./lib/prismjs/components/prism-java.js"></script>
+  <script src="./lib/prismjs/components/prism-sql.js"></script>
+  <script src="./lib/prismjs/components/prism-yaml.js"></script>
+  <script src="./lib/prismjs/components/prism-python.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+  <!-- 分页导航 -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
 
 </body>
 
