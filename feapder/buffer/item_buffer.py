@@ -241,9 +241,6 @@ class ItemBuffer(threading.Thread):
         return datas_dict
 
     def __export_to_db(self, table, datas, is_update=False, update_keys=()):
-        # 打点 校验
-        self.check_datas(table=table, datas=datas)
-
         for pipeline in self._pipelines:
             if is_update:
                 if table == self._task_table and not isinstance(
@@ -274,6 +271,7 @@ class ItemBuffer(threading.Thread):
                 )
                 return False
 
+        self.metric_datas(table=table, datas=datas)
         return True
 
     def __add_item_to_db(
@@ -403,7 +401,7 @@ class ItemBuffer(threading.Thread):
 
         self._is_adding_to_db = False
 
-    def check_datas(self, table, datas):
+    def metric_datas(self, table, datas):
         """
         打点 记录总条数及每个key情况
         @param table: 表名
