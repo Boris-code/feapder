@@ -286,6 +286,8 @@ class ParserControl(threading.Thread):
                         if not isinstance(request, Request):
                             raise Exception("exception_request 需 yield request")
 
+                        # 给request的 parser_name 赋值
+                        request.parser_name = request.parser_name or parser.name
                         if (
                             request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
                             or request.is_abandoned
@@ -638,6 +640,8 @@ class AirSpiderParserControl(ParserControl):
                         if not isinstance(request, Request):
                             raise Exception("exception_request 需 yield request")
 
+                        # 给request的 parser_name 赋值
+                        request.parser_name = request.parser_name or parser.name
                         if (
                             request.retry_times + 1 > setting.SPIDER_MAX_RETRY_TIMES
                             or request.is_abandoned
