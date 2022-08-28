@@ -79,9 +79,9 @@ class SeleniumDownloader(RenderDownloader):
             self._webdriver_pool.remove(browser)
             raise e
 
-    def close(self, response: Response):
-        if response is not None and hasattr(response, "browser"):
-            self._webdriver_pool.remove(response.browser)
+    def close(self, driver):
+        if driver:
+            self._webdriver_pool.remove(driver)
 
     def put_back(self, driver):
         """
