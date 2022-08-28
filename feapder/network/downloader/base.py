@@ -28,6 +28,12 @@ class RenderDownloader(Downloader, ABC):
         """
         pass
 
+    def close(self, driver):
+        """
+        关闭浏览器
+        """
+        pass
+
     def close_all(self):
         """
         关闭所有浏览器
