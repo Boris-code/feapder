@@ -8,7 +8,7 @@ Created on 2022/2/13 12:59 上午
 @email: boris_liu@foxmail.com
 """
 
-import argparse
+import click
 import os
 import re
 import zipfile
@@ -44,32 +44,31 @@ def zip(dir_path, zip_name, ignore_dirs: list = None, ignore_files: list = None)
     print(f"压缩成功 {dir_path} >> {zip_name}")
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="压缩文件夹, 默认排除以下文件夹及文件 .git,__pycache__,.idea,venv,.DS_Store",
-        usage="feapder zip dir_path [zip_name]",
-    )
-    parser.add_argument("dir_path", type=str, help="文件夹路径")
-    parser.add_argument("zip_name", type=str, nargs="?", help="压缩后的文件名，默认为文件夹名.zip")
-    parser.add_argument("-i", help="忽略文件，逗号分隔，支持正则", metavar="")
-    parser.add_argument("-I", help="忽略文件夹，逗号分隔，支持正则 ", metavar="")
-    parser.add_argument("-o", help="输出路径，默认为当前目录", metavar="")
+@click.command(name="zip", short_help="zip project", context_settings=dict(help_option_names=['-h', '--help']), no_args_is_help=True)
+@click.argument("dir_path")
+@click.argument("zip_name", required=False)
+@click.option("-f", "--files",  help="忽略文件，逗号分隔，支持正则", metavar="")  # -i -I 不区分大小写
+@click.option("-d", "--dirs", help="忽略文件夹，逗号分隔，支持正则", metavar="")
+@click.option("-o", help="输出路径，默认为当前目录", metavar="")
+def main(**kwargs):
+    """
+    压缩文件夹, 默认排除以下文件夹及文件 .git,__pycache__,.idea,venv,.DS_Store
+    """
 
-    args = parser.parse_args()
-    return args
-
-
-def main():
     ignore_dirs = [".git", "__pycache__", ".idea", "venv"]
     ignore_files = [".DS_Store"]
-    args = parse_args()
-    if args.i:
-        ignore_files.extend(args.i.split(","))
-    if args.I:
-        ignore_dirs.extend(args.I.split(","))
-    dir_path = args.dir_path
-    zip_name = args.zip_name or os.path.basename(dir_path) + ".zip"
-    if args.o:
-        zip_name = os.path.join(args.o, os.path.basename(zip_name))
+
+    if kwargs.get("files", ""):
+        ignore_files.extend(kwargs["files"].split(","))
+    if kwargs.get("dirs", ""):
+        ignore_dirs.extend(kwargs["dirs"].split(","))
+    dir_path = kwargs["dir_path"]
+    zip_name = kwargs.get("zip_name", "") or os.path.basename(dir_path) + ".zip"
+    if kwargs.get("o", ""):
+        zip_name = os.path.join(kwargs["o"], os.path.basename(zip_name))
 
     zip(dir_path, zip_name, ignore_dirs=ignore_dirs, ignore_files=ignore_files)
+
+
+if __name__ == '__main__':
+    main()

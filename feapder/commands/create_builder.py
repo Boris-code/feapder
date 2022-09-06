@@ -7,8 +7,8 @@ Created on 2021/2/8 11:21 上午
 @author: Boris
 @email: boris_liu@foxmail.com
 """
-import argparse
 
+import click
 from terminal_layout import Fore
 from terminal_layout.extensions.choice import Choice, StringStyle
 
@@ -16,58 +16,40 @@ import feapder.setting as setting
 from feapder.commands.create import *
 
 
-def main():
-    spider = argparse.ArgumentParser(description="生成器")
+@click.command(name="create", short_help="create project、spider、item and so on", context_settings=dict(help_option_names=['-h', '--help']), no_args_is_help=True)
+@click.option("-p", "--project", help="创建项目 如 feapder create -p <project_name>", metavar="")
+@click.option("-s", "--spider", help="创建爬虫 如 feapder create -s <spider_name>", metavar="")
+@click.option("-i", "--item", help=r"创建item 如 feapder create -i <table_name> 支持模糊匹配 如 feapder create -i %%table_name%%",
+              metavar="")
+@click.option("-t", "--table", help="根据json创建表 如 feapder create -t <table_name>", metavar="")
+@click.option("-init", help="创建__init__.py 如 feapder create -init", is_flag=True)
+@click.option("-j", "--json", help="创建json", is_flag=True)
+@click.option("-sj", "--sort_json", help="创建有序json", is_flag=True)
+@click.option("--params", help="解析地址中的参数", is_flag=True)
+@click.option("--setting", help="创建全局配置文件", is_flag=True)
+# 指定数据库
+@click.option("--host", help="mysql 连接地址", type=str, metavar="")
+@click.option("--port", help="mysql 端口", type=str, metavar="")
+@click.option("--username", help="mysql 用户名", type=str, metavar="")
+@click.option("--password", help="mysql 密码", type=str, metavar="")
+@click.option("--db", help="mysql 数据库名", type=str, metavar="")
+def main(**kwargs):
+    """
+    生成器
+    """
 
-    spider.add_argument(
-        "-p", "--project", help="创建项目 如 feapder create -p <project_name>", metavar=""
-    )
-    spider.add_argument(
-        "-s",
-        "--spider",
-        help="创建爬虫 如 feapder create -s <spider_name>",
-        metavar="",
-    )
-    spider.add_argument(
-        "-i",
-        "--item",
-        help="创建item 如 feapder create -i <table_name> 支持模糊匹配 如 feapder create -i %%table_name%%",
-        metavar="",
-    )
-    spider.add_argument(
-        "-t", "--table", help="根据json创建表 如 feapder create -t <table_name>", metavar=""
-    )
-    spider.add_argument(
-        "-init", help="创建__init__.py 如 feapder create -init", action="store_true"
-    )
-    spider.add_argument("-j", "--json", help="创建json", action="store_true")
-    spider.add_argument("-sj", "--sort_json", help="创建有序json", action="store_true")
-    spider.add_argument("-c", "--cookies", help="创建cookie", action="store_true")
-    spider.add_argument("--params", help="解析地址中的参数", action="store_true")
-    spider.add_argument(
-        "--setting", help="创建全局配置文件" "feapder create --setting", action="store_true"
-    )
+    if kwargs.get("host", ""):
+        setting.MYSQL_IP = kwargs["host"]
+    if kwargs.get("port", ""):
+        setting.MYSQL_PORT = int(kwargs["port"])
+    if kwargs.get("username", ""):
+        setting.MYSQL_USER_NAME = kwargs["username"]
+    if kwargs.get("password", ""):
+        setting.MYSQL_USER_PASS = kwargs["password"]
+    if kwargs.get("db", ""):
+        setting.MYSQL_DB = kwargs["db"]
 
-    # 指定数据库
-    spider.add_argument("--host", type=str, help="mysql 连接地址", metavar="")
-    spider.add_argument("--port", type=str, help="mysql 端口", metavar="")
-    spider.add_argument("--username", type=str, help="mysql 用户名", metavar="")
-    spider.add_argument("--password", type=str, help="mysql 密码", metavar="")
-    spider.add_argument("--db", type=str, help="mysql 数据库名", metavar="")
-    args = spider.parse_args()
-
-    if args.host:
-        setting.MYSQL_IP = args.host
-    if args.port:
-        setting.MYSQL_PORT = int(args.port)
-    if args.username:
-        setting.MYSQL_USER_NAME = args.username
-    if args.password:
-        setting.MYSQL_USER_PASS = args.password
-    if args.db:
-        setting.MYSQL_DB = args.db
-
-    if args.item:
+    if kwargs.get("item", ""):
         c = Choice(
             "请选择Item类型",
             ["Item", "Item 支持字典赋值", "UpdateItem", "UpdateItem 支持字典赋值"],
@@ -78,13 +60,13 @@ def main():
         choice = c.get_choice()
         if choice:
             index, value = choice
-            item_name = args.item
+            item_name = kwargs["item"]
             item_type = "Item" if index <= 1 else "UpdateItem"
             support_dict = index in (1, 3)
 
             CreateItem().create(item_name, item_type, support_dict)
 
-    elif args.spider:
+    elif kwargs.get("spider", ""):
         c = Choice(
             "请选择爬虫模板",
             ["AirSpider", "Spider", "TaskSpider", "BatchSpider"],
@@ -95,35 +77,32 @@ def main():
         choice = c.get_choice()
         if choice:
             index, spider_type = choice
-            spider_name = args.spider
+            spider_name = kwargs["spider"]
             CreateSpider().create(spider_name, spider_type)
 
-    elif args.project:
-        CreateProject().create(args.project)
+    elif kwargs.get("project", ""):
+        CreateProject().create(kwargs["project"])
 
-    elif args.table:
-        CreateTable().create(args.table)
+    elif kwargs.get("table", ""):
+        CreateTable().create(kwargs["table"])
 
-    elif args.init:
+    elif kwargs.get("init", ""):
         CreateInit().create()
 
-    elif args.json:
+    elif kwargs.get("json", ""):
         CreateJson().create()
 
-    elif args.sort_json:
+    elif kwargs.get("sort_json", ""):
         CreateJson().create(sort_keys=True)
 
-    elif args.cookies:
+    elif kwargs.get("cookies", ""):
         CreateCookies().create()
 
-    elif args.setting:
+    elif kwargs.get("setting", ""):
         CreateSetting().create()
 
-    elif args.params:
+    elif kwargs.get("params", ""):
         CreateParams().create()
-
-    else:
-        spider.print_help()
 
 
 if __name__ == "__main__":

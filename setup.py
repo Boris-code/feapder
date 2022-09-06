@@ -19,7 +19,8 @@ if version_info < (3, 6, 0):
 with open(join(dirname(__file__), "feapder/VERSION"), "rb") as fh:
     version = fh.read().decode("ascii").strip()
 
-with open("README.md", "r") as fh:
+# utf-8
+with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 packages = setuptools.find_packages()
@@ -52,6 +53,7 @@ requires = [
     "pyperclip>=1.8.2",
     "webdriver-manager>=3.5.3",
     "terminal-layout>=2.1.2",
+    "click>=8.1.3"
 ]
 
 extras_requires = ["bitarray>=1.5.3", "PyExecJS>=1.5.1"]

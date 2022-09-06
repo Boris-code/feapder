@@ -11,13 +11,14 @@ Created on 2020/5/9 12:37 AM
 import argparse
 import re
 import shlex
-import sys
 
 import IPython
 import pyperclip
 
 from feapder import Request
 from feapder.utils import tools
+
+import click
 
 
 def parse_curl(curl_str):
@@ -85,10 +86,10 @@ def parse_curl(curl_str):
         [
             "".join(d)
             for d in args.data
-            + args.data_ascii
-            + args.data_binary
-            + args.data_raw
-            + args.form
+                     + args.data_ascii
+                     + args.data_binary
+                     + args.data_raw
+                     + args.form
         ]
     )
     if data:
@@ -166,21 +167,6 @@ def fetch_curl():
         request(**kwargs)
 
 
-def usage():
-    """
-    下载调试器
-
-    usage: feapder shell [options] [args]
-
-    optional arguments:
-      -u, --url     抓取指定url
-      -c, --curl    抓取curl格式的请求
-
-    """
-    print(usage.__doc__)
-    sys.exit()
-
-
 def parse_args():
     parser = argparse.ArgumentParser(
         description="测试请求",
@@ -198,14 +184,18 @@ def parse_args():
     return parser, args
 
 
-def main():
-    parser, args = parse_args()
-    if args.url:
-        fetch_url(args.url[0])
-    elif args.curl:
+@click.command(name="shell", short_help="debug response", context_settings=dict(help_option_names=['-h', '--help']), no_args_is_help=True)
+@click.option("-u", "--url", help="请求指定地址, 如 feapder shell --url http://www.spidertools.cn/", metavar="")
+@click.option("-c", "--curl", help="执行curl，调试响应", is_flag=True)
+def main(**kwargs):
+    """
+    测试请求
+    """
+
+    if kwargs.get("url", ""):
+        fetch_url(kwargs["url"])
+    elif kwargs.get("curl", ""):
         fetch_curl()
-    else:
-        parser.print_help()
 
 
 if __name__ == "__main__":
