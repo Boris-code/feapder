@@ -7,6 +7,7 @@ Created on 2022/9/7 4:05 PM
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+
 from requests.cookies import RequestsCookieJar
 
 import feapder.setting as setting
@@ -23,7 +24,7 @@ class PlaywrightDownloader(RenderDownloader):
     def _webdriver_pool(self):
         if not self.__class__.webdriver_pool:
             self.__class__.webdriver_pool = WebDriverPool(
-                **setting.WEBDRIVER, driver=PlaywrightDriver
+                **setting.WEBDRIVER, driver_cls=PlaywrightDriver, thread_safe=True
             )
 
         return self.__class__.webdriver_pool
@@ -95,4 +96,6 @@ class PlaywrightDownloader(RenderDownloader):
         """
         关闭所有浏览器
         """
-        self._webdriver_pool.close()
+        # 不支持
+        # self._webdriver_pool.close()
+        pass

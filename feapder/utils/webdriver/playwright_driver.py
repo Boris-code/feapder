@@ -14,6 +14,7 @@ from playwright.sync_api import Page, BrowserContext
 from playwright.sync_api import Playwright, Browser
 from playwright.sync_api import sync_playwright
 
+from feapder.utils.log import log
 from feapder.utils.webdriver.webdirver import WebDriver
 
 
@@ -37,6 +38,16 @@ class PlaywrightDriver(WebDriver):
         self.context.add_init_script(path=path)
 
         self.page = self.context.new_page()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if exc_val:
+            log.error(exc_val)
+
+        self.quit()
+        return True
 
     def quit(self):
         self.page.close()

@@ -8,31 +8,60 @@ Created on 2021/3/18 4:59 下午
 @email: boris_liu@foxmail.com
 """
 
-import logging
 import queue
 import threading
 
-from feapder.utils.log import OTHERS_LOG_LEVAL
+from feapder.utils.log import log
 from feapder.utils.tools import Singleton
 from feapder.utils.webdriver.selenium_driver import SeleniumDriver
-from feapder.utils.webdriver.webdirver import WebDriver
-
-# 屏蔽webdriver_manager日志
-logging.getLogger("WDM").setLevel(OTHERS_LOG_LEVAL)
 
 
 @Singleton
 class WebDriverPool:
-    def __init__(self, pool_size=5, driver: WebDriver = SeleniumDriver, **kwargs):
-        self.queue = queue.Queue(maxsize=pool_size)
+    def __init__(
+        self, pool_size=5, driver_cls=SeleniumDriver, thread_safe=False, **kwargs
+    ):
+        """
+
+        Args:
+            pool_size: driver池的大小
+            driver: 驱动类型
+            thread_safe: 是否线程安全
+                是则每个线程拥有一个driver，pool_size无效，driver数量为线程数
+                否则每个线程从池中获取driver
+            **kwargs:
+        """
+        self.pool_size = pool_size
+        self.driver_cls = driver_cls
+        self.thread_safe = thread_safe
         self.kwargs = kwargs
+
+        self.queue = queue.Queue(maxsize=pool_size)
         self.lock = threading.RLock()
         self.driver_count = 0
-        self.driver = driver
+        self.ctx = threading.local()
+
+    @property
+    def driver(self):
+        if not hasattr(self.ctx, "driver"):
+            self.ctx.driver = None
+        return self.ctx.driver
+
+    @driver.setter
+    def driver(self, driver):
+        self.ctx.driver = driver
 
     @property
     def is_full(self):
-        return self.driver_count >= self.queue.maxsize
+        return self.driver_count >= self.pool_size
+
+    def create_driver(self, user_agent: str = None, proxy: str = None):
+        kwargs = self.kwargs.copy()
+        if user_agent:
+            kwargs["user_agent"] = user_agent
+        if proxy:
+            kwargs["proxy"] = proxy
+        return self.driver_cls(**kwargs)
 
     def get(self, user_agent: str = None, proxy: str = None):
         """
@@ -44,29 +73,42 @@ class WebDriverPool:
         Returns:
 
         """
-        if not self.is_full:
+        if not self.is_full and not self.thread_safe:
             with self.lock:
                 if not self.is_full:
-                    kwargs = self.kwargs.copy()
-                    if user_agent:
-                        kwargs["user_agent"] = user_agent
-                    if proxy:
-                        kwargs["proxy"] = proxy
-                    driver = self.driver(**kwargs)
+                    driver = self.create_driver(user_agent, proxy)
                     self.queue.put(driver)
                     self.driver_count += 1
+        else:
+            if not self.driver:
+                driver = self.create_driver(user_agent, proxy)
+                self.driver = driver
+                self.driver_count += 1
 
-        driver = self.queue.get()
+        if self.thread_safe:
+            driver = self.driver
+        else:
+            driver = self.queue.get()
+
         return driver
 
     def put(self, driver):
-        self.queue.put(driver)
+        if not self.thread_safe:
+            self.queue.put(driver)
 
     def remove(self, driver):
-        driver.quit()
+        if self.thread_safe:
+            if self.driver:
+                self.driver.quit()
+                self.driver = None
+        else:
+            driver.quit()
         self.driver_count -= 1
 
     def close(self):
+        if self.thread_safe:
+            log.info("暂不支持关闭需线程安全的driver")
+
         while not self.queue.empty():
             driver = self.queue.get()
             driver.quit()
