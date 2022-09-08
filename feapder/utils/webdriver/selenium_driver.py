@@ -11,8 +11,6 @@ Created on 2021/3/18 4:59 下午
 import json
 import logging
 import os
-import queue
-import threading
 from typing import Optional, Union
 
 from selenium import webdriver
@@ -21,9 +19,8 @@ from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
-from feapder import setting
 from feapder.utils.log import log, OTHERS_LOG_LEVAL
-from feapder.utils.tools import Singleton
+from feapder.utils.webdriver.webdirver import WebDriver
 
 # 屏蔽webdriver_manager日志
 logging.getLogger("WDM").setLevel(OTHERS_LOG_LEVAL)
@@ -45,7 +42,7 @@ class XhrResponse:
         self.status_code = status_code
 
 
-class WebDriver(RemoteWebDriver):
+class SeleniumDriver(WebDriver, RemoteWebDriver):
     CHROME = "CHROME"
     PHANTOMJS = "PHANTOMJS"
     FIREFOX = "FIREFOX"
@@ -84,72 +81,27 @@ class WebDriver(RemoteWebDriver):
         "service_log_path",
     }
 
-    def __init__(
-        self,
-        load_images=True,
-        user_agent=None,
-        proxy=None,
-        headless=False,
-        driver_type=CHROME,
-        timeout=16,
-        window_size=(1024, 800),
-        executable_path=None,
-        custom_argument=None,
-        xhr_url_regexes: list = None,
-        download_path=None,
-        auto_install_driver=True,
-        use_stealth_js=True,
-        **kwargs,
-    ):
-        """
-        webdirver 封装，支持chrome、phantomjs 和 firefox
-        Args:
-            load_images: 是否加载图片
-            user_agent: 字符串 或 无参函数，返回值为user_agent
-            proxy: xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
-            headless: 是否启用无头模式
-            driver_type: CHROME 或 PHANTOMJS,FIREFOX
-            timeout: 请求超时时间
-            window_size: # 窗口大小
-            executable_path: 浏览器路径，默认为默认路径
-            xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
-            download_path: 文件下载保存路径；如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
-            auto_install_driver: 自动下载浏览器驱动 支持chrome 和 firefox
-            use_stealth_js: 使用stealth.min.js隐藏浏览器特征
-            **kwargs:
-        """
-        self._load_images = load_images
-        self._user_agent = user_agent or setting.DEFAULT_USERAGENT
-        self._proxy = proxy
-        self._headless = headless
-        self._timeout = timeout
-        self._window_size = window_size
-        self._executable_path = executable_path
-        self._custom_argument = custom_argument
-        self._xhr_url_regexes = xhr_url_regexes
-        self._download_path = download_path
-        self._auto_install_driver = auto_install_driver
-        self._use_stealth_js = use_stealth_js
-        self._kwargs = kwargs
+    def __init__(self, **kwargs):
+        super(SeleniumDriver, self).__init__(**kwargs)
 
-        if self._xhr_url_regexes and driver_type != WebDriver.CHROME:
+        if self._xhr_url_regexes and self.driver_type != SeleniumDriver.CHROME:
             raise Exception(
-                "xhr_url_regexes only support by chrome now! eg: driver_type=WebDriver.CHROME"
+                "xhr_url_regexes only support by chrome now! eg: driver_type=SeleniumDriver.CHROME"
             )
 
-        if driver_type == WebDriver.CHROME:
+        if self._driver_type == SeleniumDriver.CHROME:
             self.driver = self.chrome_driver()
 
-        elif driver_type == WebDriver.PHANTOMJS:
+        elif self._driver_type == SeleniumDriver.PHANTOMJS:
             self.driver = self.phantomjs_driver()
 
-        elif driver_type == WebDriver.FIREFOX:
+        elif self._driver_type == SeleniumDriver.FIREFOX:
             self.driver = self.firefox_driver()
 
         else:
             raise TypeError(
                 "dirver_type must be one of CHROME or PHANTOMJS or FIREFOX, but received {}".format(
-                    type(driver_type)
+                    type(self._driver_type)
                 )
             )
 
@@ -294,7 +246,7 @@ class WebDriver(RemoteWebDriver):
         # 隐藏浏览器特征
         if self._use_stealth_js:
             with open(
-                os.path.join(os.path.dirname(__file__), "./js/stealth.min.js")
+                os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
             ) as f:
                 js = f.read()
                 driver.execute_cdp_cmd(
@@ -304,7 +256,7 @@ class WebDriver(RemoteWebDriver):
         if self._xhr_url_regexes:
             assert isinstance(self._xhr_url_regexes, list)
             with open(
-                os.path.join(os.path.dirname(__file__), "./js/intercept.js")
+                os.path.join(os.path.dirname(__file__), "../js/intercept.js")
             ) as f:
                 js = f.read()
             driver.execute_cdp_cmd(
@@ -430,54 +382,3 @@ class WebDriver(RemoteWebDriver):
 
     # def __del__(self):
     #     self.quit()
-
-
-@Singleton
-class WebDriverPool:
-    def __init__(self, pool_size=5, **kwargs):
-        self.queue = queue.Queue(maxsize=pool_size)
-        self.kwargs = kwargs
-        self.lock = threading.RLock()
-        self.driver_count = 0
-
-    @property
-    def is_full(self):
-        return self.driver_count >= self.queue.maxsize
-
-    def get(self, user_agent: str = None, proxy: str = None) -> WebDriver:
-        """
-        获取webdriver
-        当webdriver为新实例时会使用 user_agen, proxy, cookie参数来创建
-        Args:
-            user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
-            proxy: xxx.xxx.xxx.xxx
-        Returns:
-
-        """
-        if not self.is_full:
-            with self.lock:
-                if not self.is_full:
-                    kwargs = self.kwargs.copy()
-                    if user_agent:
-                        kwargs["user_agent"] = user_agent
-                    if proxy:
-                        kwargs["proxy"] = proxy
-                    driver = WebDriver(**kwargs)
-                    self.queue.put(driver)
-                    self.driver_count += 1
-
-        driver = self.queue.get()
-        return driver
-
-    def put(self, driver):
-        self.queue.put(driver)
-
-    def remove(self, driver):
-        driver.quit()
-        self.driver_count -= 1
-
-    def close(self):
-        while not self.queue.empty():
-            driver = self.queue.get()
-            driver.quit()
-            self.driver_count -= 1
