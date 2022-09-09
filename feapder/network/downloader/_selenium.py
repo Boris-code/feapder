@@ -28,12 +28,12 @@ class SeleniumDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        proxy = request.proxy
-        user_agent = request.user_agent
-        cookies = request.cookies
+        proxy = request.get_proxy()
+        user_agent = request.get_user_agent()
+        cookies = request.get_cookies()
         url = request.url
-        if request.params:
-            url = tools.joint_url(url, request.params)
+        if request.get_params():
+            url = tools.joint_url(url, request.get_params())
 
         browser: SeleniumDriver = self._webdriver_pool.get(
             user_agent=user_agent, proxy=proxy

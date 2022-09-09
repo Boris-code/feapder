@@ -368,12 +368,10 @@ class Request:
 
         return response
 
-    @property
-    def params(self):
+    def get_params(self):
         return self.requests_kwargs.get("params")
 
-    @property
-    def proxies(self):
+    def get_proxies(self) -> dict:
         """
 
         Returns: {"https": "https://ip:port", "http": "http://ip:port"}
@@ -381,35 +379,35 @@ class Request:
         """
         return self.requests_kwargs.get("proxies")
 
-    @property
-    def proxy(self):
+    def get_proxy(self) -> str:
         """
 
         Returns: ip:port
 
         """
-        proxies = self.proxies
+        proxies = self.get_proxies()
         if proxies:
             return re.sub(
                 "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
             )
 
-    @property
-    def headers(self):
+    def get_headers(self) -> dict:
         return self.requests_kwargs.get("headers", {})
 
-    @property
-    def user_agent(self):
-        return self.headers.get("user_agent") or self.headers.get("User-Agent")
+    def get_user_agent(self) -> str:
+        return self.get_headers().get("user_agent") or self.get_headers().get(
+            "User-Agent"
+        )
 
-    @property
-    def cookies(self) -> dict:
+    def get_cookies(self) -> dict:
         cookies = self.requests_kwargs.get("cookies")
         if cookies and isinstance(cookies, RequestsCookieJar):
             cookies = cookies.get_dict()
 
         if not cookies:
-            cookie_str = self.headers.get("Cookie") or self.headers.get("cookie")
+            cookie_str = self.get_headers().get("Cookie") or self.get_headers().get(
+                "cookie"
+            )
             if cookie_str:
                 cookies = tools.get_cookies_from_str(cookie_str)
         return cookies

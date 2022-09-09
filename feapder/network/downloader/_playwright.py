@@ -8,8 +8,6 @@ Created on 2022/9/7 4:05 PM
 @email: boris_liu@foxmail.com
 """
 
-from requests.cookies import RequestsCookieJar
-
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.network.downloader.base import RenderDownloader
@@ -30,12 +28,12 @@ class PlaywrightDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        proxy = request.proxy
-        user_agent = request.user_agent
-        cookies = request.cookies
+        proxy = request.get_proxy()
+        user_agent = request.get_user_agent()
+        cookies = request.get_cookies()
         url = request.url
-        if request.params:
-            url = tools.joint_url(url, request.params)
+        if request.get_params():
+            url = tools.joint_url(url, request.get_params())
 
         driver: PlaywrightDriver = self._webdriver_pool.get(
             user_agent=user_agent, proxy=proxy
