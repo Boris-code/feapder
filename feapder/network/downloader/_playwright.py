@@ -30,29 +30,16 @@ class PlaywrightDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        requests_kwargs = request.requests_kwargs
+        proxy = request.proxy
+        user_agent = request.user_agent
+        cookies = request.cookies
+        url = request.url
+        if request.params:
+            url = tools.joint_url(url, request.params)
 
-        headers = requests_kwargs.get("headers")
-        user_agent = headers.get("User-Agent") or headers.get("user-agent")
-
-        cookies = requests_kwargs.get("cookies")
-        if cookies and isinstance(cookies, RequestsCookieJar):
-            cookies = cookies.get_dict()
-
-        if not cookies:
-            cookie_str = headers.get("Cookie") or headers.get("cookie")
-            if cookie_str:
-                cookies = tools.get_cookies_from_str(cookie_str)
-
-        proxy = request.proxy()
         driver: PlaywrightDriver = self._webdriver_pool.get(
             user_agent=user_agent, proxy=proxy
         )
-
-        url = request.url
-        if requests_kwargs.get("params"):
-            url = tools.joint_url(url, requests_kwargs.get("params"))
-
         try:
             driver.page.goto(url)
             if cookies:

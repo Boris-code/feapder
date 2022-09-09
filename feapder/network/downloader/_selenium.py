@@ -35,8 +35,10 @@ class SeleniumDownloader(RenderDownloader):
         if request.params:
             url = tools.joint_url(url, request.params)
 
+        browser: SeleniumDriver = self._webdriver_pool.get(
+            user_agent=user_agent, proxy=proxy
+        )
         try:
-            browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
             browser.get(url)
             if cookies:
                 browser.cookies = cookies
