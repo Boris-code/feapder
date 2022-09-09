@@ -24,43 +24,39 @@
     Available commands:
       create        create project、feapder、item and so on
       shell         debug response
+      zip           zip project
 
     Use "feapder <command> -h" to see more info about a command
 
 
-可见feapder支持`create`及`shell`两种命令
+可见feapder支持`create`、`shell`及`zip`三种命令
 
 ## 2. feapder create
 
 使用feapder create 可快速创建项目、爬虫、item等，具体支持的命令可输入`feapder create -h` 查看使用帮助
 
     > feapder create -h
-    usage: feapder [-h] [-p] [-s  [...]] [-i  [...]] [-t] [-init] [-j] [-sj]
-                   [--host] [--port] [--username] [--password] [--db]
+    usage: cmdline.py [-h] [-p] [-s] [-i] [-t] [-init] [-j] [-sj] [-c] [--params] [--setting] [--host] [--port] [--username] [--password] [--db]
 
     生成器
-
+    
     optional arguments:
-      -h, --help            show this help message and exit
-      -p , --project        创建项目 如 feapder create -p <project_name>
-      -s  [ ...], --spider  [ ...]
-                            创建爬虫 如 feapder create -s <spider_name> <spider_type>
-                            spider_type=1 AirSpider; spider_type=2 Spider;
-                            spider_type=3 BatchSpider;
-      -i  [ ...], --item  [ ...]
-                            创建item 如 feapder create -i test 则生成test表对应的item。
-                            支持like语法模糊匹配所要生产的表。 若想生成支持字典方式赋值的item，则create -item
-                            test 1
-      -t , --table          根据json创建表 如 feapder create -t <table_name>
-      -init                 创建__init__.py 如 feapder create -init
-      -j, --json            创建json
-      -sj, --sort_json      创建有序json
-      --setting             创建全局配置文件 feapder create -setting
-      --host                mysql 连接地址
-      --port                mysql 端口
-      --username            mysql 用户名
-      --password            mysql 密码
-      --db                  mysql 数据库名
+      -h, --help        show this help message and exit
+      -p , --project    创建项目 如 feapder create -p <project_name>
+      -s , --spider     创建爬虫 如 feapder create -s <spider_name>
+      -i , --item       创建item 如 feapder create -i <table_name> 支持模糊匹配 如 feapder create -i %table_name%
+      -t , --table      根据json创建表 如 feapder create -t <table_name>
+      -init             创建__init__.py 如 feapder create -init
+      -j, --json        创建json
+      -sj, --sort_json  创建有序json
+      -c, --cookies     创建cookie
+      --params          解析地址中的参数
+      --setting         创建全局配置文件feapder create --setting
+      --host            mysql 连接地址
+      --port            mysql 端口
+      --username        mysql 用户名
+      --password        mysql 密码
+      --db              mysql 数据库名
 
 具体使用方法如下：
 
@@ -87,23 +83,23 @@
 
 ### 2. 创建爬虫
 
-爬虫分为3种，分别为 轻量级爬虫（AirSpider）、分布式爬虫（Spider）以及 批次爬虫（BatchSpider）
-
 命令
 
-    feapder create -s <spider_name> <spider_type>
+    feapder create -s <spider_name>
+    
+示例：创建名为first_spider的爬虫
 
-* AirSpider 对应的 spider_type 值为 1
-* Spider 对应的 spider_type 值为 2
-* BatchSpider 对应的 spider_type 值为 3
-* 默认 spider_type 值为 1
+```shell
+feapder create -s first_spider
 
-AirSpider爬虫示例：
-
-    feapder create -s first_spider 1
-
-
-生成first_spider.py, 内容如下：
+请选择爬虫模板
+> AirSpider
+  Spider
+  TaskSpider
+  BatchSpider
+``` 
+    
+输入命令后，可以按上下键选择爬虫模板，如选择 AirSpider爬虫模板，生成first_spider.py, 内容如下：
 
     import feapder
 
@@ -120,7 +116,7 @@ AirSpider爬虫示例：
         FirstSpider().start()
 
 
-若为项目结构，建议先进入到spiders目录下，再创建爬虫
+若在项目下创建，建议先进入到spiders目录下，再创建爬虫
 
 ### 3. 创建 item
 
@@ -130,6 +126,16 @@ item为与数据库表的映射，与数据入库的逻辑相关。
 命令
 
     feapder create -i <item_name>
+    
+输出：
+
+```
+请选择Item类型
+> Item
+  Item 支持字典赋值
+  UpdateItem
+  UpdateItem 支持字典赋值
+```
 
 示例
 
@@ -189,9 +195,9 @@ class SpiderDataItem(Item):
 
 这样，以后所有的项目setting.py中均可不配置mysql连接信息
 
-**若item字段过多，不想逐一赋值，可通过如下方式创建**
+**若item字段过多，不想逐一赋值，可选择支持字典赋值的Item类型创建**
 
-    feapder create -i spider_data 1
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/09/09/16626945562298.jpg)
 
 生成：
 
@@ -218,7 +224,7 @@ item = SpiderDataItem(**response_data)
 ```
 
 
-### 4. 创建json 或 有序json
+### 4. 创建json或有序json
 
 此命令和快速将 `xxx:xxx` 这种字符串格式转为json格式，常用于将网页或者抓包工具抓取出来的header、cookie转为json
 
