@@ -14,6 +14,7 @@ import re
 from typing import Union
 
 import requests
+from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import feapder.setting as setting
@@ -49,7 +50,8 @@ class Request:
     render_downloader: RenderDownloader = import_cls(setting.RENDER_DOWNLOADER)
 
     __REQUEST_ATTRS__ = {
-        # 'method', 'url', 必须传递 不加入**kwargs中
+        # "method",
+        # "url",
         "params",
         "data",
         "headers",
@@ -68,6 +70,7 @@ class Request:
 
     DEFAULT_KEY_VALUE = dict(
         url="",
+        method=None,
         retry_times=0,
         priority=300,
         parser_name=None,
@@ -228,14 +231,15 @@ class Request:
             ):
                 continue
 
-            if key in self.__class__.__REQUEST_ATTRS__:
-                if not isinstance(
-                    value, (bytes, bool, float, int, str, tuple, list, dict)
-                ):
-                    value = tools.dumps_obj(value)
-            else:
-                if not isinstance(value, (bytes, bool, float, int, str)):
-                    value = tools.dumps_obj(value)
+            if value is not None:
+                if key in self.__class__.__REQUEST_ATTRS__:
+                    if not isinstance(
+                        value, (bytes, bool, float, int, str, tuple, list, dict)
+                    ):
+                        value = tools.dumps_obj(value)
+                else:
+                    if not isinstance(value, (bytes, bool, float, int, str)):
+                        value = tools.dumps_obj(value)
 
             request_dict[key] = value
 
@@ -364,6 +368,11 @@ class Request:
 
         return response
 
+    @property
+    def params(self):
+        return self.requests_kwargs.get("params")
+
+    @property
     def proxies(self):
         """
 
@@ -372,22 +381,38 @@ class Request:
         """
         return self.requests_kwargs.get("proxies")
 
+    @property
     def proxy(self):
         """
 
         Returns: ip:port
 
         """
-        proxies = self.proxies()
+        proxies = self.proxies
         if proxies:
             return re.sub(
                 "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
             )
 
+    @property
+    def headers(self):
+        return self.requests_kwargs.get("headers", {})
+
+    @property
     def user_agent(self):
-        headers = self.requests_kwargs.get("headers")
-        if headers:
-            return headers.get("user_agent") or headers.get("User-Agent")
+        return self.headers.get("user_agent") or self.headers.get("User-Agent")
+
+    @property
+    def cookies(self) -> dict:
+        cookies = self.requests_kwargs.get("cookies")
+        if cookies and isinstance(cookies, RequestsCookieJar):
+            cookies = cookies.get_dict()
+
+        if not cookies:
+            cookie_str = self.headers.get("Cookie") or self.headers.get("cookie")
+            if cookie_str:
+                cookies = tools.get_cookies_from_str(cookie_str)
+        return cookies
 
     @property
     def fingerprint(self):

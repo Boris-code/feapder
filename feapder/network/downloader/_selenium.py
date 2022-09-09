@@ -8,8 +8,6 @@ Created on 2022/7/26 4:28 下午
 @email: boris_liu@foxmail.com
 """
 
-from requests.cookies import RequestsCookieJar
-
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.network.downloader.base import RenderDownloader
@@ -30,28 +28,15 @@ class SeleniumDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        requests_kwargs = request.requests_kwargs
-
-        headers = requests_kwargs.get("headers")
-        user_agent = headers.get("User-Agent") or headers.get("user-agent")
-
-        cookies = requests_kwargs.get("cookies")
-        if cookies and isinstance(cookies, RequestsCookieJar):
-            cookies = cookies.get_dict()
-
-        if not cookies:
-            cookie_str = headers.get("Cookie") or headers.get("cookie")
-            if cookie_str:
-                cookies = tools.get_cookies_from_str(cookie_str)
-
-        proxy = request.proxy()
-        browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
-
+        proxy = request.proxy
+        user_agent = request.user_agent
+        cookies = request.cookies
         url = request.url
-        if requests_kwargs.get("params"):
-            url = tools.joint_url(url, requests_kwargs.get("params"))
+        if request.params:
+            url = tools.joint_url(url, request.params)
 
         try:
+            browser = self._webdriver_pool.get(user_agent=user_agent, proxy=proxy)
             browser.get(url)
             if cookies:
                 browser.cookies = cookies
