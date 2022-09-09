@@ -40,3 +40,7 @@ def test_from_text():
     print(resp.text)
     print(resp)
     print(resp.xpath("//script"))
+
+def test_to_dict():
+    request = Request("https://www.baidu.com?a=1&b=2", data={"a":1}, params="k=1", callback="test", task_id=1, cookies={"a":1})
+    print(request.to_dict)

@@ -201,7 +201,7 @@ def parse_args():
 def main():
     parser, args = parse_args()
     if args.url:
-        fetch_url(args.url[0])
+        fetch_url(args.url)
     elif args.curl:
         fetch_curl()
     else:
