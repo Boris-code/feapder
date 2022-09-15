@@ -384,7 +384,7 @@ class ParserControl(threading.Thread):
 
                 finally:
                     # 释放浏览器
-                    if response and hasattr(response, "browser"):
+                    if response and response.browser:
                         request.render_downloader.put_back(response.browser)
 
                 break
@@ -702,7 +702,7 @@ class AirSpiderParserControl(ParserControl):
 
                 finally:
                     # 释放浏览器
-                    if response and hasattr(response, "browser"):
+                    if response and response.browser:
                         request.render_downloader.put_back(response.browser)
 
                 break

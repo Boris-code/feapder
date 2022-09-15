@@ -60,6 +60,7 @@ class Response(res):
         self._encoding = None
 
         self.encoding_errors = "strict"  # strict / replace / ignore
+        self.browser = self.driver = None
 
     @classmethod
     def from_text(
@@ -372,9 +373,8 @@ class Response(res):
         return self.selector.re_first(regex, default, replace_entities)
 
     def close_browser(self, request):
-        if hasattr(self, "browser"):
+        if self.browser:
             request.render_downloader.close(self.browser)
-            del self.browser
 
     def __del__(self):
         self.close()
