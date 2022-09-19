@@ -34,10 +34,12 @@ class PlaywrightDriver(WebDriver):
         )
 
         self.context = self.browser.new_context(user_agent=self._user_agent)
-        path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
-        self.context.add_init_script(path=path)
+        if self._use_stealth_js:
+            path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
+            self.context.add_init_script(path=path)
 
         self.page = self.context.new_page()
+        self.page.set_default_timeout(self._timeout * 1000)
 
     def __enter__(self):
         return self
