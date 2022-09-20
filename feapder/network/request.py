@@ -162,7 +162,11 @@ class Request:
         self.is_abandoned = is_abandoned
         self.render = render
         self.render_time = render_time or setting.WEBDRIVER.get("render_time", 0)
-        self.make_absolute_links = make_absolute_links
+        self.make_absolute_links = (
+            make_absolute_links
+            if make_absolute_links is not None
+            else setting.MAKE_ABSOLUTE_LINKS
+        )
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
