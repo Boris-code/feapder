@@ -112,7 +112,7 @@ main函数为命令行参数解析，分别定义了两种获取任务的方式�
 
 #### 3.1 add_task: 
 
-框架内置的函数，在调用start_monitor_task时会自动调度此函数，用于初始化任务种子，若不需要，可直接删除词函数
+框架内置的函数，在调用start_monitor_task时会自动调度此函数，用于初始化任务种子，若不需要，可直接删除此函数
 
 本代码示例为向redis的`spider_task2`的key加了个值为`{"id": 1, "url": "https://www.baidu.com"}`的种子
 
