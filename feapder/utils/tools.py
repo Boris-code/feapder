@@ -2037,7 +2037,7 @@ def get_method(obj, name):
         return None
 
 
-def witch_workspace(project_path):
+def switch_workspace(project_path):
     """
     @summary:
     ---------
