@@ -41,6 +41,7 @@ class WebDriver:
             timeout: 请求超时时间
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
+            custom_argument: 自定义参数 用于webdriver.Chrome(options=chrome_options, **kwargs)
             xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
             download_path: 文件下载保存路径；如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
             auto_install_driver: 自动下载浏览器驱动 支持chrome 和 firefox
