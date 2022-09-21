@@ -1,63 +1,100 @@
+import unittest
+
+from redis import Redis
+
 from feapder.dedup import Dedup
 
-data = {"xxx": 123, "xxxx": "xxxx"}
 
-datas = ["xxx", "bbb"]
+class TestDedup(unittest.TestCase):
+    def clear(self):
+        self.absolute_name = "test_dedup"
+        redis = Redis.from_url("redis://@localhost:6379/0", decode_responses=True)
+        keys = redis.keys(self.absolute_name + "*")
+        if keys:
+            redis.delete(*keys)
 
+    def setUp(self) -> None:
+        self.clear()
+        self.mock_data()
 
-def test_MemoryFilter():
-    dedup = Dedup(Dedup.MemoryFilter)  # 表名为test 历史数据3秒有效期
+    def tearDown(self) -> None:
+        self.clear()
 
-    # 逐条去重
-    assert dedup.add(data) == 1
-    assert dedup.get(data) == 1
+    def mock_data(self):
+        self.data = {"xxx": 123, "xxxx": "xxxx"}
+        self.datas = ["xxx", "bbb"]
 
-    # 批量去重
-    assert dedup.add(datas) == [1, 1]
-    assert dedup.get(datas) == [1, 1]
+    def test_MemoryFilter(self):
+        dedup = Dedup(
+            Dedup.MemoryFilter, absolute_name=self.absolute_name
+        )  # 表名为test 历史数据3秒有效期
 
+        # 逐条去重
+        self.assertEqual(dedup.add(self.data), 1)
+        self.assertEqual(dedup.get(self.data), 1)
 
-def test_ExpireFilter():
-    dedup = Dedup(
-        Dedup.ExpireFilter, expire_time=10, redis_url="redis://@localhost:6379/0"
-    )
+        # 批量去重
+        self.assertEqual(dedup.add(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [1, 1])
 
-    # 逐条去重
-    assert dedup.add(data) == 1
-    assert dedup.get(data) == 1
+    def test_ExpireFilter(self):
+        dedup = Dedup(
+            Dedup.ExpireFilter,
+            expire_time=10,
+            redis_url="redis://@localhost:6379/0",
+            absolute_name=self.absolute_name,
+        )
 
-    # 批量去重
-    assert dedup.add(datas) == [1, 1]
-    assert dedup.get(datas) == [1, 1]
+        # 逐条去重
+        self.assertEqual(dedup.add(self.data), 1)
+        self.assertEqual(dedup.get(self.data), 1)
 
+        # 批量去重
+        self.assertEqual(dedup.add(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [1, 1])
 
-def test_BloomFilter():
-    dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0")
+    def test_BloomFilter(self):
+        dedup = Dedup(
+            Dedup.BloomFilter,
+            redis_url="redis://@localhost:6379/0",
+            absolute_name=self.absolute_name,
+        )
 
-    # 逐条去重
-    assert dedup.add(data) == 1
-    assert dedup.get(data) == 1
+        # 逐条去重
+        self.assertEqual(dedup.add(self.data), 1)
+        self.assertEqual(dedup.get(self.data), 1)
 
-    # 批量去重
-    assert dedup.add(datas) == [1, 1]
-    assert dedup.get(datas) == [1, 1]
+        # 批量去重
+        self.assertEqual(dedup.add(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [1, 1])
 
+    def test_LiteFilter(self):
+        dedup = Dedup(
+            Dedup.LiteFilter,
+        )
 
-def test_filter():
-    dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0")
+        # 逐条去重
+        self.assertEqual(dedup.add(self.data), 1)
+        self.assertEqual(dedup.get(self.data), 1)
 
-    # 制造已存在数据
-    datas = ["xxx", "bbb"]
-    dedup.add(datas)
+        # 批量去重
+        self.assertEqual(dedup.add(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [1, 1])
 
-    # 过滤掉已存在数据 "xxx", "bbb"
-    datas = ["xxx", "bbb", "ccc"]
-    dedup.filter_exist_data(datas)
-    assert datas == ["ccc"]
+    def test_filter(self):
+        dedup = Dedup(
+            Dedup.BloomFilter,
+            redis_url="redis://@localhost:6379/0",
+            to_md5=True,
+            absolute_name=self.absolute_name,
+        )
 
-def test_ScalableBloomFilter():
-    dedup = Dedup(Dedup.BloomFilter, redis_url="redis://@localhost:6379/0", initial_capacity=10)
-    for i in range(1000):
-        print(dedup.add(i))
+        # 制造已存在数据
+        self.datas = ["xxx", "bbb"]
+        result = dedup.add(self.datas)
+        self.assertEqual(result, [1, 1])
 
-test_ScalableBloomFilter()
+        # 过滤掉已存在数据 "xxx", "bbb"
+        self.datas = ["xxx", "bbb", "ccc"]
+        dedup.filter_exist_data(self.datas)
+        self.assertEqual(self.datas, ["ccc"])

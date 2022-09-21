@@ -11,9 +11,10 @@ Created on 2018/12/13 9:44 PM
 import time
 
 from feapder.db.redisdb import RedisDB
+from feapder.dedup.basefilter import BaseFilter
 
 
-class ExpireFilter:
+class ExpireFilter(BaseFilter):
     redis_db = None
 
     def __init__(
