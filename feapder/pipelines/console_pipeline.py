@@ -10,6 +10,7 @@ Created on 2021/3/18 12:39 上午
 
 from feapder.pipelines import BasePipeline
 from typing import Dict, List, Tuple
+from feapder.utils.log import log
 
 
 class ConsolePipeline(BasePipeline):
@@ -28,7 +29,7 @@ class ConsolePipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-
+        log.info("【调试输出】共导出 %s 条数据 到 %s" % (len(items), table))
         return True
 
     def update_items(self, table, items: List[Dict], update_keys=Tuple) -> bool:
@@ -43,5 +44,5 @@ class ConsolePipeline(BasePipeline):
                  若False，不会将本批数据入到去重库，以便再次入库
 
         """
-
+        log.info("【调试输出】共导出 %s 条数据 到 %s" % (len(items), table))
         return True
