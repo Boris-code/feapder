@@ -164,6 +164,8 @@ class TaskParser(BaseParser):
         else:
             log.error("置任务%s状态失败  sql=%s" % (task_id, sql))
 
+    update_task = update_task_state
+
     def update_task_batch(self, task_id, state=1, **kwargs):
         """
         批量更新任务 多处调用，更新的字段必须一致
@@ -182,7 +184,8 @@ class TaskParser(BaseParser):
 
         return update_item
 
-class BatchParser(BaseParser):
+
+class BatchParser(TaskParser):
     """
     @summary: 批次爬虫模版
     ---------
@@ -191,70 +194,11 @@ class BatchParser(BaseParser):
     def __init__(
         self, task_table, batch_record_table, task_state, date_format, mysqldb=None
     ):
-        self._mysqldb = mysqldb or MysqlDB()  # mysqldb
-
-        self._task_table = task_table  # mysql中的任务表
-        self._batch_record_table = batch_record_table  # mysql 中的批次记录表
-        self._task_state = task_state  # mysql中任务表的state字段名
-        self._date_format = date_format  # 批次日期格式
-
-    def add_task(self):
-        """
-        @summary: 添加任务, 每次启动start_monitor 都会调用，且在init_task之前调用
-        ---------
-        ---------
-        @result:
-        """
-
-    def start_requests(self, task):
-        """
-        @summary:
-        ---------
-        @param task: 任务信息 list
-        ---------
-        @result:
-        """
-
-    def update_task_state(self, task_id, state=1, **kwargs):
-        """
-        @summary: 更新任务表中任务状态，做完每个任务时代码逻辑中要主动调用。可能会重写
-        调用方法为 yield lambda : self.update_task_state(task_id, state)
-        ---------
-        @param task_id:
-        @param state:
-        ---------
-        @result:
-        """
-
-        kwargs["id"] = task_id
-        kwargs[self._task_state] = state
-
-        sql = tools.make_update_sql(
-            self._task_table, kwargs, condition="id = {task_id}".format(task_id=task_id)
+        super(BatchParser, self).__init__(
+            task_table=task_table, task_state=task_state, mysqldb=mysqldb
         )
-
-        if self._mysqldb.update(sql):
-            log.debug("置任务%s状态成功" % task_id)
-        else:
-            log.error("置任务%s状态失败  sql=%s" % (task_id, sql))
-
-    def update_task_batch(self, task_id, state=1, **kwargs):
-        """
-        批量更新任务 多处调用，更新的字段必须一致
-        注意：需要 写成 yield update_task_batch(...) 否则不会更新
-        @param task_id:
-        @param state:
-        @param kwargs:
-        @return:
-        """
-        kwargs["id"] = task_id
-        kwargs[self._task_state] = state
-
-        update_item = UpdateItem(**kwargs)
-        update_item.table_name = self._task_table
-        update_item.name_underline = self._task_table + "_item"
-
-        return update_item
+        self._batch_record_table = batch_record_table  # mysql 中的批次记录表
+        self._date_format = date_format  # 批次日期格式
 
     @property
     def batch_date(self):
