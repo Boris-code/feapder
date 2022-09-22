@@ -155,7 +155,7 @@ class ParserControl(threading.Thread):
 
                     # 校验
                     if parser.validate(request, response) == False:
-                        continue
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
@@ -530,7 +530,7 @@ class AirSpiderParserControl(ParserControl):
 
                     # 校验
                     if parser.validate(request, response) == False:
-                        continue
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
