@@ -7,14 +7,23 @@ Created on 2022/9/15 8:47 PM
 @author: Boris
 @email: boris_liu@foxmail.com
 """
-import time
+
+from playwright.sync_api import Response
 
 import feapder
 
 
+def on_response(response: Response):
+    print(response.url)
+
+
 class TestPlaywright(feapder.AirSpider):
     __custom_setting__ = dict(
-        RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader"
+        RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
+        WEBDRIVER=dict(
+            page_on_event_callback=dict(response=on_response),  # 监听response事件
+            storage_state_path="playwright_state.json",  # 保存登录状态
+        ),
     )
 
     def start_requests(self):
@@ -231,7 +240,7 @@ class TestPlaywright(feapder.AirSpider):
 
     def parse(self, reqeust, response):
         print(response.text)
-        time.sleep(1000000)
+        response.browser.save_storage_stage()
 
 
 if __name__ == "__main__":

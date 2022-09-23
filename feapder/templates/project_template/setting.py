@@ -44,6 +44,13 @@
 # SPIDER_MAX_RETRY_TIMES = 10  # 每个请求最大重试次数
 # KEEP_ALIVE = False  # 爬虫是否常驻
 
+# 下载
+# DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
+# SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
+# RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
+# # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
+# MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
+
 # # 浏览器渲染
 # WEBDRIVER = dict(
 #     pool_size=1,  # 浏览器的数量
@@ -63,6 +70,9 @@
 #     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
 #     auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
 #     use_stealth_js=True,  # 使用stealth.min.js隐藏浏览器特征
+#     # 以下是playwright的参数
+#     page_on_event_callback = None,
+#     storage_state_path = None,
 # )
 #
 # # 爬虫启动时，重新抓取失败的requests

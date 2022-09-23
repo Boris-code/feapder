@@ -1111,6 +1111,26 @@ def mkdir(path):
         pass
 
 
+def get_cache_path(filename, root_dir=None, local=False):
+    """
+    Args:
+        filename:
+        root_dir:
+        local: 是否存储到当前目录
+
+    Returns:
+
+    """
+    if root_dir is None:
+        if local:
+            root_dir = os.path.join(sys.path[0], ".cache")
+        else:
+            root_dir = os.path.join(os.path.expanduser("~"), ".feapder/cache")
+    file_path = f"{root_dir}{os.sep}{filename}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    return f"{root_dir}{os.sep}{filename}"
+
+
 def write_file(filename, content, mode="w", encoding="utf-8"):
     """
     @summary: 写文件

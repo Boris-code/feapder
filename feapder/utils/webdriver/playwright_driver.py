@@ -21,7 +21,9 @@ from feapder.utils.webdriver.webdirver import WebDriver
 
 
 class PlaywrightDriver(WebDriver):
-    def __init__(self, page_on_event_callback: dict = None, **kwargs):
+    def __init__(
+        self, page_on_event_callback: dict = None, storage_state_path=None, **kwargs
+    ):
         """
 
         Args:
@@ -33,9 +35,10 @@ class PlaywrightDriver(WebDriver):
         self.browser: Browser = None
         self.context: BrowserContext = None
         self.page: Page = None
+        self.url = None
+        self.storage_state_path = storage_state_path
         self._page_on_event_callback = page_on_event_callback
         self._setup()
-        self.url = None
 
     def _setup(self):
         # 处理参数
@@ -68,6 +71,9 @@ class PlaywrightDriver(WebDriver):
             screen=view_size,
             viewport=view_size,
             proxy=proxy,
+            storage_state=self.storage_state_path
+            if os.path.exists(self.storage_state_path)
+            else None,
         )
         if self._use_stealth_js:
             path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
@@ -116,6 +122,11 @@ class PlaywrightDriver(WebDriver):
             context_proxy = ProxySettings(server=proxy)
 
         return context_proxy
+
+    def save_storage_stage(self):
+        if self.storage_state_path:
+            os.makedirs(os.path.dirname(self.storage_state_path))
+            self.context.storage_state(path=self.storage_state_path)
 
     def quit(self):
         self.page.close()
