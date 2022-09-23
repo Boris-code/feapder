@@ -25,6 +25,7 @@ from feapder.network.downloader.base import Downloader, RenderDownloader
 from feapder.network.proxy_pool import ProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
+from feapder.utils.tools import LazyProperty
 
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -45,9 +46,20 @@ class Request:
     cached_expire_time = 1200  # 缓存过期时间
 
     # 下载器
-    downloader: Downloader = import_cls(setting.DOWNLOADER)
-    session_downloader: Downloader = import_cls(setting.SESSION_DOWNLOADER)
-    render_downloader: RenderDownloader = import_cls(setting.RENDER_DOWNLOADER)
+    @classmethod
+    @LazyProperty
+    def downloader(cls) -> Downloader:
+        return import_cls(setting.DOWNLOADER)
+
+    @classmethod
+    @LazyProperty
+    def session_downloader(cls) -> Downloader:
+        return import_cls(setting.SESSION_DOWNLOADER)
+
+    @classmethod
+    @LazyProperty
+    def render_downloader(cls) -> RenderDownloader:
+        return import_cls(setting.RENDER_DOWNLOADER)
 
     __REQUEST_ATTRS__ = {
         # "method",

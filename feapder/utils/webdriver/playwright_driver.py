@@ -9,11 +9,13 @@ Created on 2022/9/7 4:11 PM
 """
 
 import os
+from typing import Union, List
 
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
 from playwright.sync_api import Playwright, Browser
 from playwright.sync_api import sync_playwright
 
+from feapder.utils import tools
 from feapder.utils.log import log
 from feapder.utils.webdriver.webdirver import WebDriver
 
@@ -33,6 +35,7 @@ class PlaywrightDriver(WebDriver):
         self.page: Page = None
         self._page_on_event_callback = page_on_event_callback
         self._setup()
+        self.url = None
 
     def _setup(self):
         # 处理参数
@@ -121,6 +124,10 @@ class PlaywrightDriver(WebDriver):
         self.driver.stop()
 
     @property
+    def domain(self):
+        return tools.get_domain(self.url or self.page.url)
+
+    @property
     def cookies(self):
         cookies_json = {}
         for cookie in self.page.context.cookies():
@@ -129,19 +136,24 @@ class PlaywrightDriver(WebDriver):
         return cookies_json
 
     @cookies.setter
-    def cookies(self, val: dict):
+    def cookies(self, val: Union[dict, List[dict]]):
         """
         设置cookie
         Args:
-            val: {"key":"value", "key2":"value2"}
+            val: List[{name: str, value: str, url: Union[str, NoneType], domain: Union[str, NoneType], path: Union[str, NoneType], expires: Union[float, NoneType], httpOnly: Union[bool, NoneType], secure: Union[bool, NoneType], sameSite: Union["Lax", "None", "Strict", NoneType]}]
 
         Returns:
 
         """
-        cookies = []
-        for key, value in val.items():
-            cookies.append({"name": key, "value": value})
-        self.page.context.add_cookies(cookies)
+        if isinstance(val, list):
+            self.page.context.add_cookies(val)
+        else:
+            cookies = []
+            for key, value in val.items():
+                cookies.append(
+                    {"name": key, "value": value, "url": self.url or self.page.url}
+                )
+            self.page.context.add_cookies(cookies)
 
     @property
     def user_agent(self):

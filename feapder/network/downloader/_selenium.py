@@ -42,6 +42,9 @@ class SeleniumDownloader(RenderDownloader):
             browser.get(url)
             if cookies:
                 browser.cookies = cookies
+                # 刷新使cookie生效
+                browser.get(url)
+
             if request.render_time:
                 tools.delay_time(request.render_time)
 

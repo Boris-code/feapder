@@ -11,7 +11,7 @@ Created on 2021/3/18 4:59 下午
 import json
 import logging
 import os
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -19,6 +19,7 @@ from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
 
+from feapder.utils import tools
 from feapder.utils.log import log, OTHERS_LOG_LEVAL
 from feapder.utils.webdriver.webdirver import WebDriver
 
@@ -109,6 +110,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         self.driver.set_page_load_timeout(self._timeout)
         # 设置10秒脚本超时时间
         self.driver.set_script_timeout(self._timeout)
+        self.url = None
 
     def __enter__(self):
         return self
@@ -321,6 +323,10 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         return driver
 
     @property
+    def domain(self):
+        return tools.get_domain(self.url or self.driver.current_url)
+
+    @property
     def cookies(self):
         cookies_json = {}
         for cookie in self.driver.get_cookies():
@@ -329,7 +335,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         return cookies_json
 
     @cookies.setter
-    def cookies(self, val: dict):
+    def cookies(self, val: Union[dict, List[dict]]):
         """
         设置cookie
         Args:
@@ -338,8 +344,21 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         Returns:
 
         """
-        for key, value in val.items():
-            self.driver.add_cookie({"name": key, "value": value})
+        if isinstance(val, list):
+            for cookie in val:
+                # "path", "domain", "secure", "expiry"
+                _cookie = {
+                    "name": cookie.get("name"),
+                    "value": cookie.get("value"),
+                    "domain": cookie.get("domain"),
+                    "path": cookie.get("path"),
+                    "expires": cookie.get("expires"),
+                    "secure": cookie.get("secure"),
+                }
+                self.driver.add_cookie(_cookie)
+        else:
+            for key, value in val.items():
+                self.driver.add_cookie({"name": key, "value": value})
 
     @property
     def user_agent(self):

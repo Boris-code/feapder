@@ -85,6 +85,23 @@ class Singleton(object):
         return self._instance[self._cls]
 
 
+class LazyProperty:
+    """
+    属性延时初始化，且只初始化一次
+    """
+
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            value = self.func(instance)
+            setattr(instance, self.func.__name__, value)
+            return value
+
+
 def log_function_time(func):
     try:
 
@@ -743,20 +760,8 @@ def get_form_data(form):
     return data
 
 
-# mac上不好使
-# def get_domain(url):
-#     domain = ''
-#     try:
-#         domain = get_tld(url)
-#     except Exception as e:
-#         log.debug(e)
-#     return domain
-
-
 def get_domain(url):
-    proto, rest = urllib.parse.splittype(url)
-    domain, rest = urllib.parse.splithost(rest)
-    return domain
+    return urllib.parse.urlparse(url).netloc
 
 
 def get_index_url(url):

@@ -39,9 +39,11 @@ class PlaywrightDownloader(RenderDownloader):
             user_agent=user_agent, proxy=proxy
         )
         try:
-            driver.page.goto(url)
             if cookies:
+                driver.url = url
                 driver.cookies = cookies
+            driver.page.goto(url)
+
             if request.render_time:
                 tools.delay_time(request.render_time)
 
