@@ -22,7 +22,7 @@ class PlaywrightDownloader(RenderDownloader):
     def _webdriver_pool(self):
         if not self.__class__.webdriver_pool:
             self.__class__.webdriver_pool = WebDriverPool(
-                **setting.WEBDRIVER, driver_cls=PlaywrightDriver, thread_safe=True
+                **setting.PLAYWRIGHT, driver_cls=PlaywrightDriver, thread_safe=True
             )
 
         return self.__class__.webdriver_pool

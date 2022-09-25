@@ -66,15 +66,22 @@ class PlaywrightDriver(WebDriver):
             downloads_path=self._download_path,
         )
 
-        self.context = self.browser.new_context(
-            user_agent=user_agent,
-            screen=view_size,
-            viewport=view_size,
-            proxy=proxy,
-            storage_state=self.storage_state_path
-            if os.path.exists(self.storage_state_path)
-            else None,
-        )
+        if self.storage_state_path and os.path.exists(self.storage_state_path):
+            self.context = self.browser.new_context(
+                user_agent=user_agent,
+                screen=view_size,
+                viewport=view_size,
+                proxy=proxy,
+                storage_state=self.storage_state_path,
+            )
+        else:
+            self.context = self.browser.new_context(
+                user_agent=user_agent,
+                screen=view_size,
+                viewport=view_size,
+                proxy=proxy,
+            )
+
         if self._use_stealth_js:
             path = os.path.join(os.path.dirname(__file__), "../js/stealth.min.js")
             self.context.add_init_script(path=path)
@@ -125,7 +132,7 @@ class PlaywrightDriver(WebDriver):
 
     def save_storage_stage(self):
         if self.storage_state_path:
-            os.makedirs(os.path.dirname(self.storage_state_path))
+            os.makedirs(os.path.dirname(self.storage_state_path), exist_ok=True)
             self.context.storage_state(path=self.storage_state_path)
 
     def quit(self):

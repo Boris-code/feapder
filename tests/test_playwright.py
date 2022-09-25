@@ -20,9 +20,9 @@ def on_response(response: Response):
 class TestPlaywright(feapder.AirSpider):
     __custom_setting__ = dict(
         RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
-        WEBDRIVER=dict(
+        PLAYWRIGHT=dict(
             page_on_event_callback=dict(response=on_response),  # 监听response事件
-            storage_state_path="playwright_state.json",  # 保存登录状态
+            # storage_state_path="playwright_state.json",  # 保存登录状态
         ),
     )
 
