@@ -65,24 +65,27 @@ class BaseParser(object):
 
         pass
 
-    def exception_request(self, request, response):
+    def exception_request(self, request, response, e):
         """
         @summary: 请求或者parser里解析出异常的request
         ---------
         @param request:
         @param response:
+        @param e: 异常
         ---------
         @result: request / callback / None (返回值必须可迭代)
         """
 
         pass
 
-    def failed_request(self, request, response):
+    def failed_request(self, request, response, e):
         """
         @summary: 超过最大重试次数的request
         可返回修改后的request  若不返回request，则将传进来的request直接人redis的failed表。否则将修改后的request入failed表
         ---------
         @param request:
+        @param response:
+        @param e: 异常
         ---------
         @result: request / item / callback / None (返回值必须可迭代)
         """
