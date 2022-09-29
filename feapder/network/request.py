@@ -9,9 +9,7 @@ Created on 2018-07-25 11:49:08
 """
 
 import copy
-import importlib
 import re
-from typing import Union
 
 import requests
 from requests.cookies import RequestsCookieJar
@@ -30,12 +28,6 @@ from feapder.utils.log import log
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def import_cls(cls_info) -> Union[Downloader, RenderDownloader]:
-    module, class_name = cls_info.rsplit(".", 1)
-    cls = importlib.import_module(module).__getattribute__(class_name)
-    return cls()
-
-
 class Request:
     user_agent_pool = user_agent
     proxies_pool: ProxyPool = None
@@ -44,10 +36,10 @@ class Request:
     cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
     cached_expire_time = 1200  # 缓存过期时间
 
-    # 下载器 TODO 爬虫中自定义配置不生效
-    downloader: Downloader = import_cls(setting.DOWNLOADER)
-    session_downloader: Downloader = import_cls(setting.SESSION_DOWNLOADER)
-    render_downloader: RenderDownloader = import_cls(setting.RENDER_DOWNLOADER)
+    # 下载器
+    downloader: Downloader = None
+    session_downloader: Downloader = None
+    render_downloader: RenderDownloader = None
 
     __REQUEST_ATTRS__ = {
         # "method",
@@ -202,6 +194,31 @@ class Request:
             self.__class__.proxies_pool = ProxyPool()
 
         return self.__class__.proxies_pool
+
+    @property
+    def _downloader(self):
+        if not self.__class__.downloader:
+            self.__class__.downloader = tools.import_cls(setting.DOWNLOADER)()
+
+        return self.__class__.downloader
+
+    @property
+    def _session_downloader(self):
+        if not self.__class__.session_downloader:
+            self.__class__.session_downloader = tools.import_cls(
+                setting.SESSION_DOWNLOADER
+            )()
+
+        return self.__class__.session_downloader
+
+    @property
+    def _render_downloader(self):
+        if not self.__class__.render_downloader:
+            self.__class__.render_downloader = tools.import_cls(
+                setting.RENDER_DOWNLOADER
+            )()
+
+        return self.__class__.render_downloader
 
     @property
     def to_dict(self):
@@ -359,11 +376,11 @@ class Request:
         )
 
         if self.render:
-            response = self.render_downloader.download(self)
+            response = self._render_downloader.download(self)
         elif use_session:
-            response = self.session_downloader.download(self)
+            response = self._session_downloader.download(self)
         else:
-            response = self.downloader.download(self)
+            response = self._downloader.download(self)
 
         response.make_absolute_links = self.make_absolute_links
 

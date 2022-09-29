@@ -8,7 +8,6 @@ Created on 2018-06-19 17:17
 @email: boris_liu@foxmail.com
 """
 
-import importlib
 import threading
 from queue import Queue
 
@@ -21,7 +20,6 @@ from feapder.pipelines import BasePipeline
 from feapder.pipelines.mysql_pipeline import MysqlPipeline
 from feapder.utils import metrics
 from feapder.utils.log import log
-
 
 MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
@@ -79,9 +77,7 @@ class ItemBuffer(threading.Thread):
     def load_pipelines(self):
         pipelines = []
         for pipeline_path in setting.ITEM_PIPELINES:
-            module, class_name = pipeline_path.rsplit(".", 1)
-            pipeline_cls = importlib.import_module(module).__getattribute__(class_name)
-            pipeline = pipeline_cls()
+            pipeline = tools.import_cls(pipeline_path)()
             if not isinstance(pipeline, BasePipeline):
                 raise ValueError(f"{pipeline_path} 需继承 feapder.pipelines.BasePipeline")
             pipelines.append(pipeline)
@@ -91,9 +87,7 @@ class ItemBuffer(threading.Thread):
     @property
     def mysql_pipeline(self):
         if not self._mysql_pipeline:
-            module, class_name = MYSQL_PIPELINE_PATH.rsplit(".", 1)
-            pipeline_cls = importlib.import_module(module).__getattribute__(class_name)
-            self._mysql_pipeline = pipeline_cls()
+            self._mysql_pipeline = tools.import_cls(MYSQL_PIPELINE_PATH)()
 
         return self._mysql_pipeline
 

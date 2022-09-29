@@ -468,7 +468,7 @@ class Scheduler(threading.Thread):
 
         if not self._keep_alive:
             # 关闭webdirver
-            Request.render_downloader.close_all()
+            Request.render_downloader and Request.render_downloader.close_all()
 
             # 关闭打点
             metrics.close()

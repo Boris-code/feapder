@@ -16,6 +16,7 @@ import datetime
 import functools
 import hashlib
 import html
+import importlib
 import json
 import os
 import pickle
@@ -2775,3 +2776,9 @@ def ensure_float(n):
     if not n:
         return 0.0
     return float(n)
+
+
+def import_cls(cls_info):
+    module, class_name = cls_info.rsplit(".", 1)
+    cls = importlib.import_module(module).__getattribute__(class_name)
+    return cls
