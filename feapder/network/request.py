@@ -360,7 +360,7 @@ class Request:
                     or "parse",
                 ),
                 self.url,
-                self.requests_kwargs.get("method"),
+                self.method,
                 self.requests_kwargs,
             )
         )
