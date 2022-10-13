@@ -8,26 +8,35 @@ Created on 2022/9/7 4:11 PM
 @email: boris_liu@foxmail.com
 """
 
+import json
 import os
+import re
 from typing import Union, List
 
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
 from playwright.sync_api import Playwright, Browser
+from playwright.sync_api import Response
 from playwright.sync_api import sync_playwright
 
 from feapder.utils import tools
 from feapder.utils.log import log
-from feapder.utils.webdriver.webdirver import WebDriver
+from feapder.utils.webdriver.webdirver import *
 
 
 class PlaywrightDriver(WebDriver):
     def __init__(
-        self, page_on_event_callback: dict = None, storage_state_path=None, **kwargs
+        self,
+        page_on_event_callback: dict = None,
+        storage_state_path=None,
+        url_regexes: list = None,
+        **kwargs
     ):
         """
 
         Args:
             page_on_event_callback: page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
+            storage_state_path: 保存浏览器状态的路径
+            url_regexes: 拦截接口，支持正则，数组类型
             **kwargs:
         """
         super(PlaywrightDriver, self).__init__(**kwargs)
@@ -38,6 +47,9 @@ class PlaywrightDriver(WebDriver):
         self.url = None
         self.storage_state_path = storage_state_path
         self._page_on_event_callback = page_on_event_callback
+        self._cache_data = {}
+        self._url_regexes = url_regexes
+
         self._setup()
 
     def _setup(self):
@@ -92,6 +104,8 @@ class PlaywrightDriver(WebDriver):
         if self._page_on_event_callback:
             for event, callback in self._page_on_event_callback.items():
                 self.page.on(event, callback)
+        elif self._url_regexes:
+            self.page.on("response", self.on_response)
 
     def __enter__(self):
         return self
@@ -176,3 +190,38 @@ class PlaywrightDriver(WebDriver):
     @property
     def user_agent(self):
         return self.page.evaluate("() => navigator.userAgent")
+
+    def on_response(self, response: Response):
+        for regex in self._url_regexes:
+            if re.search(regex, response.request.url):
+                intercept_request = InterceptRequest(
+                    url=response.request.url,
+                    headers=response.request.headers,
+                    data=response.request.post_data,
+                )
+
+                intercept_response = InterceptResponse(
+                    request=intercept_request,
+                    url=response.url,
+                    headers=response.headers,
+                    content=response.body(),
+                    status_code=response.status,
+                )
+                self._cache_data[regex] = intercept_response
+
+    def get_response(self, url_regex) -> InterceptResponse:
+        return self._cache_data.get(url_regex)
+
+    def get_text(self, url_regex):
+        return (
+            self.get_response(url_regex).content.decode()
+            if self.get_response(url_regex)
+            else None
+        )
+
+    def get_json(self, url_regex):
+        return (
+            json.loads(self.get_text(url_regex))
+            if self.get_response(url_regex)
+            else None
+        )
