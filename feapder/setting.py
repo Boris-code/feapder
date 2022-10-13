@@ -89,8 +89,9 @@ PLAYWRIGHT = dict(
     download_path=None,  # 下载文件的路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
     use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
-    page_on_event_callback=None,
-    storage_state_path=None,
+    page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
+    storage_state_path=None,  # 保存浏览器状态的路径
+    url_regexes=None,  # 拦截接口，支持正则，数组类型
 )
 
 # 爬虫启动时，重新抓取失败的requests
