@@ -11,7 +11,8 @@ Created on 2018-07-26 11:40:28
 import datetime
 import os
 import re
-import time
+import tempfile
+import webbrowser
 from urllib.parse import urlparse, urlunparse, urljoin
 
 from bs4 import UnicodeDammit, BeautifulSoup
@@ -217,7 +218,6 @@ class Response(res):
         ]
 
         for regex in regexs:
-
             def replace_href(text):
                 # html = text.group(0)
                 link = text.group(2)
@@ -379,13 +379,14 @@ class Response(res):
     def __del__(self):
         self.close()
 
-    def open(self, delete_temp_file=False):
-        with open("temp.html", "w", encoding=self.encoding, errors="replace") as html:
-            self.encoding_errors = "replace"
-            html.write(self.text)
+    def open(self):
+        body = self.content
+        if b'<base' not in body:
+            # <head> 标签后插入一个<base href="url">标签
+            repl = fr'\1<base href="{self.url}">'
+            body = re.sub(rb"(<head(?:>|\s.*?>))", repl.encode('utf-8'), body)
 
-        os.system("open temp.html")
-
-        if delete_temp_file:
-            time.sleep(1)
-            os.remove("temp.html")
+        fd, fname = tempfile.mkstemp(".html")
+        os.write(fd, body)
+        os.close(fd)
+        return webbrowser.open(f"file://{fname}")
