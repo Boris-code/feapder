@@ -26,7 +26,6 @@ class MemoryDB:
         if ignore_max_size:
             self.priority_queue._put(item)
             self.priority_queue.unfinished_tasks += 1
-            self.priority_queue.not_empty.notify()
         else:
             self.priority_queue.put(item)
 

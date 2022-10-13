@@ -31,7 +31,7 @@ def get_proxies_by_host(host, port):
 def get_proxies_by_id(proxy_id):
     proxies = {
         "http": "http://{}".format(proxy_id),
-        "https": "https://{}".format(proxy_id),
+        "https": "http://{}".format(proxy_id),
     }
     return proxies
 
@@ -126,7 +126,7 @@ def get_proxy_from_file(filename, **kwargs):
             ip = "{}@{}".format(auth, ip)
         if not protocol:
             proxies = {
-                "https": "https://%s:%s" % (ip, port),
+                "https": "http://%s:%s" % (ip, port),
                 "http": "http://%s:%s" % (ip, port),
             }
         else:
@@ -144,7 +144,7 @@ def get_proxy_from_redis(proxy_source_url, **kwargs):
         ip:port ts
     @param kwargs:
         {"redis_proxies_key": "xxx"}
-    @return: [{'http':'http://xxx.xxx.xxx:xxx', 'https':'https://xxx.xxx.xxx.xxx:xxx'}]
+    @return: [{'http':'http://xxx.xxx.xxx:xxx', 'https':'http://xxx.xxx.xxx.xxx:xxx'}]
     """
 
     redis_conn = redis.StrictRedis.from_url(proxy_source_url)
@@ -155,7 +155,7 @@ def get_proxy_from_redis(proxy_source_url, **kwargs):
     for proxy in proxies:
         proxy = proxy.decode()
         proxies_list.append(
-            {"https": "https://%s" % proxy, "http": "http://%s" % proxy}
+            {"https": "http://%s" % proxy, "http": "http://%s" % proxy}
         )
     return proxies_list
 
@@ -198,7 +198,7 @@ def check_proxy(
         if not proxies:
             proxies = {
                 "http": "http://{}:{}".format(ip, port),
-                "https": "https://{}:{}".format(ip, port),
+                "https": "http://{}:{}".format(ip, port),
             }
         try:
             r = requests.get(

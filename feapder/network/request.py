@@ -9,11 +9,10 @@ Created on 2018-07-25 11:49:08
 """
 
 import copy
-import importlib
 import re
-from typing import Union
 
 import requests
+from requests.cookies import RequestsCookieJar
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import feapder.setting as setting
@@ -29,12 +28,6 @@ from feapder.utils.log import log
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
-def import_cls(cls_info) -> Union[Downloader, RenderDownloader]:
-    module, class_name = cls_info.rsplit(".", 1)
-    cls = importlib.import_module(module).__getattribute__(class_name)
-    return cls()
-
-
 class Request:
     user_agent_pool = user_agent
     proxies_pool: ProxyPool = None
@@ -44,12 +37,13 @@ class Request:
     cached_expire_time = 1200  # 缓存过期时间
 
     # 下载器
-    downloader: Downloader = import_cls(setting.DOWNLOADER)
-    session_downloader: Downloader = import_cls(setting.SESSION_DOWNLOADER)
-    render_downloader: RenderDownloader = import_cls(setting.RENDER_DOWNLOADER)
+    downloader: Downloader = None
+    session_downloader: Downloader = None
+    render_downloader: RenderDownloader = None
 
     __REQUEST_ATTRS__ = {
-        # 'method', 'url', 必须传递 不加入**kwargs中
+        # "method",
+        # "url",
         "params",
         "data",
         "headers",
@@ -68,6 +62,7 @@ class Request:
 
     DEFAULT_KEY_VALUE = dict(
         url="",
+        method=None,
         retry_times=0,
         priority=300,
         parser_name=None,
@@ -159,7 +154,11 @@ class Request:
         self.is_abandoned = is_abandoned
         self.render = render
         self.render_time = render_time or setting.WEBDRIVER.get("render_time", 0)
-        self.make_absolute_links = make_absolute_links
+        self.make_absolute_links = (
+            make_absolute_links
+            if make_absolute_links is not None
+            else setting.MAKE_ABSOLUTE_LINKS
+        )
 
         self.requests_kwargs = {}
         for key, value in kwargs.items():
@@ -197,6 +196,31 @@ class Request:
         return self.__class__.proxies_pool
 
     @property
+    def _downloader(self):
+        if not self.__class__.downloader:
+            self.__class__.downloader = tools.import_cls(setting.DOWNLOADER)()
+
+        return self.__class__.downloader
+
+    @property
+    def _session_downloader(self):
+        if not self.__class__.session_downloader:
+            self.__class__.session_downloader = tools.import_cls(
+                setting.SESSION_DOWNLOADER
+            )()
+
+        return self.__class__.session_downloader
+
+    @property
+    def _render_downloader(self):
+        if not self.__class__.render_downloader:
+            self.__class__.render_downloader = tools.import_cls(
+                setting.RENDER_DOWNLOADER
+            )()
+
+        return self.__class__.render_downloader
+
+    @property
     def to_dict(self):
         request_dict = {}
 
@@ -228,14 +252,15 @@ class Request:
             ):
                 continue
 
-            if key in self.__class__.__REQUEST_ATTRS__:
-                if not isinstance(
-                    value, (bytes, bool, float, int, str, tuple, list, dict)
-                ):
-                    value = tools.dumps_obj(value)
-            else:
-                if not isinstance(value, (bytes, bool, float, int, str)):
-                    value = tools.dumps_obj(value)
+            if value is not None:
+                if key in self.__class__.__REQUEST_ATTRS__:
+                    if not isinstance(
+                        value, (bytes, bool, float, int, str, tuple, list, dict)
+                    ):
+                        value = tools.dumps_obj(value)
+                else:
+                    if not isinstance(value, (bytes, bool, float, int, str)):
+                        value = tools.dumps_obj(value)
 
             request_dict[key] = value
 
@@ -335,7 +360,7 @@ class Request:
                     or "parse",
                 ),
                 self.url,
-                self.requests_kwargs.get("method"),
+                self.method,
                 self.requests_kwargs,
             )
         )
@@ -351,11 +376,11 @@ class Request:
         )
 
         if self.render:
-            response = self.render_downloader.download(self)
+            response = self._render_downloader.download(self)
         elif use_session:
-            response = self.session_downloader.download(self)
+            response = self._session_downloader.download(self)
         else:
-            response = self.downloader.download(self)
+            response = self._downloader.download(self)
 
         response.make_absolute_links = self.make_absolute_links
 
@@ -364,7 +389,10 @@ class Request:
 
         return response
 
-    def proxies(self):
+    def get_params(self):
+        return self.requests_kwargs.get("params")
+
+    def get_proxies(self) -> dict:
         """
 
         Returns: {"https": "https://ip:port", "http": "http://ip:port"}
@@ -372,22 +400,38 @@ class Request:
         """
         return self.requests_kwargs.get("proxies")
 
-    def proxy(self):
+    def get_proxy(self) -> str:
         """
 
         Returns: ip:port
 
         """
-        proxies = self.proxies()
+        proxies = self.get_proxies()
         if proxies:
             return re.sub(
                 "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
             )
 
-    def user_agent(self):
-        headers = self.requests_kwargs.get("headers")
-        if headers:
-            return headers.get("user_agent") or headers.get("User-Agent")
+    def get_headers(self) -> dict:
+        return self.requests_kwargs.get("headers", {})
+
+    def get_user_agent(self) -> str:
+        return self.get_headers().get("user_agent") or self.get_headers().get(
+            "User-Agent"
+        )
+
+    def get_cookies(self) -> dict:
+        cookies = self.requests_kwargs.get("cookies")
+        if cookies and isinstance(cookies, RequestsCookieJar):
+            cookies = cookies.get_dict()
+
+        if not cookies:
+            cookie_str = self.get_headers().get("Cookie") or self.get_headers().get(
+                "cookie"
+            )
+            if cookie_str:
+                cookies = tools.get_cookies_from_str(cookie_str)
+        return cookies
 
     @property
     def fingerprint(self):

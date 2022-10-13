@@ -16,7 +16,6 @@ from feapder import setting
 from feapder.db.redisdb import RedisDB
 from feapder.network.user_pool.base_user_pool import UserPoolInterface, GuestUser
 from feapder.utils.log import log
-from feapder.utils.redis_lock import RedisLock
 from feapder.utils.webdriver import WebDriver
 
 

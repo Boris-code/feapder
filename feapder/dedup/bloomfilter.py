@@ -14,6 +14,7 @@ import threading
 import time
 from struct import unpack, pack
 
+from feapder.dedup.basefilter import BaseFilter
 from feapder.utils.redis_lock import RedisLock
 from . import bitarray
 
@@ -190,7 +191,7 @@ class BloomFilter(object):
         return is_added if is_list else is_added[0]
 
 
-class ScalableBloomFilter(object):
+class ScalableBloomFilter(BaseFilter):
     """
     自动扩展空间的bloomfilter, 当一个filter满一半的时候，创建下一个
     """

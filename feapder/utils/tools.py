@@ -16,6 +16,7 @@ import datetime
 import functools
 import hashlib
 import html
+import importlib
 import json
 import os
 import pickle
@@ -83,6 +84,23 @@ class Singleton(object):
         if self._cls not in self._instance:
             self._instance[self._cls] = self._cls(*args, **kwargs)
         return self._instance[self._cls]
+
+
+class LazyProperty:
+    """
+    属性延时初始化，且只初始化一次
+    """
+
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        else:
+            value = self.func(instance)
+            setattr(instance, self.func.__name__, value)
+            return value
 
 
 def log_function_time(func):
@@ -743,20 +761,8 @@ def get_form_data(form):
     return data
 
 
-# mac上不好使
-# def get_domain(url):
-#     domain = ''
-#     try:
-#         domain = get_tld(url)
-#     except Exception as e:
-#         log.debug(e)
-#     return domain
-
-
 def get_domain(url):
-    proto, rest = urllib.parse.splittype(url)
-    domain, rest = urllib.parse.splithost(rest)
-    return domain
+    return urllib.parse.urlparse(url).netloc
 
 
 def get_index_url(url):
@@ -1104,6 +1110,26 @@ def mkdir(path):
             os.makedirs(path)
     except OSError as exc:  # Python >2.5
         pass
+
+
+def get_cache_path(filename, root_dir=None, local=False):
+    """
+    Args:
+        filename:
+        root_dir:
+        local: 是否存储到当前目录
+
+    Returns:
+
+    """
+    if root_dir is None:
+        if local:
+            root_dir = os.path.join(sys.path[0], ".cache")
+        else:
+            root_dir = os.path.join(os.path.expanduser("~"), ".feapder/cache")
+    file_path = f"{root_dir}{os.sep}{filename}"
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    return f"{root_dir}{os.sep}{filename}"
 
 
 def write_file(filename, content, mode="w", encoding="utf-8"):
@@ -2037,7 +2063,7 @@ def get_method(obj, name):
         return None
 
 
-def witch_workspace(project_path):
+def switch_workspace(project_path):
     """
     @summary:
     ---------
@@ -2750,3 +2776,9 @@ def ensure_float(n):
     if not n:
         return 0.0
     return float(n)
+
+
+def import_cls(cls_info):
+    module, class_name = cls_info.rsplit(".", 1)
+    cls = importlib.import_module(module).__getattribute__(class_name)
+    return cls

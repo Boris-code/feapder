@@ -75,7 +75,23 @@ WEBDRIVER = dict(
     ],  # 自定义浏览器渲染参数
     xhr_url_regexes=None,  # 拦截xhr接口，支持正则，数组类型
     auto_install_driver=True,  # 自动下载浏览器驱动 支持chrome 和 firefox
-    use_stealth_js=True,  # 使用stealth.min.js隐藏浏览器特征
+    download_path=None,  # 下载文件的路径
+    use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
+)
+
+PLAYWRIGHT = dict(
+    user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
+    proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
+    headless=False,  # 是否为无头浏览器
+    timeout=30,  # 请求超时时间
+    window_size=(1024, 800),  # 窗口大小
+    executable_path=None,  # 浏览器路径，默认为默认路径
+    download_path=None,  # 下载文件的路径
+    render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+    use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
+    page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
+    storage_state_path=None,  # 保存浏览器状态的路径
+    url_regexes=None,  # 拦截接口，支持正则，数组类型
 )
 
 # 爬虫启动时，重新抓取失败的requests
@@ -122,6 +138,7 @@ USE_SESSION = False
 DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
 SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
 RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
+# RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
 MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # 去重
@@ -163,7 +180,7 @@ WARNING_CHECK_TASK_COUNT_INTERVAL = 1200  # 检查已做任务数量的时间间
 # 日志
 LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
-LOG_LEVEL = "DEBUG"
+LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")  # 日志级别
 LOG_COLOR = True  # 是否带有颜色
 LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 LOG_IS_WRITE_TO_FILE = False  # 是否写文件

@@ -6,59 +6,54 @@
 
 读音： `[ˈfiːplæt] `
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655602840534.jpg)
-
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
 
 ## 特性
 
-1. 支持部署任何程序，包括不限于`feapder`、`scrapy`
-2. 支持集群管理，部署分布式爬虫可一键扩展进程数
-3. 支持部署服务，且可自动实现服务负载均衡
-4. 支持程序异常报警、重启、保活
+1. 支持任何python脚本，包括不限于`feapder`、`scrapy`
+2. 支持浏览器渲染，支持有头模式。浏览器支持`playwright`、`selenium`
+3. 支持部署服务，可自动负载均衡
+4. 支持服务器集群管理
 5. 支持监控，监控内容可自定义
-6. 支持4种定时调度模式
-7. 自动从git仓库拉取最新的代码运行，支持指定分支
-8. 支持多人协同
-9. 支持浏览器渲染，支持有头模式。浏览器支持`playwright`、`selenium`
-10. 支持弹性伸缩
-12. 支持自定义worker镜像，如自定义java的运行环境、node运行环境等，即根据自己的需求自定义（feaplat分为`master-调度端`和`worker-运行任务端`）
-13. docker一键部署，架设在docker swarm集群上
+6. 支持起多个实例，如分布式爬虫场景
+7. 支持弹性伸缩
+8. 支持4种定时启动方式
+9. 支持自定义worker镜像，如自定义java的运行环境、机器学习环境等，即根据自己的需求自定义（feaplat分为`master-调度端`和`worker-运行任务端`）
+10. docker一键部署，架设在docker swarm集群上
+
+
+## 为什么用feaplat爬虫管理系统
+
+**市面上的爬虫管理系统**
+
+![feapderd](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/feapderd.png)
+
+worker节点常驻，且运行多个任务，不能弹性伸缩，任务之前会相互影响，稳定性得不到保障
+
+**feaplat爬虫管理系统**
+
+![pic](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/pic.gif)
+
+worker节点根据任务动态生成，一个worker只运行一个任务实例，任务做完worker销毁，稳定性高；多个服务器间自动均衡分配，弹性伸缩
+
 
 ## 功能概览
 
 ### 1. 项目管理
 
 添加/编辑项目
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655603474851.jpg)
-
-- 支持 git和zip两种方式上传项目
-- 根据requirements.txt自动安装依赖包 
-- 可选择多个人参与项目
+![-w1785](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/06/16254968151490.jpg)
 
 ### 2. 任务管理
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655604191030.jpg)
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655604736752.jpg)
-
-- 支持一键启动多个任务实例（分布式爬虫场景或者需要启动多个进程的场景）
-- 支持4种调度模式
-- 标签：给任务分类使用
-- 强制运行：（上一次任务没结束，本次是否运行，是则会停止上一次任务，然后运行本次调度）
-- 异常重启：当部署的程序异常退出，是否自动重启，且会报警
-    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655607031254.jpg)
-- 支持限制程序运行的CPU、内存等。
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/03/16463109796998.jpg)
 
 
 ### 3. 任务实例
 
-一键部署了20份程序，每个程序独占一个进程，可从列表看每个进程部署到哪台服务器上了，运行状态是什么
+日志
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/03/03/16463117042527.jpg)
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655608218525.jpg)
-
-实时查看日志
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655618630971.jpg)
 
 ### 4. 爬虫监控
 
@@ -68,30 +63,9 @@ feaplat支持对feapder爬虫的运行情况进行监控，除了数据监控和
 
 注：需 feapder>=1.6.6
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655595870715.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
 
-### 5. 报警
 
-调度异常、程序异常自动报警
-支持钉钉、企业微信、飞书、邮箱
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655607031254.jpg)
-
-## 为什么用feaplat爬虫管理系统
-
-**稳！很稳！！相当稳！！！**
-
-### 市面上的爬虫管理系统
-
-![feapderd](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/feapderd.png)
-
-worker节点常驻，且运行多个任务，不能弹性伸缩，任务之前会相互影响，稳定性得不到保障
-
-### feaplat爬虫管理系统
-
-![pic](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/23/pic.gif)
-
-worker节点根据任务动态生成，一个worker只运行一个任务实例，任务做完worker销毁，稳定性高；多个服务器间自动均衡分配，弹性伸缩
 
 ## 部署
 

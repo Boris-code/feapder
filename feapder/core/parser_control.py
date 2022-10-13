@@ -7,6 +7,7 @@ Created on 2017-01-03 16:06
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+import inspect
 import random
 import threading
 import time
@@ -15,6 +16,7 @@ from collections.abc import Iterable
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
+from feapder.core.base_parser import BaseParser
 from feapder.db.memory_db import MemoryDB
 from feapder.network.item import Item
 from feapder.network.request import Request
@@ -155,7 +157,7 @@ class ParserControl(threading.Thread):
 
                     # 校验
                     if parser.validate(request, response) == False:
-                        continue
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
@@ -273,7 +275,7 @@ class ParserControl(threading.Thread):
                     if "Invalid URL" in str(e):
                         request.is_abandoned = True
 
-                    requests = parser.exception_request(request, response) or [request]
+                    requests = parser.exception_request(request, response, e) or [request]
                     if not isinstance(requests, Iterable):
                         raise Exception(
                             "%s.%s返回值必须可迭代" % (parser.name, "exception_request")
@@ -293,7 +295,7 @@ class ParserControl(threading.Thread):
                             self.__class__._failed_task_count += 1  # 记录失败任务数
 
                             # 处理failed_request的返回值 request 或 func
-                            results = parser.failed_request(request, response) or [
+                            results = parser.failed_request(request, response, e) or [
                                 request
                             ]
                             if not isinstance(results, Iterable):
@@ -384,7 +386,7 @@ class ParserControl(threading.Thread):
 
                 finally:
                     # 释放浏览器
-                    if response and hasattr(response, "browser"):
+                    if response and response.browser:
                         request.render_downloader.put_back(response.browser)
 
                 break
@@ -424,7 +426,24 @@ class ParserControl(threading.Thread):
         self._thread_stop = True
         self._started.clear()
 
-    def add_parser(self, parser):
+    def add_parser(self, parser: BaseParser):
+        # 动态增加parser.exception_request和parser.failed_request的参数, 兼容旧版本
+        if len(inspect.getfullargspec(parser.exception_request).args) == 3:
+            _exception_request = parser.exception_request
+
+            def exception_request(request, response, e):
+                return _exception_request(request, response)
+
+            parser.exception_request = exception_request
+
+        if len(inspect.getfullargspec(parser.failed_request).args) == 3:
+            _failed_request = parser.failed_request
+
+            def failed_request(request, response, e):
+                return _failed_request(request, response)
+
+            parser.failed_request = failed_request
+
         self._parsers.append(parser)
 
 
@@ -483,9 +502,7 @@ class AirSpiderParserControl(ParserControl):
                                     download_midware = (
                                         download_midware
                                         if callable(download_midware)
-                                        else tools.get_method(
-                                            parser, download_midware
-                                        )
+                                        else tools.get_method(parser, download_midware)
                                     )
                                     request_temp = download_midware(request_temp)
                             else:
@@ -520,9 +537,7 @@ class AirSpiderParserControl(ParserControl):
                             response = (
                                 request.get_response()
                                 if not setting.RESPONSE_CACHED_USED
-                                else request.get_response_from_cached(
-                                    save_cached=False
-                                )
+                                else request.get_response_from_cached(save_cached=False)
                             )
 
                     else:
@@ -530,7 +545,7 @@ class AirSpiderParserControl(ParserControl):
 
                     # 校验
                     if parser.validate(request, response) == False:
-                        continue
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
@@ -544,8 +559,7 @@ class AirSpiderParserControl(ParserControl):
 
                     if results and not isinstance(results, Iterable):
                         raise Exception(
-                            "%s.%s返回值必须可迭代"
-                            % (parser.name, request.callback or "parse")
+                            "%s.%s返回值必须可迭代" % (parser.name, request.callback or "parse")
                         )
 
                     # 此处判断是request 还是 item
@@ -627,7 +641,7 @@ class AirSpiderParserControl(ParserControl):
                     if "Invalid URL" in str(e):
                         request.is_abandoned = True
 
-                    requests = parser.exception_request(request, response) or [
+                    requests = parser.exception_request(request, response, e) or [
                         request
                     ]
                     if not isinstance(requests, Iterable):
@@ -645,13 +659,12 @@ class AirSpiderParserControl(ParserControl):
                             self.__class__._failed_task_count += 1  # 记录失败任务数
 
                             # 处理failed_request的返回值 request 或 func
-                            results = parser.failed_request(request, response) or [
+                            results = parser.failed_request(request, response, e) or [
                                 request
                             ]
                             if not isinstance(results, Iterable):
                                 raise Exception(
-                                    "%s.%s返回值必须可迭代"
-                                    % (parser.name, "failed_request")
+                                    "%s.%s返回值必须可迭代" % (parser.name, "failed_request")
                                 )
 
                             log.info(
@@ -702,7 +715,7 @@ class AirSpiderParserControl(ParserControl):
 
                 finally:
                     # 释放浏览器
-                    if response and hasattr(response, "browser"):
+                    if response and response.browser:
                         request.render_downloader.put_back(response.browser)
 
                 break

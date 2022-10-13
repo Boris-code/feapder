@@ -14,16 +14,18 @@ from typing import Any, List, Union, Optional, Tuple, Callable
 from feapder.utils.tools import get_md5
 from .bloomfilter import BloomFilter, ScalableBloomFilter
 from .expirefilter import ExpireFilter
+from .litefilter import LiteFilter
 
 
 class Dedup:
     BloomFilter = 1
     MemoryFilter = 2
     ExpireFilter = 3
+    LiteFilter = 4
 
     def __init__(self, filter_type: int = BloomFilter, to_md5: bool = True, **kwargs):
         """
-        去重过滤器 集成BloomFilter、MemoryFilter、ExpireFilter
+        去重过滤器 集成BloomFilter、MemoryFilter、ExpireFilter、MemoryLiteFilter
         Args:
             filter_type: 过滤器类型 BloomFilter
             name: 过滤器名称 该名称会默认以dedup作为前缀 dedup:expire_set:[name]/dedup:bloomfilter:[name]。 默认ExpireFilter name=过期时间; BloomFilter name=dedup:bloomfilter:bloomfilter
@@ -56,6 +58,9 @@ class Dedup:
                 expire_time_record_key=expire_time_record_key,
                 redis_url=kwargs.get("redis_url"),
             )
+
+        elif filter_type == Dedup.LiteFilter:
+            self.dedup = LiteFilter()
 
         else:
             initial_capacity = kwargs.get("initial_capacity", 100000000)
