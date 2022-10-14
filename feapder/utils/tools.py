@@ -872,6 +872,8 @@ def del_html_tag(content, save_line_break=True, save_p=False, save_img=False):
     @param save_line_break: 保留\n换行
     @return:
     """
+    if not content:
+        return content
     # js
     content = re.sub("(?i)<script(.|\n)*?</script>", "", content)  # (?)忽略大小写
     # css

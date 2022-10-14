@@ -11,7 +11,7 @@ Created on 2022/9/7 4:11 PM
 import json
 import os
 import re
-from typing import Union, List
+from typing import Union, List, Literal
 
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
 from playwright.sync_api import Playwright, Browser
@@ -29,6 +29,7 @@ class PlaywrightDriver(WebDriver):
         page_on_event_callback: dict = None,
         storage_state_path=None,
         url_regexes: list = None,
+        driver_type: Literal["chromium", "firefox", "webkit"] = "chromium",
         **kwargs
     ):
         """
@@ -46,6 +47,8 @@ class PlaywrightDriver(WebDriver):
         self.page: Page = None
         self.url = None
         self.storage_state_path = storage_state_path
+
+        self._driver_type = driver_type
         self._page_on_event_callback = page_on_event_callback
         self._cache_data = {}
         self._url_regexes = url_regexes
@@ -70,7 +73,7 @@ class PlaywrightDriver(WebDriver):
 
         # 初始化浏览器对象
         self.driver = sync_playwright().start()
-        self.browser = self.driver.chromium.launch(
+        self.browser = getattr(self.driver, self._driver_type).launch(
             headless=self._headless,
             args=["--no-sandbox"],
             proxy=proxy,
