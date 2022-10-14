@@ -42,7 +42,7 @@ class PlaywrightDownloader(RenderDownloader):
             if cookies:
                 driver.url = url
                 driver.cookies = cookies
-            driver.page.goto(url)
+            driver.page.goto(url, wait_until="domcontentloaded")
 
             if request.render_time:
                 tools.delay_time(request.render_time)
