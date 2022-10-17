@@ -89,7 +89,7 @@ PLAYWRIGHT = dict(
     executable_path=None,  # 浏览器路径，默认为默认路径
     download_path=None,  # 下载文件的路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
-    wait_until="domcontentloaded",  # 等待页面加载完成的事件,可选值："commit", "domcontentloaded", "load", "networkidle"
+    wait_until="networkidle",  # 等待页面加载完成的事件,可选值："commit", "domcontentloaded", "load", "networkidle"
     use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
     page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
     storage_state_path=None,  # 保存浏览器状态的路径
