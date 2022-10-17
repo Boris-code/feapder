@@ -153,11 +153,7 @@ class Request:
         self.download_midware = download_midware
         self.is_abandoned = is_abandoned
         self.render = render
-        self.render_time = render_time or (
-            setting.PLAYWRIGHT.get("render_time", 0)
-            if setting.RENDER_DOWNLOADER == "feapder.network.downloader.PlaywrightDownloader"
-            else setting.WEBDRIVER.get("render_time", 0)
-        )
+        self.render_time = render_time
         self.make_absolute_links = (
             make_absolute_links
             if make_absolute_links is not None
