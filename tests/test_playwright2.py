@@ -85,7 +85,7 @@ class TestPlaywright(feapder.AirSpider):
             print("接口返回的数据", intercept_json)
 
         # 千万别忘了
-        driver.clear_intercepted_response()
+        driver.clear_cache()
 
 
 if __name__ == "__main__":

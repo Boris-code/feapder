@@ -11,7 +11,6 @@ Created on 2022/9/7 4:11 PM
 import json
 import os
 import re
-import warnings
 from collections import defaultdict
 from typing import Union, List, Literal
 
@@ -60,8 +59,8 @@ class PlaywrightDriver(WebDriver):
         self._save_all = save_all
 
         if self._save_all and self._url_regexes:
-            warnings.warn(
-                "save_all is True, 请主动调用PlaywrightDriver的clear_intercepted_response()方法清空拦截的接口，否则会一直累加，导致内存溢出"
+            log.warning(
+                "获取完拦截的数据后, 请主动调用PlaywrightDriver的clear_cache()方法清空拦截的数据，否则数据会一直累加，导致内存溢出"
             )
             self._cache_data = defaultdict(list)
         else:
@@ -288,5 +287,5 @@ class PlaywrightDriver(WebDriver):
         """
         return [json.loads(text) for text in self.get_all_text(url_regex)]
 
-    def clear_intercepted_response(self):
+    def clear_cache(self):
         self._cache_data = defaultdict(list)
