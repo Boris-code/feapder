@@ -88,6 +88,7 @@
 #     page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
 #     storage_state_path=None,  # 保存浏览器状态的路径
 #     url_regexes=None,  # 拦截接口，支持正则，数组类型
+#     save_all=False,  # 是否保存所有拦截的接口, 配合url_regexes使用，为False时只保存最后一次拦截的接口
 # )
 #
 # # 爬虫启动时，重新抓取失败的requests

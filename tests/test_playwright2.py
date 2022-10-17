@@ -41,6 +41,7 @@ class TestPlaywright(feapder.AirSpider):
             # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
             storage_state_path=None,  # 保存浏览器状态的路径
             url_regexes=["wallpaper/list"],  # 拦截接口，支持正则，数组类型
+            save_all=True,  # 是否保存所有拦截的接口
         ),
     )
 
@@ -65,6 +66,26 @@ class TestPlaywright(feapder.AirSpider):
 
         data = driver.get_json("wallpaper/list")
         print("接口返回的数据", data)
+
+        print("------ 测试save_all=True ------- ")
+
+        # 测试save_all=True
+        all_intercept_response: list = driver.get_all_response("wallpaper/list")
+        for intercept_response in all_intercept_response:
+            intercept_request: InterceptRequest = intercept_response.request
+            req_url = intercept_request.url
+            req_header = intercept_request.headers
+            req_data = intercept_request.data
+            print("请求url", req_url)
+            print("请求header", req_header)
+            print("请求data", req_data)
+
+        all_intercept_json = driver.get_all_json("wallpaper/list")
+        for intercept_json in all_intercept_json:
+            print("接口返回的数据", intercept_json)
+
+        # 千万别忘了
+        driver.clear_intercepted_response()
 
 
 if __name__ == "__main__":
