@@ -32,6 +32,8 @@ class PlaywrightDownloader(RenderDownloader):
         user_agent = request.get_user_agent()
         cookies = request.get_cookies()
         url = request.url
+        render_time = request.render_time or setting.PLAYWRIGHT.get("render_time")
+        wait_until = setting.PLAYWRIGHT.get("wait_until") or "domcontentloaded"
         if request.get_params():
             url = tools.joint_url(url, request.get_params())
 
@@ -42,10 +44,10 @@ class PlaywrightDownloader(RenderDownloader):
             if cookies:
                 driver.url = url
                 driver.cookies = cookies
-            driver.page.goto(url, wait_until="domcontentloaded")
+            driver.page.goto(url, wait_until=wait_until)
 
-            if request.render_time:
-                tools.delay_time(request.render_time)
+            if render_time:
+                tools.delay_time(render_time)
 
             html = driver.page.content()
             response = Response.from_dict(
