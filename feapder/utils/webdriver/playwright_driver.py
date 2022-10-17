@@ -11,6 +11,8 @@ Created on 2022/9/7 4:11 PM
 import json
 import os
 import re
+import warnings
+from collections import defaultdict
 from typing import Union, List, Literal
 
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
@@ -26,10 +28,12 @@ from feapder.utils.webdriver.webdirver import *
 class PlaywrightDriver(WebDriver):
     def __init__(
         self,
+        *,
         page_on_event_callback: dict = None,
-        storage_state_path=None,
-        url_regexes: list = None,
+        storage_state_path: str = None,
         driver_type: Literal["chromium", "firefox", "webkit"] = "chromium",
+        url_regexes: list = None,
+        save_all: bool = False,
         **kwargs
     ):
         """
@@ -37,7 +41,9 @@ class PlaywrightDriver(WebDriver):
         Args:
             page_on_event_callback: page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
             storage_state_path: 保存浏览器状态的路径
+            driver_type: 浏览器类型 chromium, firefox, webkit
             url_regexes: 拦截接口，支持正则，数组类型
+            save_all: 是否保存所有拦截的接口, 默认只保存最后一个
             **kwargs:
         """
         super(PlaywrightDriver, self).__init__(**kwargs)
@@ -50,8 +56,16 @@ class PlaywrightDriver(WebDriver):
 
         self._driver_type = driver_type
         self._page_on_event_callback = page_on_event_callback
-        self._cache_data = {}
         self._url_regexes = url_regexes
+        self._save_all = save_all
+
+        if self._save_all and self._url_regexes:
+            warnings.warn(
+                "save_all is True, 请主动调用PlaywrightDriver的clear_intercepted_response()方法清空拦截的接口，否则会一直累加，导致内存溢出"
+            )
+            self._cache_data = defaultdict(list)
+        else:
+            self._cache_data = {}
 
         self._setup()
 
@@ -210,10 +224,31 @@ class PlaywrightDriver(WebDriver):
                     content=response.body(),
                     status_code=response.status,
                 )
-                self._cache_data[regex] = intercept_response
+                if self._save_all:
+                    self._cache_data[regex].append(intercept_response)
+                else:
+                    self._cache_data[regex] = intercept_response
 
     def get_response(self, url_regex) -> InterceptResponse:
+        if self._save_all:
+            response_list = self._cache_data.get(url_regex)
+            if response_list:
+                return response_list[-1]
         return self._cache_data.get(url_regex)
+
+    def get_all_response(self, url_regex) -> List[InterceptResponse]:
+        """
+        获取所有匹配的响应, 仅在save_all=True时有效
+        Args:
+            url_regex:
+
+        Returns:
+
+        """
+        response_list = self._cache_data.get(url_regex, [])
+        if not isinstance(response_list, list):
+            return [response_list]
+        return response_list
 
     def get_text(self, url_regex):
         return (
@@ -222,9 +257,36 @@ class PlaywrightDriver(WebDriver):
             else None
         )
 
+    def get_all_text(self, url_regex):
+        """
+        获取所有匹配的响应文本, 仅在save_all=True时有效
+        Args:
+            url_regex:
+
+        Returns:
+
+        """
+        return [
+            response.content.decode() for response in self.get_all_response(url_regex)
+        ]
+
     def get_json(self, url_regex):
         return (
             json.loads(self.get_text(url_regex))
             if self.get_response(url_regex)
             else None
         )
+
+    def get_all_json(self, url_regex):
+        """
+        获取所有匹配的响应json, 仅在save_all=True时有效
+        Args:
+            url_regex:
+
+        Returns:
+
+        """
+        return [json.loads(text) for text in self.get_all_text(url_regex)]
+
+    def clear_intercepted_response(self):
+        self._cache_data = defaultdict(list)
