@@ -120,7 +120,8 @@ class PlaywrightDriver(WebDriver):
         if self._page_on_event_callback:
             for event, callback in self._page_on_event_callback.items():
                 self.page.on(event, callback)
-        elif self._url_regexes:
+
+        if self._url_regexes:
             self.page.on("response", self.on_response)
 
     def __enter__(self):
