@@ -12,7 +12,13 @@ import json
 import os
 import re
 from collections import defaultdict
-from typing import Union, List, Literal
+from typing import Union, List
+
+try:
+    from typing import Literal  # python >= 3.8
+except ImportError:  # python <3.8
+    from typing_extensions import Literal
+
 
 from playwright.sync_api import Page, BrowserContext, ViewportSize, ProxySettings
 from playwright.sync_api import Playwright, Browser
