@@ -305,7 +305,7 @@ class BatchSpider(BatchParser, Scheduler):
                     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
             """.format(
                 table_name=self._batch_record_table,
-                batch_date="date" if self._date_format == "%Y-%m-%d" else "datetime",
+                batch_date="datetime",
             )
 
             self._mysqldb.execute(sql)
