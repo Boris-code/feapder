@@ -402,10 +402,12 @@ class ItemBuffer(threading.Thread):
         @param datas: 数据 列表
         @return:
         """
-        metrics.emit_counter("total count", len(datas), classify=table)
+        total_count = 0
         for data in datas:
+            total_count += 1
             for k, v in data.items():
                 metrics.emit_counter(k, int(bool(v)), classify=table)
+        metrics.emit_counter("total count", total_count, classify=table)
 
     def close(self):
         # 调用pipeline的close方法
