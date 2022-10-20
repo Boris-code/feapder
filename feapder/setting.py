@@ -83,15 +83,18 @@ PLAYWRIGHT = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
+    driver_type="chromium",  # chromium、firefox、webkit
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
     download_path=None,  # 下载文件的路径
     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+    wait_until="networkidle",  # 等待页面加载完成的事件,可选值："commit", "domcontentloaded", "load", "networkidle"
     use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
     page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
     storage_state_path=None,  # 保存浏览器状态的路径
     url_regexes=None,  # 拦截接口，支持正则，数组类型
+    save_all=False,  # 是否保存所有拦截的接口, 配合url_regexes使用，为False时只保存最后一次拦截的接口
 )
 
 # 爬虫启动时，重新抓取失败的requests
