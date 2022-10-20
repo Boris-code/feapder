@@ -246,13 +246,15 @@ class DebugSpider(Spider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
-        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
-    def __init__(self, request=None, request_dict=None, *args, **kwargs):
+    def __init__(
+        self, request=None, request_dict=None, save_to_db=False, *args, **kwargs
+    ):
         """
         @param request: request 类对象
         @param request_dict: request 字典。 request 与 request_dict 二者选一即可
+        @param save_to_db: 数据是否入库 默认否
         @param kwargs:
         """
         warnings.warn(
@@ -263,6 +265,10 @@ class DebugSpider(Spider):
             raise Exception("request 与 request_dict 不能同时为null")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
+        if not save_to_db:
+            self.__class__.__debug_custom_setting__["ITEM_PIPELINES"] = [
+                CONSOLE_PIPELINE_PATH
+            ]
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
