@@ -28,7 +28,6 @@ from feapder.utils.perfect_dict import PerfectDict
 from feapder.utils.redis_lock import RedisLock
 
 CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
-MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
 
 class BatchSpider(BatchParser, Scheduler):
@@ -306,7 +305,7 @@ class BatchSpider(BatchParser, Scheduler):
                     ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
             """.format(
                 table_name=self._batch_record_table,
-                batch_date="date" if self._date_format == "%Y-%m-%d" else "datetime",
+                batch_date="datetime",
             )
 
             self._mysqldb.execute(sql)
@@ -1090,7 +1089,6 @@ class DebugBatchSpider(BatchSpider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
-        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
     def __init__(
@@ -1098,7 +1096,7 @@ class DebugBatchSpider(BatchSpider):
         task_id=None,
         task=None,
         save_to_db=False,
-        update_stask=False,
+        update_task=False,
         *args,
         **kwargs,
     ):
@@ -1106,7 +1104,7 @@ class DebugBatchSpider(BatchSpider):
         @param task_id:  任务id
         @param task:  任务  task 与 task_id 二者选一即可
         @param save_to_db: 数据是否入库 默认否
-        @param update_stask: 是否更新任务 默认否
+        @param update_task: 是否更新任务 默认否
         @param args:
         @param kwargs:
         """
@@ -1118,10 +1116,11 @@ class DebugBatchSpider(BatchSpider):
             raise Exception("task_id 与 task 不能同时为null")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
-        if save_to_db and not self.__class__.__custom_setting__.get("ITEM_PIPELINES"):
-            self.__class__.__debug_custom_setting__.update(
-                ITEM_PIPELINES=[MYSQL_PIPELINE_PATH]
-            )
+        if not save_to_db:
+            self.__class__.__debug_custom_setting__["ITEM_PIPELINES"] = [
+                CONSOLE_PIPELINE_PATH
+            ]
+
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
@@ -1130,7 +1129,7 @@ class DebugBatchSpider(BatchSpider):
 
         self._task_id = task_id
         self._task = task
-        self._update_task = update_stask
+        self._update_task = update_task
 
     def start_monitor_task(self):
         """

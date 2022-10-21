@@ -28,7 +28,6 @@ from feapder.utils.log import log
 from feapder.utils.perfect_dict import PerfectDict
 
 CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
-MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
 
 class TaskSpider(TaskParser, Scheduler):
@@ -603,7 +602,6 @@ class DebugTaskSpider(TaskSpider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
-        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
     def __init__(
@@ -611,7 +609,7 @@ class DebugTaskSpider(TaskSpider):
         task_id=None,
         task=None,
         save_to_db=False,
-        update_stask=False,
+        update_task=False,
         *args,
         **kwargs,
     ):
@@ -619,7 +617,7 @@ class DebugTaskSpider(TaskSpider):
         @param task_id:  任务id
         @param task:  任务  task 与 task_id 二者选一即可。如 task = {"url":""}
         @param save_to_db: 数据是否入库 默认否
-        @param update_stask: 是否更新任务 默认否
+        @param update_task: 是否更新任务 默认否
         @param args:
         @param kwargs:
         """
@@ -631,10 +629,10 @@ class DebugTaskSpider(TaskSpider):
             raise Exception("task_id 与 task 不能同时为空")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
-        if save_to_db and not self.__class__.__custom_setting__.get("ITEM_PIPELINES"):
-            self.__class__.__debug_custom_setting__.update(
-                ITEM_PIPELINES=[MYSQL_PIPELINE_PATH]
-            )
+        if not save_to_db:
+            self.__class__.__debug_custom_setting__["ITEM_PIPELINES"] = [
+                CONSOLE_PIPELINE_PATH
+            ]
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
@@ -643,7 +641,7 @@ class DebugTaskSpider(TaskSpider):
 
         self._task_id = task_id
         self._task = task
-        self._update_task = update_stask
+        self._update_task = update_task
 
     def start_monitor_task(self):
         """
