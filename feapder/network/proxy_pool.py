@@ -20,7 +20,7 @@ from feapder.utils.log import log
 # 建立本地缓存代理文件夹
 proxy_path = os.path.join(os.path.dirname(__file__), "proxy_file")
 if not os.path.exists(proxy_path):
-    os.makedirs(proxy_path)
+    os.makedirs(proxy_path, exist_ok=True)
 
 
 def get_proxies_by_host(host, port):
