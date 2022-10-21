@@ -27,7 +27,7 @@ HELP = """
 ╚═╝     ╚══════╝╚═╝  ╚═╝╚═╝     ╚═════╝ ╚══════╝╚═╝  ╚═╝
 
 Version: {version}
-Document: http://feapder.com
+Document: https://feapder.com
 
 Usage:
   feapder <command> [options] [args]
