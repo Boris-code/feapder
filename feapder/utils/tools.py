@@ -2193,7 +2193,7 @@ def make_batch_sql(
     if not datas:
         return
 
-    keys = list(datas[0].keys())
+    keys = list(set([key for data in datas for key in data]))
     values_placeholder = ["%s"] * len(keys)
 
     values = []
