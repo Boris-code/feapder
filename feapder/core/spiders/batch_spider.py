@@ -166,7 +166,7 @@ class BatchSpider(BatchParser, Scheduler):
         @return:
         """
         self._last_send_msg_time = None
-
+        self._spider_deal_speed_cached = None
         self._spider_last_done_time = None
         self._spider_last_done_count = 0  # 爬虫刚开始启动时已做任务数量
 
