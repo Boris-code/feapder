@@ -51,7 +51,7 @@ requires = [
     "influxdb>=5.3.1",
     "pyperclip>=1.8.2",
     "webdriver-manager>=3.5.3",
-    "terminal-layout>=2.1.2",
+    "terminal-layout>=2.1.3",
     "playwright",
 ]
 
