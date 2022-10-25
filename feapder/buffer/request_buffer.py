@@ -13,6 +13,7 @@ import threading
 
 import feapder.setting as setting
 import feapder.utils.tools as tools
+from feapder.db.memorydb import MemoryDB
 from feapder.db.redisdb import RedisDB
 from feapder.dedup import Dedup
 from feapder.utils.log import log
@@ -20,29 +21,54 @@ from feapder.utils.log import log
 MAX_URL_COUNT = 1000  # 缓存中最大request数
 
 
-class RequestBuffer(threading.Thread):
+class AirSpiderRequestBuffer:
     dedup = None
 
-    def __init__(self, redis_key):
-        if not hasattr(self, "_requests_deque"):
-            super(RequestBuffer, self).__init__()
+    def __init__(self, db=None, dedup_name: str = None):
+        self._db = db or MemoryDB()
 
-            self._thread_stop = False
-            self._is_adding_to_db = False
-
-            self._requests_deque = collections.deque()
-            self._del_requests_deque = collections.deque()
-            self._db = RedisDB()
-
-            self._table_request = setting.TAB_REQUESTS.format(redis_key=redis_key)
-            self._table_failed_request = setting.TAB_FAILED_REQUESTS.format(
-                redis_key=redis_key
-            )
-
-            if not self.__class__.dedup and setting.REQUEST_FILTER_ENABLE:
+        if not self.__class__.dedup and setting.REQUEST_FILTER_ENABLE:
+            if dedup_name:
                 self.__class__.dedup = Dedup(
-                    name=redis_key, to_md5=False, **setting.REQUEST_FILTER_SETTING
-                )  # 默认过期时间为一个月
+                    name=dedup_name, to_md5=False, **setting.REQUEST_FILTER_SETTING
+                )  # 默认使用内存去重
+            else:
+                self.__class__.dedup = Dedup(
+                    to_md5=False, **setting.REQUEST_FILTER_SETTING
+                )  # 默认使用内存去重
+
+    def is_exist_request(self, request):
+        if (
+            request.filter_repeat
+            and setting.REQUEST_FILTER_ENABLE
+            and not self.__class__.dedup.add(request.fingerprint)
+        ):
+            log.debug("request已存在  url = %s" % request.url)
+            return True
+        return False
+
+    def put_request(self, request):
+        if self.is_exist_request(request):
+            return
+        else:
+            self._db.add(request, ignore_max_size=True)
+
+
+class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
+    def __init__(self, redis_key):
+        AirSpiderRequestBuffer.__init__(self, db=RedisDB(), dedup_name=redis_key)
+        threading.Thread.__init__(self)
+
+        self._thread_stop = False
+        self._is_adding_to_db = False
+
+        self._requests_deque = collections.deque()
+        self._del_requests_deque = collections.deque()
+
+        self._table_request = setting.TAB_REQUESTS.format(redis_key=redis_key)
+        self._table_failed_request = setting.TAB_FAILED_REQUESTS.format(
+            redis_key=redis_key
+        )
 
     def run(self):
         self._thread_stop = False
@@ -109,12 +135,7 @@ class RequestBuffer(threading.Thread):
             priority = request.priority
 
             # 如果需要去重并且库中已重复 则continue
-            if (
-                request.filter_repeat
-                and setting.REQUEST_FILTER_ENABLE
-                and not self.__class__.dedup.add(request.fingerprint)
-            ):
-                log.debug("request已存在  url = %s" % request.url)
+            if self.is_exist_request(request):
                 continue
             else:
                 request_list.append(str(request.to_dict))

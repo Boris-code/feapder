@@ -130,10 +130,10 @@
 # ITEM_FILTER_ENABLE = False  # item 去重
 # REQUEST_FILTER_ENABLE = False  # request 去重
 # ITEM_FILTER_SETTING = dict(
-#     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+#     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、轻量去重（LiteFilter）= 4
 # )
 # REQUEST_FILTER_SETTING = dict(
-#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、 轻量去重（LiteFilter）= 4
 #     expire_time=2592000,  # 过期时间1个月
 # )
 #

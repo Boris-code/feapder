@@ -67,3 +67,11 @@ SPIDER_SLEEP_TIME = 0 # 下载时间间隔（解析完一个response后休眠时
 # LOG_LEVEL = "DEBUG"
 # LOG_IS_WRITE_TO_FILE = False
 # OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
+REQUEST_FILTER_ENABLE=True  # request 去重
+# REQUEST_FILTER_SETTING=dict(
+#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、 轻量去重（LiteFilter）= 4
+#     expire_time=2592000,  # 过期时间1个月
+# ),
+REQUEST_FILTER_SETTING=dict(
+    filter_type=4,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、 轻量去重（LiteFilter）= 4
+)
