@@ -16,8 +16,9 @@ from collections.abc import Iterable
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
+from feapder.buffer.request_buffer import AirSpiderRequestBuffer
 from feapder.core.base_parser import BaseParser
-from feapder.db.memory_db import MemoryDB
+from feapder.db.memorydb import MemoryDB
 from feapder.network.item import Item
 from feapder.network.request import Request
 from feapder.utils import metrics
@@ -275,7 +276,9 @@ class ParserControl(threading.Thread):
                     if "Invalid URL" in str(e):
                         request.is_abandoned = True
 
-                    requests = parser.exception_request(request, response, e) or [request]
+                    requests = parser.exception_request(request, response, e) or [
+                        request
+                    ]
                     if not isinstance(requests, Iterable):
                         raise Exception(
                             "%s.%s返回值必须可迭代" % (parser.name, "exception_request")
@@ -454,11 +457,18 @@ class AirSpiderParserControl(ParserControl):
     _success_task_count = 0
     _failed_task_count = 0
 
-    def __init__(self, memory_db: MemoryDB, item_buffer: ItemBuffer):
+    def __init__(
+        self,
+        *,
+        memory_db: MemoryDB,
+        request_buffer: AirSpiderRequestBuffer,
+        item_buffer: ItemBuffer,
+    ):
         super(ParserControl, self).__init__()
         self._parsers = []
         self._memory_db = memory_db
         self._thread_stop = False
+        self._request_buffer = request_buffer
         self._item_buffer = item_buffer
 
     def run(self):
@@ -573,7 +583,7 @@ class AirSpiderParserControl(ParserControl):
                                 self.deal_request(result)
                             else:  # 异步
                                 # 将next_request 入库
-                                self._memory_db.add(result, ignore_max_size=True)
+                                self._request_buffer.put_request(result)
 
                         elif isinstance(result, Item):
                             self._item_buffer.put_item(result)
@@ -696,7 +706,7 @@ class AirSpiderParserControl(ParserControl):
                                     setting.SPIDER_MAX_RETRY_TIMES,
                                 )
                             )
-                            self._memory_db.add(request, ignore_max_size=True)
+                            self._request_buffer.put_request(request)
 
                 else:
                     # 记录下载成功的文档
