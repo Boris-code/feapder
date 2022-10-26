@@ -158,7 +158,7 @@ class BatchSpider(BatchParser, Scheduler):
         self._spider_deal_speed_cached = None
 
         self._is_more_parsers = True  # 多模版类爬虫
-        self.reset_task(heartbeat_interval=60)
+        self.reset_task()
 
     def init_property(self):
         """
@@ -701,7 +701,7 @@ class BatchSpider(BatchParser, Scheduler):
                         )  # 有可能插入不成功，但是任务表已经重置了，不过由于当前时间为下一批次的时间，检查批次是否结束时不会检查任务表，所以下次执行时仍然会重置
                         if is_success:
                             # 看是否有等待任务的worker，若有则需要等会再下发任务，防止work批次时间没来得及更新
-                            if self.have_alive_spider(heartbeat_interval=60):
+                            if self.have_alive_spider():
                                 log.info(
                                     f"插入新批次记录成功，检测到有爬虫进程在等待任务，本批任务1分钟后开始下发, 防止爬虫端缓存的批次时间没来得及更新"
                                 )
@@ -1022,7 +1022,6 @@ class BatchSpider(BatchParser, Scheduler):
 
             while True:
                 try:
-                    self.heartbeat()
                     if (
                         self.task_is_done() and self.all_thread_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
