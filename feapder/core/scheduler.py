@@ -22,9 +22,9 @@ from feapder.core.parser_control import ParserControl
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
 from feapder.network.request import Request
+from feapder.utils import metrics
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
-from feapder.utils import metrics
 
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
@@ -132,6 +132,7 @@ class Scheduler(threading.Thread):
         self._is_notify_end = False  # 是否已经通知结束
         self._last_task_count = 0  # 最近一次任务数量
         self._last_check_task_count_time = 0
+        self._stop_heartbeat = False  # 是否停止心跳
         self._redisdb = RedisDB()
 
         self._project_total_state_table = "{}_total_state".format(self._project_name)
@@ -173,7 +174,6 @@ class Scheduler(threading.Thread):
 
         while True:
             try:
-                self.heartbeat()
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
@@ -249,6 +249,8 @@ class Scheduler(threading.Thread):
                 self._item_buffer.flush()
 
     def _start(self):
+        # 心跳开始
+        self.heartbeat_start()
         # 启动request_buffer
         self._request_buffer.start()
         # 启动item_buffer
@@ -424,7 +426,7 @@ class Scheduler(threading.Thread):
         # 停止 parser_controls
         for parser_control in self._parser_controls:
             parser_control.stop()
-
+        self.heartbeat_stop()
         self._started.clear()
 
     def send_msg(self, msg, level="debug", message_prefix=""):
@@ -550,16 +552,29 @@ class Scheduler(threading.Thread):
         super().join()
 
     def heartbeat(self):
-        self._redisdb.hset(
-            self._tab_spider_status, HEARTBEAT_TIME_KEY, tools.get_current_timestamp()
-        )
+        while not self._stop_heartbeat:
+            try:
+                self._redisdb.hset(
+                    self._tab_spider_status,
+                    HEARTBEAT_TIME_KEY,
+                    tools.get_current_timestamp(),
+                )
+            except Exception as e:
+                log.error("心跳异常: {}".format(e))
+            time.sleep(5)
+
+    def heartbeat_start(self):
+        threading.Thread(target=self.heartbeat).start()
+
+    def heartbeat_stop(self):
+        self._stop_heartbeat = True
 
     def have_alive_spider(self, heartbeat_interval=10):
         heartbeat_time = self._redisdb.hget(self._tab_spider_status, HEARTBEAT_TIME_KEY)
         if heartbeat_time:
             heartbeat_time = int(heartbeat_time)
             current_timestamp = tools.get_current_timestamp()
-            if current_timestamp > heartbeat_time + heartbeat_interval:
+            if current_timestamp - heartbeat_time < heartbeat_interval:
                 return True
         return False
 

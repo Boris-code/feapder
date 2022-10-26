@@ -191,7 +191,6 @@ class Spider(
 
         while True:
             try:
-                self.heartbeat()
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮

@@ -158,7 +158,7 @@ class TaskSpider(TaskParser, Scheduler):
         self._spider_deal_speed_cached = None
 
         self._is_more_parsers = True  # 多模版类爬虫
-        self.reset_task(heartbeat_interval=60)
+        self.reset_task()
 
     def init_property(self):
         """
@@ -210,6 +210,10 @@ class TaskSpider(TaskParser, Scheduler):
                         if not todo_task_count:
                             if self._keep_alive:
                                 log.info("任务均已做完，爬虫常驻, 等待新任务")
+                                time.sleep(self._check_task_interval)
+                                continue
+                            elif self.have_alive_spider():
+                                log.info("任务均已做完，但还有爬虫在运行，等待爬虫结束")
                                 time.sleep(self._check_task_interval)
                                 continue
                             else:
@@ -535,7 +539,6 @@ class TaskSpider(TaskParser, Scheduler):
 
             while True:
                 try:
-                    self.heartbeat()
                     if (
                         self.all_thread_is_done() and self.task_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
@@ -554,6 +557,8 @@ class TaskSpider(TaskParser, Scheduler):
                         if not self._keep_alive:
                             self._stop_all_thread()
                             break
+                        else:
+                            log.info("常驻爬虫，等待新任务")
                     else:
                         self._is_notify_end = False
 
