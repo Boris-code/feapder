@@ -177,13 +177,6 @@ class Scheduler(threading.Thread):
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
-                        self.record_spider_state(
-                            spider_type=1,
-                            state=1,
-                            spider_end_time=tools.get_current_date(),
-                            batch_interval=self._batch_interval,
-                        )
-
                         self._is_notify_end = True
 
                     if not self._keep_alive:
@@ -203,13 +196,6 @@ class Scheduler(threading.Thread):
     def __add_task(self):
         # 启动parser 的 start_requests
         self.spider_begin()  # 不自动结束的爬虫此处只能执行一遍
-        self.record_spider_state(
-            spider_type=1,
-            state=0,
-            batch_date=tools.get_current_date(),
-            spider_start_time=tools.get_current_date(),
-            batch_interval=self._batch_interval,
-        )
 
         # 判断任务池中属否还有任务，若有接着抓取
         todo_task_count = self._collector.get_requests_count()
@@ -530,17 +516,6 @@ class Scheduler(threading.Thread):
                 return False
 
         return True
-
-    def record_spider_state(
-        self,
-        spider_type,
-        state,
-        batch_date=None,
-        spider_start_time=None,
-        spider_end_time=None,
-        batch_interval=None,
-    ):
-        pass
 
     def join(self, timeout=None):
         """

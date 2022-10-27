@@ -8,7 +8,6 @@ Created on 2020/4/22 12:06 AM
 @email: boris_liu@foxmail.com
 """
 
-import datetime
 import os
 import time
 import warnings
@@ -141,34 +140,8 @@ class TaskSpider(TaskParser, Scheduler):
         )
         self._task_order_by = task_order_by and " order by {}".format(task_order_by)
 
-        self._batch_date_cache = None
-        if self._batch_interval >= 1:
-            self._date_format = "%Y-%m-%d"
-        elif self._batch_interval < 1 and self._batch_interval >= 1 / 24:
-            self._date_format = "%Y-%m-%d %H"
-        else:
-            self._date_format = "%Y-%m-%d %H:%M"
-
-        # 报警相关
-        self._send_msg_interval = datetime.timedelta(hours=1)  # 每隔1小时发送一次报警
-        self._last_send_msg_time = None
-
-        self._spider_last_done_time = None  # 爬虫最近已做任务数量时间
-        self._spider_last_done_count = 0  # 爬虫最近已做任务数量
-        self._spider_deal_speed_cached = None
-
         self._is_more_parsers = True  # 多模版类爬虫
         self.reset_task()
-
-    def init_property(self):
-        """
-        每个批次开始时需要重置的属性
-        @return:
-        """
-        self._last_send_msg_time = None
-
-        self._spider_last_done_time = None
-        self._spider_last_done_count = 0  # 爬虫刚开始启动时已做任务数量
 
     def add_parser(self, parser, **kwargs):
         parser = parser(
@@ -544,14 +517,6 @@ class TaskSpider(TaskParser, Scheduler):
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                         if not self._is_notify_end:
                             self.spider_end()
-                            self.record_spider_state(
-                                spider_type=2,
-                                state=1,
-                                batch_date=self._batch_date_cache,
-                                spider_end_time=tools.get_current_date(),
-                                batch_interval=self._batch_interval,
-                            )
-
                             self._is_notify_end = True
 
                         if not self._keep_alive:
@@ -758,14 +723,3 @@ class DebugTaskSpider(TaskSpider):
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
         self.delete_tables([self._redis_key + "*"])
-
-    def record_spider_state(
-        self,
-        spider_type,
-        state,
-        batch_date=None,
-        spider_start_time=None,
-        spider_end_time=None,
-        batch_interval=None,
-    ):
-        pass
