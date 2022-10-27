@@ -362,9 +362,13 @@ class Scheduler(threading.Thread):
             current_time - self._last_check_task_count_time
             > setting.WARNING_CHECK_TASK_COUNT_INTERVAL
         ):
-            if self._last_task_count and self._last_task_count == total_task_count:
+            if (
+                self._last_task_count
+                and self._last_task_count == total_task_count
+                and self._redisdb.zget_count(self._tab_requests) > 0
+            ):
                 # 发送报警
-                msg = "《{}》爬虫任务停滞 {}，请检查爬虫是否正常".format(
+                msg = "《{}》爬虫停滞 {}，请检查爬虫是否正常".format(
                     self._spider_name,
                     tools.format_seconds(
                         current_time - self._last_check_task_count_time
@@ -374,7 +378,7 @@ class Scheduler(threading.Thread):
                 self.send_msg(
                     msg,
                     level="error",
-                    message_prefix="《{}》爬虫任务停滞".format(self._spider_name),
+                    message_prefix="《{}》爬虫停滞".format(self._spider_name),
                 )
             else:
                 self._last_task_count = total_task_count
