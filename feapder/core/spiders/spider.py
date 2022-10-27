@@ -160,13 +160,6 @@ class Spider(
         if self._is_distributed_task:  # 有任务时才提示启动爬虫
             # begin
             self.spider_begin()
-            self.record_spider_state(
-                spider_type=1,
-                state=0,
-                batch_date=tools.get_current_date(),
-                spider_start_time=tools.get_current_date(),
-                batch_interval=self._batch_interval,
-            )
 
             # 重置已经提示无任务状态为False
             self._is_show_not_task = False
@@ -194,13 +187,6 @@ class Spider(
                 if self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
-                        self.record_spider_state(
-                            spider_type=1,
-                            state=1,
-                            spider_end_time=tools.get_current_date(),
-                            batch_interval=self._batch_interval,
-                        )
-
                         self._is_notify_end = True
 
                     if not self._keep_alive:
@@ -321,13 +307,6 @@ class DebugSpider(Spider):
         if self._is_distributed_task:  # 有任务时才提示启动爬虫
             # begin
             self.spider_begin()
-            self.record_spider_state(
-                spider_type=1,
-                state=0,
-                batch_date=tools.get_current_date(),
-                spider_start_time=tools.get_current_date(),
-                batch_interval=self._batch_interval,
-            )
 
             # 重置已经提示无任务状态为False
             self._is_show_not_task = False
@@ -340,17 +319,6 @@ class DebugSpider(Spider):
             # self.send_msg(msg)
 
             self._is_show_not_task = True
-
-    def record_spider_state(
-        self,
-        spider_type,
-        state,
-        batch_date=None,
-        spider_start_time=None,
-        spider_end_time=None,
-        batch_interval=None,
-    ):
-        pass
 
     def _start(self):
         # 启动parser 的 start_requests
