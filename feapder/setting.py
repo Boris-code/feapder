@@ -46,10 +46,10 @@ EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包�
 
 # 爬虫相关
 # COLLECTOR
-COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量
+COLLECTOR_TASK_COUNT = 1  # 每次获取任务数量，追求速度推荐32
 
 # SPIDER
-SPIDER_THREAD_COUNT = 32  # 爬虫并发数
+SPIDER_THREAD_COUNT = 1  # 爬虫并发数，追求速度推荐32
 # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 SPIDER_SLEEP_TIME = 0
 SPIDER_MAX_RETRY_TIMES = 10  # 每个请求最大重试次数
