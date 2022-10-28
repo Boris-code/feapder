@@ -79,7 +79,7 @@ class WebDriverPool:
                     driver = self.create_driver(user_agent, proxy)
                     self.queue.put(driver)
                     self.driver_count += 1
-        else:
+        elif self.thread_safe:
             if not self.driver:
                 driver = self.create_driver(user_agent, proxy)
                 self.driver = driver
