@@ -153,7 +153,7 @@ class BatchSpider(BatchParser, Scheduler):
 
         # 初始化每个配置的属性
         self._spider_last_done_time = None  # 爬虫最近已做任务数量时间
-        self._spider_last_done_count = 0  # 爬虫最近已做任务数量
+        self._spider_last_done_count = None  # 爬虫最近已做任务数量
         self._spider_deal_speed_cached = None
         self._batch_timeout = False  # 批次是否超时或将要超时
 
@@ -167,7 +167,7 @@ class BatchSpider(BatchParser, Scheduler):
         """
         self._spider_deal_speed_cached = None
         self._spider_last_done_time = None
-        self._spider_last_done_count = 0  # 爬虫刚开始启动时已做任务数量
+        self._spider_last_done_count = None  # 爬虫刚开始启动时已做任务数量
         self._batch_timeout = False
 
     def add_parser(self, parser, **kwargs):
@@ -556,14 +556,12 @@ class BatchSpider(BatchParser, Scheduler):
             或
             None
         """
-        if not self._spider_last_done_count:
-            now_date = datetime.datetime.now()
+        now_date = datetime.datetime.now()
+        if self._spider_last_done_count is None:
             self._spider_last_done_count = done_count
             self._spider_last_done_time = now_date
 
-        if done_count > self._spider_last_done_count:
-            now_date = datetime.datetime.now()
-
+        elif done_count > self._spider_last_done_count:
             time_interval = (now_date - self._spider_last_done_time).total_seconds()
             deal_speed = (
                 done_count - self._spider_last_done_count
