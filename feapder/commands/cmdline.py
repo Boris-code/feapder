@@ -61,15 +61,22 @@ def _print_commands():
 def check_new_version():
     try:
         url = "https://pypi.org/simple/feapder/"
-        resp = requests.get(url, timeout=3)
+        resp = requests.get(url, timeout=3, verify=False)
         html = resp.text
 
-        last_version = re.findall(r"feapder-([\d.]*?).tar.gz", html)[-1]
+        last_stable_version = re.findall(r"feapder-([\d.]*?).tar.gz", html)[-1]
+        now_version = VERSION
         now_stable_version = re.sub("-beta.*", "", VERSION)
 
-        if now_stable_version < last_version:
-            return f"feapder=={last_version}"
-    except:
+        if now_stable_version < last_stable_version or (
+            now_stable_version == last_stable_version and "beta" in now_version
+        ):
+            new_version = f"feapder=={last_stable_version}"
+            if new_version:
+                version = f"feapder=={VERSION.replace('-beta', 'b')}"
+                tip = NEW_VERSION_TIP.format(version=version, new_version=new_version)
+                print(tip)
+    except Exception as e:
         pass
 
 
@@ -78,6 +85,7 @@ def execute():
         args = sys.argv
         if len(args) < 2:
             _print_commands()
+            check_new_version()
             return
 
         command = args.pop(1)
@@ -92,11 +100,7 @@ def execute():
     except KeyboardInterrupt:
         pass
 
-    new_version = check_new_version()
-    if new_version:
-        version = f"feapder=={VERSION.replace('-beta', 'b')}"
-        tip = NEW_VERSION_TIP.format(version=version, new_version=new_version)
-        print(tip)
+    check_new_version()
 
 
 if __name__ == "__main__":
