@@ -46,7 +46,7 @@ EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包�
 
 # 爬虫相关
 # COLLECTOR
-COLLECTOR_TASK_COUNT = 1  # 每次获取任务数量，追求速度推荐32
+COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量，追求速度推荐32
 
 # SPIDER
 SPIDER_THREAD_COUNT = 1  # 爬虫并发数，追求速度推荐32

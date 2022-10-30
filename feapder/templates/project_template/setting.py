@@ -35,7 +35,7 @@
 #
 # # 爬虫相关
 # # COLLECTOR
-# COLLECTOR_TASK_COUNT = 1  # 每次获取任务数量，追求速度推荐32
+# COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量，追求速度推荐32
 #
 # # SPIDER
 # SPIDER_THREAD_COUNT = 1  # 爬虫并发数，追求速度推荐32
