@@ -1,4 +1,4 @@
-# 浏览器渲染
+# 浏览器渲染-Selenium
 
 采集动态页面时（Ajax渲染的页面），常用的有两种方案。一种是找接口拼参数，这种方式比较复杂但效率高，需要一定的爬虫功底；另外一种是采用浏览器渲染的方式，直接获取源码，简单方便
 
@@ -76,16 +76,6 @@ def download_midware(self, request):
 ```python
 def download_midware(self, request):
     request.proxies = {
-        "http": "http://xxx.xxx.xxx.xxx:xxxx"
-    }
-    return request
-```
-
-或者
-
-```python
-def download_midware(self, request):
-    request.proxies = {
         "https": "https://xxx.xxx.xxx.xxx:xxxx"
     }
     return request
@@ -111,6 +101,21 @@ def download_midware(self, request):
         "key": "value",
         "key2": "value2",
     }
+    return request
+```
+
+或者
+
+```python
+def download_midware(self, request):
+    request.cookies = [
+        {
+            "domain": "xxx",
+            "name": "xxx",
+            "value": "xxx",
+            "expirationDate": "xxx"
+        },
+    ]
     return request
 ```
 

@@ -20,22 +20,24 @@
 
 ### 1.拥有强大的监控，保障数据质量
 
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/09/14/16316112326191.jpg)
+![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655595870715.jpg)
 
 监控面板：[点击查看详情](http://feapder.com/#/feapder_platform/feaplat)
 
-### 2. 内置多维度的报警（支持 钉钉、企业微信、邮箱）
+### 2. 内置多维度的报警（支持 钉钉、企业微信、飞书、邮箱）
 
 ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
 ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
 ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
 
 
-### 3. 简单易用，内置三种爬虫，可应对各种需求场景
+### 3. 简单易用，内置四种爬虫，可应对各种需求场景
 
 - `AirSpider` 轻量爬虫：学习成本低，可快速上手
 
-- `Spider` 分布式爬虫：支持断点续爬、爬虫报警、数据自动入库等功能
+- `Spider` 分布式爬虫：支持断点续爬、爬虫报警等功能，可加快爬虫采集速度
+
+-  `TaskSpider` 任务爬虫：从任务表里取任务做，内置支持对接redis、mysql任务表，亦可扩展其他任务来源
 
 - `BatchSpider` 批次爬虫：可周期性的采集数据，自动将数据按照指定的采集周期划分。（如每7天全量更新一次商品销量的需求）
 
@@ -44,7 +46,6 @@
 ## 文档地址
 
 - 官方文档：http://feapder.com
-- 国内文档：https://boris-code.gitee.io/feapder
 - 境外文档：https://boris.org.cn/feapder
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
