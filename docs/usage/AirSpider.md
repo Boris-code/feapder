@@ -8,7 +8,15 @@ AirSpider是一款轻量爬虫，学习成本低。面对一些数据量较少�
 
 示例
 
-    feapder create -s air_spider_test
+```python
+feapder create -s air_spider_test
+
+请选择爬虫模板
+> AirSpider
+  Spider
+  TaskSpider
+  BatchSpider
+```
 
 生成如下
 

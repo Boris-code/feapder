@@ -8,7 +8,19 @@ TaskSpider是一款分布式爬虫，内部封装了取种子任务的逻辑，�
 
 ## 2. 创建爬虫
 
-命令行 TODO
+命令参考：[命令行工具](command/cmdline.md?id=_2-创建爬虫)
+
+示例:
+
+```python
+feapder create -s task_spider_test
+
+请选择爬虫模板
+  AirSpider
+  Spider
+> TaskSpider
+  BatchSpider
+```
 
 示例代码：
 
@@ -17,7 +29,7 @@ import feapder
 from feapder import ArgumentParser
 
 
-class TestTaskSpider(feapder.TaskSpider):
+class TaskSpiderTest(feapder.TaskSpider):
     # 自定义数据库，若项目中有setting.py文件，此自定义可删除
     __custom_setting__ = dict(
         REDISDB_IP_PORTS="localhost:6379",
@@ -52,7 +64,7 @@ def start(args):
     """
     用mysql做种子表
     """
-    spider = TestTaskSpider(
+    spider = TaskSpiderTest(
         task_table="spider_task", # 任务表名
         task_keys=["id", "url"], # 表里查询的字段
         redis_key="test:task_spider", # redis里做任务队列的key
@@ -69,7 +81,7 @@ def start2(args):
     """
     用redis做种子表
     """
-    spider = TestTaskSpider(
+    spider = TaskSpiderTest(
         task_table="spider_task2", # 任务表名
         task_table_type="redis", # 任务表类型为redis
         redis_key="test:task_spider", # redis里做任务队列的key
@@ -90,8 +102,8 @@ if __name__ == "__main__":
 
     parser.start()
 
-    # 下发任务  python3 test_task_spider.py --start 1
-    # 采集  python3 test_task_spider.py --start 2
+    # 下发任务  python3 task_spider_test.py --start 1
+    # 采集  python3 task_spider_test.py --start 2
 ```
 
 ## 3. 代码讲解
