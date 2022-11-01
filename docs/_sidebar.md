@@ -48,3 +48,4 @@
   * [安装问题](question/安装问题.md)
   * [运行问题](question/运行问题.md)
   * [请求问题](question/请求问题.md)
+  * [setting不生效问题](question/setting不生效问题.md)
