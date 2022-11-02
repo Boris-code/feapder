@@ -9,10 +9,12 @@ Created on 2018-10-08 15:33:37
 """
 import re
 
+import parsel
 import six
 from lxml import etree
 from parsel import Selector as ParselSelector
 from parsel import SelectorList as ParselSelectorList
+from parsel import selector
 from w3lib.html import replace_entities as w3lib_replace_entities
 
 
@@ -54,14 +56,17 @@ def extract_regex(regex, text, replace_entities=True, flags=0):
 
 
 def create_root_node(text, parser_cls, base_url=None):
-    """Create root node for text using given parser class.
-    """
+    """Create root node for text using given parser class."""
     body = text.strip().replace("\x00", "").encode("utf8") or b"<html/>"
     parser = parser_cls(recover=True, encoding="utf8", huge_tree=True)
     root = etree.fromstring(body, parser=parser, base_url=base_url)
     if root is None:
         root = etree.fromstring(b"<html/>", parser=parser, base_url=base_url)
     return root
+
+
+if parsel.__version__ < "1.7.0":
+    selector.create_root_node = create_root_node
 
 
 class SelectorList(ParselSelectorList):
@@ -150,6 +155,3 @@ class Selector(ParselSelector):
         return extract_regex(
             regex, self.get(), replace_entities=replace_entities, flags=flags
         )
-
-    def _get_root(self, text, base_url=None):
-        return create_root_node(text, self._parser, base_url=base_url)
