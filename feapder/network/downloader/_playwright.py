@@ -28,8 +28,22 @@ class PlaywrightDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        proxy = request.get_proxy()
-        user_agent = request.get_user_agent()
+        # 代理优先级 自定义 > 配置文件 > 随机
+        if request.custom_proxies:
+            proxy = request.get_proxy()
+        elif setting.PLAYWRIGHT.get("proxy"):
+            proxy = setting.PLAYWRIGHT.get("proxy")
+        else:
+            proxy = request.get_proxy()
+
+        # user_agent优先级 自定义 > 配置文件 > 随机
+        if request.custom_ua:
+            user_agent = request.get_user_agent()
+        elif setting.PLAYWRIGHT.get("user_agent"):
+            user_agent = setting.PLAYWRIGHT.get("user_agent")
+        else:
+            user_agent = request.get_user_agent()
+
         cookies = request.get_cookies()
         url = request.url
         render_time = request.render_time or setting.PLAYWRIGHT.get("render_time")
