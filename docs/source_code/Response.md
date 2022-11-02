@@ -145,13 +145,39 @@ response.open()
 
 这个函数会打开浏览器，渲染下载内容，方便查看下载内容是否与数据源一致
 
-### 11. 将普通response转为feapder.Response
+### 11. 更新response.text的值
+
+```
+response.text = ""
+```
+常用于浏览器渲染模式，如页面有变化，可以取最新的页面内容更新到response.text里，然后使用response的选择器提取内容
+
+### 12. 将普通response转为feapder.Response
 
 ```
 response = feapder.Response(response)
 ```
 
-### 12. 序列化与反序列化
+### 13. 将源码转为feapder.Response
+
+```
+response = feapder.Response.from_text(text=html, url="", cookies={}, headers={})
+```
+
+url是网页的地址，用来将html里的链接转为绝对链接，若不提供，则无法转换
+
+示例：
+```
+import feapder
+
+html = "<a href='/666'>hello word</a>"
+response = feapder.Response.from_text(text=html, url="https://www.feapder.com", cookies={}, headers={})
+print(response.xpath("//a/@href").extract_first())
+
+输出：https://www.feapder.com/666
+```
+
+### 14. 序列化与反序列化
 
 序列化 
 
@@ -160,6 +186,7 @@ response = feapder.Response(response)
 反序列化 
 
     feapder.Response.from_dict(response_dict)
+    
 
 ### 其他
 
