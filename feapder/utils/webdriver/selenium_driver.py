@@ -76,7 +76,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         super(SeleniumDriver, self).__init__(**kwargs)
         self._xhr_url_regexes = xhr_url_regexes
 
-        if self._xhr_url_regexes and self.driver_type != SeleniumDriver.CHROME:
+        if self._xhr_url_regexes and self._driver_type != SeleniumDriver.CHROME:
             raise Exception(
                 "xhr_url_regexes only support by chrome now! eg: driver_type=SeleniumDriver.CHROME"
             )
