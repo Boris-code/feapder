@@ -591,7 +591,7 @@ def urldecode(url):
     params_json = {}
     params = url.split("?")[-1].split("&")
     for param in params:
-        key, value = param.split("=")
+        key, value = param.split("=", 1)
         params_json[key] = unquote_url(value)
 
     return params_json
