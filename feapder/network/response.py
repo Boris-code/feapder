@@ -59,7 +59,7 @@ class Response(res):
         self._cached_json = None
 
         self._encoding = None
-
+        self._apparent_encoding = None
         self.encoding_errors = "strict"  # strict / replace / ignore
         self.browser = self.driver = None
 
@@ -124,22 +124,31 @@ class Response(res):
         self.__dict__["_cached_json"] = None
 
     @property
+    def apparent_encoding(self):
+        if not self._apparent_encoding:
+            self._apparent_encoding = super(Response, self).apparent_encoding
+        return self._apparent_encoding
+
+    @property
     def encoding(self):
         """
         编码优先级：自定义编码 > header中编码 > 页面编码 > 根据content猜测的编码
         """
-        self._encoding = (
-            self._encoding
-            or self._headers_encoding()
-            or self._body_declared_encoding()
-            or self.apparent_encoding
-        )
+        # 用户未定义编码时从以下选
+        if not self._encoding:
+            self._encoding = (
+                self._headers_encoding()
+                or self._body_declared_encoding()
+                or self.apparent_encoding
+            )
         return self._encoding
 
     @encoding.setter
     def encoding(self, val):
         self.__clear_cache()
         self._encoding = val
+        # 用户自定义编码时设为replace，否则自定义编码不会生效
+        self.encoding_errors = "replace"
 
     code = encoding
 
@@ -153,7 +162,7 @@ class Response(res):
         if content_type:
             return (
                 http_content_type_encoding(content_type) or "utf-8"
-                if "application/json" in content_type
+                if "application/json" in content_type or "text/html" in content_type
                 else None
             )
 
@@ -176,6 +185,9 @@ class Response(res):
             )
 
         html = converted.unicode_markup
+        # 将encoding更新为猜出的编码
+        self._encoding = converted.original_encoding
+        self._apparent_encoding = converted.original_encoding
         return html
 
     def _make_absolute(self, link):
@@ -381,10 +393,10 @@ class Response(res):
 
     def open(self):
         body = self.content
-        if b'<base' not in body:
+        if b"<base" not in body:
             # <head> 标签后插入一个<base href="url">标签
-            repl = fr'\1<base href="{self.url}">'
-            body = re.sub(rb"(<head(?:>|\s.*?>))", repl.encode('utf-8'), body)
+            repl = rf'\1<base href="{self.url}">'
+            body = re.sub(rb"(<head(?:>|\s.*?>))", repl.encode("utf-8"), body)
 
         fd, fname = tempfile.mkstemp(".html")
         os.write(fd, body)
