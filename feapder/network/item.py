@@ -39,6 +39,9 @@ class Item(metaclass=ItemMetaclass):
     def __setitem__(self, key, value):
         self.__dict__[key] = value
 
+    def update(self, *args, **kwargs):
+        self.__dict__.update(*args, **kwargs)
+
     def pre_to_db(self):
         """
         入库前的处理
