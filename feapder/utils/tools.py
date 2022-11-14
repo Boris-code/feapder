@@ -515,8 +515,8 @@ def get_param(url, key):
 
 def get_all_params(url):
     """
-    >>> get_all_params("https://api.pinduoduo.com/api/alexa/homepage/hub?page_id=index.html?dy_sub_page=home&install_token=72b46dd5-6065-454a-8ed1-4ada787df0d6&list_id=68853135&client_time=1636438142852&top_opt_version=1&scale=2.75&support_formats=1&nuz_version=2&req_action_type=10&engine_version=2.0&launch_channel=1&pdduid=")
-    {'page_id': 'index.html?dy_sub_page=home', 'install_token': '72b46dd5-6065-454a-8ed1-4ada787df0d6', 'list_id': '68853135', 'client_time': '1636438142852', 'top_opt_version': '1', 'scale': '2.75', 'support_formats': '1', 'nuz_version': '2', 'req_action_type': '10', 'engine_version': '2.0', 'launch_channel': '1', 'pdduid': ''}
+    >>> get_all_params("https://www.baidu.com/s?wd=feapder")
+    {'wd': 'feapder'}
     """
     params_json = {}
     params = url.split("?", 1)[-1].split("&")
@@ -532,7 +532,7 @@ def get_all_params(url):
 
 def parse_url_params(url):
     """
-    解析yrl参数
+    解析url参数
     :param url:
     :return:
 
@@ -546,8 +546,8 @@ def parse_url_params(url):
     ('', {'wd': '你好', 'pn': '10'})
     >>> parse_url_params("https://www.baidu.com")
     ('https://www.baidu.com', {})
-    >>> parse_url_params("https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html")
-    ('https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html', {})
+    >>> parse_url_params("https://www.spidertools.cn/#/")
+    ('https://www.spidertools.cn/#/', {})
     """
     root_url = ""
     params = {}
