@@ -40,8 +40,7 @@
 
 ## 文档地址
 
-- 官方文档：http://feapder.com
-- 境外文档：https://boris.org.cn/feapder
+- 官方文档：https://feapder.com
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat

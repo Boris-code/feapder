@@ -37,7 +37,7 @@
 
 - `Spider` 分布式爬虫：支持断点续爬、爬虫报警等功能，可加快爬虫采集速度
 
--  `TaskSpider` 任务爬虫：从任务表里取任务做，内置支持对接redis、mysql任务表，亦可扩展其他任务来源
+- `TaskSpider` 任务爬虫：从任务表里取任务做，内置支持对接redis、mysql任务表，亦可扩展其他任务来源
 
 - `BatchSpider` 批次爬虫：可周期性的采集数据，自动将数据按照指定的采集周期划分。（如每7天全量更新一次商品销量的需求）
 
@@ -45,8 +45,7 @@
 
 ## 文档地址
 
-- 官方文档：http://feapder.com
-- 境外文档：https://boris.org.cn/feapder
+- 官方文档：https://feapder.com
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
@@ -76,7 +75,7 @@ pip3 install feapder[all]
 
 1. 完整版支持基于内存去重
 
-完整版可能会安装出错，若安装出错，请参考[安装问题](https://boris.org.cn/feapder/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
+完整版可能会安装出错，若安装出错，请参考[安装问题](https://feapder.com/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98)
 
 ## 小试一下
 
