@@ -353,7 +353,7 @@ class Request:
                 -------------- %srequest for ----------------
                 url  = %s
                 method = %s
-                body = %s
+                args = %s
                 """
             % (
                 ""
