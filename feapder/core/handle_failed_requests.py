@@ -16,11 +16,11 @@ from feapder.utils.log import log
 
 class HandleFailedRequests:
     def __init__(self, redis_key):
-        super(HandleFailedRequests, self).__init__()
-        self._redis_key = redis_key
+        if redis_key.endswith(":z_failed_requests"):
+            redis_key = redis_key.replace(":z_failed_requests", "")
 
         self._redisdb = RedisDB()
-        self._request_buffer = RequestBuffer(self._redis_key)
+        self._request_buffer = RequestBuffer(redis_key)
 
         self._table_failed_request = setting.TAB_FAILED_REQUESTS.format(
             redis_key=redis_key

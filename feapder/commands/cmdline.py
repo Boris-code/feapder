@@ -15,6 +15,7 @@ from os.path import dirname, join
 import requests
 
 from feapder.commands import create_builder
+from feapder.commands import retry
 from feapder.commands import shell
 from feapder.commands import zip
 
@@ -51,6 +52,7 @@ def _print_commands():
         "create": "create project、spider、item and so on",
         "shell": "debug response",
         "zip": "zip project",
+        "retry": "retry failed request or item",
     }
     for cmdname, cmdclass in sorted(cmds.items()):
         print("  %-13s %s" % (cmdname, cmdclass))
@@ -95,6 +97,8 @@ def execute():
             shell.main()
         elif command == "zip":
             zip.main()
+        elif command == "retry":
+            retry.main()
         else:
             _print_commands()
     except KeyboardInterrupt:
