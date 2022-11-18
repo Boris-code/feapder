@@ -40,7 +40,18 @@ class Item(metaclass=ItemMetaclass):
         self.__dict__[key] = value
 
     def update(self, *args, **kwargs):
+        """
+        更新字段，与字典使用方法一致
+        """
         self.__dict__.update(*args, **kwargs)
+
+    def update_strict(self, *args, **kwargs):
+        """
+        更新严格更新，只更新item中有的字段
+        """
+        for key, value in dict(*args, **kwargs).items():
+            if key in self.__dict__:
+                self.__dict__[key] = value
 
     def pre_to_db(self):
         """
