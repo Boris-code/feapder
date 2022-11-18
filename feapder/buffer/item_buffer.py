@@ -318,7 +318,9 @@ class ItemBuffer(threading.Thread):
                 table, datas, is_update=True, update_keys=update_keys
             ):
                 export_success = False
-                failed_items["update"].append({"table": table, "datas": datas})
+                failed_items["update"].append(
+                    {"table": table, "datas": datas, "update_keys": update_keys}
+                )
 
         if export_success:
             # 执行回调

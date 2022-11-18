@@ -14,9 +14,7 @@ from feapder.network.request import Request
 from feapder.utils.log import log
 
 
-class HandleFailedRequests(object):
-    """docstring for HandleFailedRequests"""
-
+class HandleFailedRequests:
     def __init__(self, redis_key):
         super(HandleFailedRequests, self).__init__()
         self._redis_key = redis_key
