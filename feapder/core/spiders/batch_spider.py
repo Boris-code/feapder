@@ -52,6 +52,7 @@ class BatchSpider(BatchParser, Scheduler):
         end_callback=None,
         delete_keys=(),
         keep_alive=None,
+        auto_start_next_batch=True,
         **kwargs,
     ):
         """
@@ -87,6 +88,7 @@ class BatchSpider(BatchParser, Scheduler):
         @param end_callback: 爬虫结束回调函数
         @param delete_keys: 爬虫启动时删除的key，类型: 元组/bool/string。 支持正则; 常用于清空任务队列，否则重启时会断点续爬
         @param keep_alive: 爬虫是否常驻，默认否
+        @param auto_start_next_batch: 本批次结束后，且下一批次时间已到达时，是否自动启动下一批次，默认是
         @param related_redis_key: 有关联的其他爬虫任务表（redis）注意：要避免环路 如 A -> B & B -> A 。
         @param related_batch_record: 有关联的其他爬虫批次表（mysql）注意：要避免环路 如 A -> B & B -> A 。
             related_redis_key 与 related_batch_record 选其一配置即可；用于相关联的爬虫没结束时，本爬虫也不结束
@@ -140,6 +142,7 @@ class BatchSpider(BatchParser, Scheduler):
             task_condition
         )
         self._task_order_by = task_order_by and " order by {}".format(task_order_by)
+        self._auto_start_next_batch = auto_start_next_batch
 
         self._batch_date_cache = None
         if self._batch_interval >= 1:
@@ -683,6 +686,9 @@ class BatchSpider(BatchParser, Scheduler):
 
                 # 判断下一批次是否到
                 if time_difference >= datetime.timedelta(days=self._batch_interval):
+                    if not is_first_check and not self._auto_start_next_batch:
+                        return True  # 下一批次不开始。因为设置了不自动开始下一批次
+
                     msg = "《{}》下一批次开始".format(self._batch_name)
                     log.info(msg)
                     self.send_msg(msg)
