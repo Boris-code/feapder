@@ -16,12 +16,11 @@ from feapder.utils.log import log
 
 class HandleFailedItems:
     def __init__(self, redis_key, task_table=None, item_buffer=None):
-        self._redis_key = redis_key
+        if redis_key.endswith(":s_failed_items"):
+            redis_key = redis_key.replace(":s_failed_items", "")
 
         self._redisdb = RedisDB()
-        self._item_buffer = item_buffer or ItemBuffer(
-            self._redis_key, task_table=task_table
-        )
+        self._item_buffer = item_buffer or ItemBuffer(redis_key, task_table=task_table)
 
         self._table_failed_items = setting.TAB_FAILED_ITEMS.format(redis_key=redis_key)
 
