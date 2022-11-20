@@ -445,6 +445,7 @@ class TaskSpider(TaskParser, Scheduler):
 
         for related_redis_task_table in self._related_task_tables:
             if self._redisdb.exists_key(related_redis_task_table):
+                log.info(f"依赖的爬虫还未结束，任务表为：{related_redis_task_table}")
                 return False
 
         if self._related_batch_record:
@@ -459,6 +460,7 @@ class TaskSpider(TaskParser, Scheduler):
                 return None
 
             if not is_done:
+                log.info(f"依赖的爬虫还未结束，批次表为：{self._related_batch_record}")
                 return False
 
         return True
@@ -513,7 +515,9 @@ class TaskSpider(TaskParser, Scheduler):
             while True:
                 try:
                     if (
-                        self.all_thread_is_done() and self.task_is_done()
+                        self.all_thread_is_done()
+                        and self.task_is_done()
+                        and self.related_spider_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                         if not self._is_notify_end:
                             self.spider_end()

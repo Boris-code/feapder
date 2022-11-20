@@ -15,5 +15,4 @@ dist/
 media/
 .MWebMetaData/
 push.sh
-poetry.lock
-pyproject.toml
+assets/

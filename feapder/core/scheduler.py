@@ -18,6 +18,7 @@ from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.collector import Collector
 from feapder.core.handle_failed_requests import HandleFailedRequests
+from feapder.core.handle_failed_items import HandleFailedItems
 from feapder.core.parser_control import ParserControl
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
@@ -123,6 +124,7 @@ class Scheduler(threading.Thread):
 
         self._spider_name = redis_key
         self._project_name = redis_key.split(":")[0]
+        self._task_table = task_table
 
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
         self._tab_requests = setting.TAB_REQUESTS.format(redis_key=redis_key)
@@ -235,6 +237,15 @@ class Scheduler(threading.Thread):
                 self._item_buffer.flush()
 
     def _start(self):
+        # 将失败的item入库
+        if setting.RETRY_FAILED_ITEMS:
+            handle_failed_items = HandleFailedItems(
+                redis_key=self._redis_key,
+                task_table=self._task_table,
+                item_buffer=self._item_buffer,
+            )
+            handle_failed_items.reput_failed_items_to_db()
+
         # 心跳开始
         self.heartbeat_start()
         # 启动request_buffer

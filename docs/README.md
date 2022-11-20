@@ -14,34 +14,11 @@
 
 读音: `[ˈfiːpdə]`
 
-### 1.拥有强大的监控，保障数据质量
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2022/10/12/16655595870715.jpg)
-
-监控面板：[点击查看详情](http://feapder.com/#/feapder_platform/feaplat)
-
-### 2. 内置多维度的报警（支持 钉钉、企业微信、飞书、邮箱）
-
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718974597.jpg)
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/29/16092335882158.jpg)
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/12/20/16084718683378.jpg)
-
-### 3. 简单易用，内置四种爬虫，可应对各种需求场景
-
-- `AirSpider` 轻量爬虫：学习成本低，可快速上手
-
-- `Spider` 分布式爬虫：支持断点续爬、爬虫报警等功能，可加快爬虫采集速度
-
--  `TaskSpider` 任务爬虫：从任务表里取任务做，内置支持对接redis、mysql任务表，亦可扩展其他任务来源
-
-- `BatchSpider` 批次爬虫：可周期性的采集数据，自动将数据按照指定的采集周期划分。（如每7天全量更新一次商品销量的需求）
-
-**feapder**对外暴露的接口类似scrapy，可由scrapy快速迁移过来。支持**断点续爬**、**数据防丢**、**监控报警**、**浏览器渲染下载**、**海量数据去重**等功能
+![Feapder](https://tva1.sinaimg.cn/large/008vxvgGly1h8byrr75xnj30u02f7k0j.jpg)
 
 ## 文档地址
 
-- 官方文档：http://feapder.com
-- 境外文档：https://boris.org.cn/feapder
+- 官方文档：https://feapder.com
 - github：https://github.com/Boris-code/feapder
 - 更新日志：https://github.com/Boris-code/feapder/releases
 - 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
@@ -60,13 +37,13 @@ From PyPi:
 
 ```shell
 pip3 install feapder
-```    
+```
 
 完整版：
 
 ```shell
 pip3 install feapder[all]
-``` 
+```
 
 通用版与完整版区别：
 
@@ -124,7 +101,8 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 ## 爬虫工具推荐
 
 1. 爬虫在线工具库：http://www.spidertools.cn
-2. 验证码识别库：https://github.com/sml2h3/ddddocr
+2. 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
+3. 验证码识别库：https://github.com/sml2h3/ddddocr
 
 
 ## 微信赞赏
@@ -142,14 +120,15 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
     <tr> 
      <td> 知识星球：17321694 </td> 
      <td> 作者微信： boris_tm </td> 
-     <td> QQ群号：750614606 </td> 
+     <td> QQ群号：485067374 </td> 
     </tr> 
     <tr> 
     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg" width=250px>
  </td> 
      <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/er-wei-ma.jpeg?x-oss-process=style/markdown-media" width="250px" /> </td> 
-     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/16260897330897.jpg" width="250px" /> </td> 
+     <td> <img src="https://tva1.sinaimg.cn/large/008vxvgGly1h8byl060lnj30ku11c76h.jpg" width="250px" /> </td> 
     </tr> 
   </table> 
-  
+
+
   加好友备注：feapder

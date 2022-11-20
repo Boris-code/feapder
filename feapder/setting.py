@@ -100,6 +100,8 @@ PLAYWRIGHT = dict(
 
 # 爬虫启动时，重新抓取失败的requests
 RETRY_FAILED_REQUESTS = False
+# 爬虫启动时，重新入库失败的item
+RETRY_FAILED_ITEMS = False
 # 保存失败的request
 SAVE_FAILED_REQUEST = True
 # request防丢机制。（指定的REQUEST_LOST_TIMEOUT时间内request还没做完，会重新下发 重做）
