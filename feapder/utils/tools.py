@@ -1174,10 +1174,10 @@ def read_file(filename, readlines=False, encoding="utf-8"):
 def get_oss_file_list(oss_handler, prefix, date_range_min, date_range_max=None):
     """
     获取文件列表
-    @param prefix: 路径前缀 如 data/car_service_line/yiche/yiche_serial_zongshu_info
+    @param prefix: 路径前缀 如 xxx/xxx
     @param date_range_min: 时间范围 最小值 日期分隔符为/ 如 2019/03/01 或 2019/03/01/00/00/00
     @param date_range_max: 时间范围 最大值 日期分隔符为/ 如 2019/03/01 或 2019/03/01/00/00/00
-    @return: 每个文件路径 如 html/e_commerce_service_line/alibaba/alibaba_shop_info/2019/03/22/15/53/15/8ca8b9e4-4c77-11e9-9dee-acde48001122.json.snappy
+    @return: 每个文件路径 如 html/xxx/xxx/2019/03/22/15/53/15/8ca8b9e4-4c77-11e9-9dee-acde48001122.json.snappy
     """
 
     # 计算时间范围
