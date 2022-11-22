@@ -616,14 +616,14 @@ class BatchSpider(BatchParser, Scheduler):
         @result: 完成返回True 否则False
         """
 
-        sql = 'select date_format(batch_date, "{date_format}"), total_count, done_count from {batch_record_table} order by id desc limit 1'.format(
+        sql = 'select date_format(batch_date, "{date_format}"), total_count, done_count, is_done from {batch_record_table} order by id desc limit 1'.format(
             date_format=self._date_format.replace(":%M", ":%i"),
             batch_record_table=self._batch_record_table,
         )
-        batch_info = self._mysqldb.find(sql)  # (('2018-08-19', 49686, 0),)
+        batch_info = self._mysqldb.find(sql)  # (('批次时间', 总量, 完成量, 批次是否完成),)
 
         if batch_info:
-            batch_date, total_count, done_count = batch_info[0]
+            batch_date, total_count, done_count, is_done = batch_info[0]
 
             now_date = datetime.datetime.now()
             last_batch_date = datetime.datetime.strptime(batch_date, self._date_format)
@@ -639,39 +639,37 @@ class BatchSpider(BatchParser, Scheduler):
                 done_count = task_count.get("done_count")
 
             if total_count == done_count:
-                # 检查相关联的爬虫是否完成
-                releated_spider_is_done = self.related_spider_is_done()
-                if releated_spider_is_done == False:
-                    msg = "《{}》本批次未完成, 正在等待依赖爬虫 {} 结束. 批次时间 {} 批次进度 {}/{}".format(
-                        self._batch_name,
-                        self._related_batch_record or self._related_task_tables,
-                        batch_date,
-                        done_count,
-                        total_count,
-                    )
-                    log.info(msg)
-                    # 检查是否超时 超时发出报警
-                    if time_difference >= datetime.timedelta(
-                        days=self._batch_interval
-                    ):  # 已经超时
-                        self.send_msg(
-                            msg,
-                            level="error",
-                            message_prefix="《{}》本批次未完成, 正在等待依赖爬虫 {} 结束".format(
-                                self._batch_name,
-                                self._related_batch_record or self._related_task_tables,
-                            ),
+                if not is_done:
+                    # 检查相关联的爬虫是否完成
+                    related_spider_is_done = self.related_spider_is_done()
+                    if related_spider_is_done is False:
+                        msg = "《{}》本批次未完成, 正在等待依赖爬虫 {} 结束. 批次时间 {} 批次进度 {}/{}".format(
+                            self._batch_name,
+                            self._related_batch_record or self._related_task_tables,
+                            batch_date,
+                            done_count,
+                            total_count,
                         )
-                        self._batch_timeout = True
+                        log.info(msg)
+                        # 检查是否超时 超时发出报警
+                        if time_difference >= datetime.timedelta(
+                            days=self._batch_interval
+                        ):  # 已经超时
+                            self.send_msg(
+                                msg,
+                                level="error",
+                                message_prefix="《{}》本批次未完成, 正在等待依赖爬虫 {} 结束".format(
+                                    self._batch_name,
+                                    self._related_batch_record
+                                    or self._related_task_tables,
+                                ),
+                            )
+                            self._batch_timeout = True
 
-                    return False
+                        return False
 
-                elif releated_spider_is_done == True:
-                    # 更新is_done 状态
-                    self.update_is_done()
-
-                else:
-                    self.update_is_done()
+                    else:
+                        self.update_is_done()
 
                 msg = "《{}》本批次完成 批次时间 {} 共处理 {} 条任务".format(
                     self._batch_name, batch_date, done_count
