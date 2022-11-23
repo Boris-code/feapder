@@ -60,7 +60,7 @@ def parse_args():
 
 
 def main():
-    ignore_dirs = [".git", "__pycache__", ".idea", "venv"]
+    ignore_dirs = [".git", "__pycache__", ".idea", "venv", "env"]
     ignore_files = [".DS_Store"]
     args = parse_args()
     if args.i:
