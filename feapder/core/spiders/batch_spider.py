@@ -864,7 +864,7 @@ class BatchSpider(BatchParser, Scheduler):
 
             if is_done is None:
                 log.warning("相关联的批次表不存在或无批次信息")
-                return None
+                return True
 
             if not is_done:
                 return False
