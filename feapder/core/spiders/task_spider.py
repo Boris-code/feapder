@@ -189,6 +189,8 @@ class TaskSpider(TaskParser, Scheduler):
                                 log.info("任务均已做完，但还有爬虫在运行，等待爬虫结束")
                                 time.sleep(self._check_task_interval)
                                 continue
+                            elif not self.related_spider_is_done():
+                                continue
                             else:
                                 log.info("任务均已做完，爬虫结束")
                                 break
@@ -457,7 +459,7 @@ class TaskSpider(TaskParser, Scheduler):
 
             if is_done is None:
                 log.warning("相关联的批次表不存在或无批次信息")
-                return None
+                return True
 
             if not is_done:
                 log.info(f"依赖的爬虫还未结束，批次表为：{self._related_batch_record}")
