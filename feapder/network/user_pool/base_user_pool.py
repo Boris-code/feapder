@@ -149,7 +149,7 @@ class GoldUser(NormalUser):
         self.sycn_to_redis()
 
     @property
-    def get_use_times(self):
+    def use_times(self):
         current_date = datetime.now().strftime("%Y-%m-%d")
         if current_date != self._reset_use_times_date:
             self.reset_use_times()
@@ -157,7 +157,7 @@ class GoldUser(NormalUser):
         return self._use_times
 
     def is_overwork(self):
-        if self._use_times > self.max_use_times:
+        if self.use_times > self.max_use_times:
             log.info("账号 {} 请求次数超限制".format(self.username))
             return True
 
