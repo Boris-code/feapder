@@ -47,11 +47,11 @@ class AirSpiderRequestBuffer:
             return True
         return False
 
-    def put_request(self, request):
+    def put_request(self, request, ignore_max_size=True):
         if self.is_exist_request(request):
             return
         else:
-            self._db.add(request, ignore_max_size=True)
+            self._db.add(request, ignore_max_size=ignore_max_size)
 
 
 class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
