@@ -54,7 +54,7 @@ class AirSpider(BaseParser, Thread):
                 raise ValueError("仅支持 yield Request")
 
             request.parser_name = request.parser_name or self.name
-            self._request_buffer.put_request(request)
+            self._request_buffer.put_request(request, ignore_max_size=False)
 
     def all_thread_is_done(self):
         for i in range(3):  # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
