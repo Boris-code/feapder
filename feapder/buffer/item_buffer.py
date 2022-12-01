@@ -120,6 +120,9 @@ class ItemBuffer(threading.Thread):
             data_count = 0
 
             while not self._items_queue.empty():
+                # flush是单线程 在确保_items_queue.empty 确保有数据，并且肯定能获取成功
+                # 就设置成正在上传的状态，避免多线程下出现脏数据的可能
+                self._is_adding_to_db = True
                 data = self._items_queue.get_nowait()
                 data_count += 1
 
@@ -156,6 +159,9 @@ class ItemBuffer(threading.Thread):
                 )
 
         except Exception as e:
+            # 如果出现异常状态，及时撤销上传状态
+            # 避免出现无法关闭的情况
+            self._is_adding_to_db = False
             log.exception(e)
 
     def get_items_count(self):
@@ -318,9 +324,7 @@ class ItemBuffer(threading.Thread):
                 table, datas, is_update=True, update_keys=update_keys
             ):
                 export_success = False
-                failed_items["update"].append(
-                    {"table": table, "datas": datas, "update_keys": update_keys}
-                )
+                failed_items["update"].append({"table": table, "datas": datas})
 
         if export_success:
             # 执行回调
