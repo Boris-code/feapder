@@ -269,7 +269,8 @@ ssh-keygen -t rsa -C "备注" -f 生成路径/文件名
 
 默认的爬虫镜像只打包了`feapder`、`scrapy`框架，若需要其它环境，可基于`.env`文件里的`SPIDER_IMAGE`镜像自行构建
 
-如将常用的python库打包到镜像
+如将常用的python库打包到镜像，修改feaplat下的`feapder_dockerfile`
+
 ```
 FROM registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:[最新版本号]
 
@@ -279,8 +280,21 @@ RUN pip3 install feapder \
 
 ```
 
-自己随便搞事情，搞完修改下 `.env`文件里的 SPIDER_IMAGE 的值即可
+改好后要打包镜像，打包命令：
+```
+docker build -f feapder_dockerfile -t 镜像名:版本号 .
+```
+如
+```
+docker build -f feapder_dockerfile -t my_feapder:1.0 .
+```
 
+打包好后修改下 `.env`文件里的 SPIDER_IMAGE 的值即可如：
+```
+SPIDER_IMAGE=my_feapder:1.0
+```
+
+注：若有多个worker服务器，且没将镜像传到镜像服务，则需要手动将镜像推到其他服务器上，否则无法拉取此镜像运行
 
 ## 价格
 
