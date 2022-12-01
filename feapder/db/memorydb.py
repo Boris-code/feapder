@@ -10,10 +10,13 @@ Created on 2020/4/21 11:42 PM
 from queue import PriorityQueue
 
 from feapder import setting
+import threading
 
 
 class MemoryDB:
     def __init__(self):
+        # 添加互斥锁，供多线程提取任务使用
+        self.lock = threading.Lock()
         self.priority_queue = PriorityQueue(maxsize=setting.TASK_MAX_CACHED_SIZE)
 
     def add(self, item, ignore_max_size=False):
@@ -41,4 +44,4 @@ class MemoryDB:
             return
 
     def empty(self):
-        return self.priority_queue.empty()
+        return self.priority_queue.qsize() == 0
