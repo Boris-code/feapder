@@ -153,12 +153,12 @@ class ParserControl(threading.Thread):
                                 "连接超时 url: %s" % (request.url or request_temp.url)
                             )
 
-                        # 校验
-                        if parser.validate(request, response) == False:
-                            break
-
                     else:
                         response = None
+
+                    # 校验
+                    if parser.validate(request, response) == False:
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
@@ -474,7 +474,16 @@ class AirSpiderParserControl(ParserControl):
     def run(self):
         while not self._thread_stop:
             try:
-                request = self._memory_db.get()
+                # 先使用互斥锁让线程同步
+                # 检测任务队列是否为空
+                # 不为空设置为有任务状态，为空则等待100ms
+                # 在线程同步的过程中，Queue.get 确保前面有数据，是肯定能获取到的
+                request = None
+                with self._memory_db.lock:
+                    if not self._memory_db.empty():
+                        self.is_show_tip = False
+                        request = self._memory_db.get()
+                    else: time.sleep(0.1)
                 if not request:
                     if not self.is_show_tip:
                         log.debug("等待任务...")
@@ -550,12 +559,12 @@ class AirSpiderParserControl(ParserControl):
                                 else request.get_response_from_cached(save_cached=False)
                             )
 
-                        # 校验
-                        if parser.validate(request, response) == False:
-                            break
-
                     else:
                         response = None
+
+                    # 校验
+                    if parser.validate(request, response) == False:
+                        break
 
                     if request.callback:  # 如果有parser的回调函数，则用回调处理
                         callback_parser = (
