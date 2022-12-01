@@ -54,27 +54,24 @@ class AirSpider(BaseParser, Thread):
                 raise ValueError("仅支持 yield Request")
 
             request.parser_name = request.parser_name or self.name
-            self._request_buffer.put_request(request, ignore_max_size=False)
+            self._request_buffer.put_request(request)
 
     def all_thread_is_done(self):
-        for i in range(3):  # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
-            # 检测 parser_control 状态
-            for parser_control in self._parser_controls:
-                if not parser_control.is_not_task():
-                    return False
-
-            # 检测 任务队列 状态
-            if not self._memory_db.empty():
+        # 检测 parser_control 状态
+        for parser_control in self._parser_controls:
+            if not parser_control.is_not_task():
                 return False
 
-            # 检测 item_buffer 状态
-            if (
-                self._item_buffer.get_items_count() > 0
-                or self._item_buffer.is_adding_to_db()
-            ):
-                return False
+        # 检测 任务队列 状态
+        if not self._memory_db.empty():
+            return False
 
-            tools.delay_time(1)
+        # 检测 item_buffer 状态
+        if (
+            self._item_buffer.get_items_count() > 0
+            or self._item_buffer.is_adding_to_db()
+        ):
+            return False
 
         return True
 
@@ -114,7 +111,7 @@ class AirSpider(BaseParser, Thread):
             except Exception as e:
                 log.exception(e)
 
-            tools.delay_time(1)  # 1秒钟检查一次爬虫状态
+            tools.delay_time(0.1)  # 1秒钟检查一次爬虫状态
 
         self.end_callback()
         # 为了线程可重复start
