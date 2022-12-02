@@ -274,9 +274,38 @@ ssh-keygen -t rsa -C "备注" -f 生成路径/文件名
 ```
 FROM registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:[最新版本号]
 
+# 安装自定义的python版本，如3.7
+RUN set -ex \
+    && wget https://www.python.org/ftp/python/3.7.5/Python-3.7.5.tgz \
+    && tar -zxvf Python-3.7.5.tgz \
+    && cd Python-3.7.5 \
+    && ./configure prefix=/usr/local/python3 \
+    && make \
+    && make install \
+    && make clean \
+    && rm -rf /Python-3.7.5* \
+    && yum install -y epel-release \
+    && yum install -y python-pip
+
+# 设置默认为python3
+RUN set -ex \
+    # 备份旧版本python
+    && mv /usr/bin/python /usr/bin/python27 \
+    && mv /usr/bin/pip /usr/bin/pip-python2.7 \
+    # 配置默认为python3
+    && ln -s /usr/local/python3/bin/python3.7 /usr/bin/python \
+    && ln -s /usr/local/python3/bin/python3.7 /usr/bin/python3 \
+    && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip \
+    && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
+
+ENV PATH=$PATH:/usr/local/python3/bin/
+
 # 安装依赖
 RUN pip3 install feapder \
     && pip3 install scrapy
+    
+# 安装node依赖包，内置的node为v10.15.3版本
+RUN npm install packageName -g
 
 ```
 
@@ -294,7 +323,9 @@ docker build -f feapder_dockerfile -t my_feapder:1.0 .
 SPIDER_IMAGE=my_feapder:1.0
 ```
 
-注：若有多个worker服务器，且没将镜像传到镜像服务，则需要手动将镜像推到其他服务器上，否则无法拉取此镜像运行
+注：
+1. 若有多个worker服务器，且没将镜像传到镜像服务，则需要手动将镜像推到其他服务器上，否则无法拉取此镜像运行
+2. 若自定义了python版本，则需要删除之前feaplat的挂载，命令 `docker volume rm feapder_python37`，否则可能库的版本不兼容。若报该挂载被占用，则需要删除对应的容器，命令 `docker stop 容器id && docker rm 容器id`，**容器id都不会看，建议别折腾了**
 
 ## 价格
 
