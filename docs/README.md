@@ -10,7 +10,7 @@
 
 ## 简介
 
-**feapder是一款上手简单，功能强大的Python爬虫框架**
+**feapder是一款上手简单，功能强大的Python爬虫框架，内置AirSpider、Spider、TaskSpider、BatchSpider四种爬虫解决不同场景的需求。且支持断点续爬、监控报警、浏览器渲染、海量数据去重等功能。更有功能强大的爬虫管理系统feaplat为其提供方便的部署及调度**
 
 读音: `[ˈfiːpdə]`
 
