@@ -325,7 +325,12 @@ SPIDER_IMAGE=my_feapder:1.0
 
 注：
 1. 若有多个worker服务器，且没将镜像传到镜像服务，则需要手动将镜像推到其他服务器上，否则无法拉取此镜像运行
-2. 若自定义了python版本，则需要删除之前feaplat的挂载，命令 `docker volume rm feapder_python37`，否则可能库的版本不兼容。若报该挂载被占用，则需要删除对应的容器，命令 `docker stop 容器id && docker rm 容器id`，**容器id都不会看，建议别折腾了**
+2. 若自定义了python版本，则需要删除之前feaplat的挂载，命令 `docker volume rm feapder_python37`，否则可能库的版本不兼容。若报该挂载被占用，则需要删除对应的容器，命令 `docker stop 容器id && docker rm 容器id`
+   若提示volume被使用，如
+   ```
+   Error response from daemon: remove feapder_python37: volume is in use - [xxxxx, xxxxx]
+   ```
+   则需要先手动依次删除容器，`docker rm xxxx`，最后使用`docker volume ls`验证`feapder_python37`挂载是否已经被删除
 
 ## 价格
 

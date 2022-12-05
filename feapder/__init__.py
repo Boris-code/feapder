@@ -15,10 +15,11 @@ sys.path.insert(0, re.sub(r"([\\/]items$)|([\\/]spiders$)", "", os.getcwd()))
 
 __all__ = [
     "AirSpider",
-    "TaskSpider",
     "Spider",
+    "TaskSpider",
     "BatchSpider",
     "BaseParser",
+    "TaskParser",
     "BatchParser",
     "Request",
     "Response",
@@ -27,8 +28,8 @@ __all__ = [
     "ArgumentParser",
 ]
 
-from feapder.core.spiders import Spider, BatchSpider, AirSpider, TaskSpider
-from feapder.core.base_parser import BaseParser, BatchParser
+from feapder.core.spiders import AirSpider, Spider, TaskSpider, BatchSpider
+from feapder.core.base_parser import BaseParser, TaskParser, BatchParser
 from feapder.network.request import Request
 from feapder.network.response import Response
 from feapder.network.item import Item, UpdateItem

@@ -49,7 +49,7 @@
 # DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
 # SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
 # RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
-# # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
+# # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader"
 # MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # # 浏览器渲染
