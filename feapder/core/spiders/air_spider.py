@@ -127,3 +127,19 @@ class AirSpider(BaseParser, Thread):
             return
 
         super().join()
+    
+    def get_all_task_status_count(self):
+        '''
+        获取所有任务统计
+        _failed_task_count： 失败任务数
+        _success_task_count：成功任务数
+        _total_task_count：  任务总数
+        任务总数包含重试任务
+        '''
+        _failed_task_count, _success_task_count, _total_task_count = 0, 0, 0
+        for parser_control in self._parser_controls:
+            _failed, _success, _total = parser_control.get_task_status_count()
+            _failed_task_count  += _failed
+            _success_task_count += _success
+            _total_task_count   += _total
+        return _failed_task_count, _success_task_count, _total_task_count
