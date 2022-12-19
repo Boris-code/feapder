@@ -18,7 +18,7 @@ class LiteFilter(BaseFilter):
 
     def add(
         self, keys: Union[List[str], str], *args, **kwargs
-    ) -> Union[List[bool], bool]:
+    ) -> Union[list[int], int]:
         """
 
         Args:
@@ -29,17 +29,23 @@ class LiteFilter(BaseFilter):
         Returns:
             list / 单个值 (如果数据已存在 返回 0 否则返回 1, 可以理解为是否添加成功)
         """
-        is_exist = self.get(keys)
-
         if isinstance(keys, list):
-            self.datas.update(keys)
-            is_add = [1 ^ exist for exist in is_exist]
+            is_add = []
+            for key in keys:
+                if key not in self.datas:
+                    self.datas.add(key)
+                    is_add.append(1)
+                else:
+                    is_add.append(0)
         else:
-            self.datas.add(keys)
-            is_add = 1 ^ is_exist
+            if keys not in self.datas:
+                is_add = 1
+                self.datas.add(keys)
+            else:
+                is_add = 0
         return is_add
 
-    def get(self, keys: Union[List[str], str]) -> Union[List[bool], bool]:
+    def get(self, keys: Union[List[str], str]) -> Union[List[int], int]:
         """
         检查数据是否存在
         Args:
@@ -49,6 +55,16 @@ class LiteFilter(BaseFilter):
             list / 单个值 (如果数据已存在 返回 1 否则返回 0)
         """
         if isinstance(keys, list):
-            return [key in self.datas for key in keys]
+            temp_set = set()
+            is_exist = []
+            for key in keys:
+                # 数据本身重复或者数据在去重库里
+                if key in temp_set or key in self.datas:
+                    is_exist.append(1)
+                else:
+                    is_exist.append(0)
+                    temp_set.add(key)
+
+            return is_exist
         else:
-            return keys in self.datas
+            return int(keys in self.datas)
