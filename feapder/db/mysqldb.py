@@ -91,7 +91,15 @@ class MysqlDB:
 
     @classmethod
     def from_url(cls, url, **kwargs):
-        # mysql://username:password@ip:port/db?charset=utf8mb4
+        """
+
+        Args:
+            url: mysql://username:password@ip:port/db?charset=utf8mb4
+            **kwargs:
+
+        Returns:
+
+        """
         url_parsed = parse.urlparse(url)
 
         db_type = url_parsed.scheme.strip()
@@ -137,8 +145,10 @@ class MysqlDB:
         return conn, cursor
 
     def close_connection(self, conn, cursor):
-        cursor.close()
-        conn.close()
+        if conn:
+            conn.close()
+        if cursor:
+            cursor.close()
 
     def size_of_connections(self):
         """
@@ -223,6 +233,7 @@ class MysqlDB:
 
         """
         affect_count = None
+        conn, cursor = None, None
 
         try:
             conn, cursor = self.get_connection()
@@ -268,6 +279,7 @@ class MysqlDB:
         @result: 添加行数
         """
         affect_count = None
+        conn, cursor = None, None
 
         try:
             conn, cursor = self.get_connection()
@@ -302,11 +314,12 @@ class MysqlDB:
         return self.add_batch(sql, datas)
 
     def update(self, sql):
+        conn, cursor = None, None
+
         try:
             conn, cursor = self.get_connection()
             cursor.execute(sql)
             conn.commit()
-
         except Exception as e:
             log.error(
                 """
@@ -344,11 +357,11 @@ class MysqlDB:
         Returns: True / False
 
         """
+        conn, cursor = None, None
         try:
             conn, cursor = self.get_connection()
             cursor.execute(sql)
             conn.commit()
-
         except Exception as e:
             log.error(
                 """
@@ -364,11 +377,11 @@ class MysqlDB:
             self.close_connection(conn, cursor)
 
     def execute(self, sql):
+        conn, cursor = None, None
         try:
             conn, cursor = self.get_connection()
             cursor.execute(sql)
             conn.commit()
-
         except Exception as e:
             log.error(
                 """

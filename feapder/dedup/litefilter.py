@@ -18,7 +18,7 @@ class LiteFilter(BaseFilter):
 
     def add(
         self, keys: Union[List[str], str], *args, **kwargs
-    ) -> Union[list[int], int]:
+    ) -> Union[List[int], int]:
         """
 
         Args:
