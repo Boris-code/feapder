@@ -269,12 +269,13 @@ class MysqlDB:
         sql = make_insert_sql(table, data, **kwargs)
         return self.add(sql)
 
-    def add_batch(self, sql, datas: List[Dict]):
+    def add_batch(self, sql, datas: List[List]):
         """
         @summary: 批量添加数据
         ---------
-        @ param sql: insert ignore into (xxx,xxx) values (%s, %s, %s)
-        # param datas: 列表 [{}, {}, {}]
+        @ param sql: insert ignore into (xxx,xxx,xxx) values (%s, %s, %s)
+        @ param datas: 列表 [[v1,v2,v3], [v1,v2,v3]]
+                       列表里的值要和插入的key的顺序对应上
         ---------
         @result: 添加行数
         """
