@@ -115,8 +115,11 @@ attaching to network failed, make sure your network options are correct and chec
     
     是则继续往下看，不是则在评论区留言
     
-2. 修复
+1. 修复
+
+    ```
     docker node update --availability active 节点id
     docker node update --availability drain 节点id
+    ```    
     
 原因是Drain节点，不能为其分配网络资源，需要先改成active，然后启动，之后在改回drain
