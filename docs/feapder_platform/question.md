@@ -97,4 +97,26 @@ ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 # 校对时间
 clock --hctosys
 ```
+
+## 我搭建了个集群，如何让主节点不跑任务
+
+在主节点上执行下面命令，将其设置成drain状态即可
+
+    docker node update --availability drain 节点id
  
+ ## Network 问题
+
+attaching to network failed, make sure your network options are correct and check manager logs: context deadline exceeded
+ ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2023/02/16/16765140608308.jpg)
+
+1. 确定当前节点是不是Drain节点：docker node ls
+    
+    ![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2023/02/16/16765145635622.jpg)
+    
+    是则继续往下看，不是则在评论区留言
+    
+2. 修复
+    docker node update --availability active 节点id
+    docker node update --availability drain 节点id
+    
+原因是Drain节点，不能为其分配网络资源，需要先改成active，然后启动，之后在改回drain
