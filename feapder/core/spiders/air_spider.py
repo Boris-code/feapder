@@ -46,6 +46,7 @@ class AirSpider(BaseParser, Thread):
             db=self._memory_db, dedup_name=self.name
         )
 
+        self._stop = False
         metrics.init(**setting.METRICS_OTHER_ARGS)
 
     def distribute_task(self):
@@ -97,7 +98,7 @@ class AirSpider(BaseParser, Thread):
 
         while True:
             try:
-                if self.all_thread_is_done():
+                if self._stop or self.all_thread_is_done():
                     # 停止 parser_controls
                     for parser_control in self._parser_controls:
                         parser_control.stop()
@@ -108,7 +109,10 @@ class AirSpider(BaseParser, Thread):
                     # 关闭webdirver
                     Request.render_downloader and Request.render_downloader.close_all()
 
-                    log.info("无任务，爬虫结束")
+                    if self._stop:
+                        log.info("爬虫被停止")
+                    else:
+                        log.info("无任务，爬虫结束")
                     break
 
             except Exception as e:
@@ -130,3 +134,6 @@ class AirSpider(BaseParser, Thread):
             return
 
         super().join()
+
+    def stop_spider(self):
+        self._stop = True
