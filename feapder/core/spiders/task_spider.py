@@ -516,7 +516,7 @@ class TaskSpider(TaskParser, Scheduler):
 
             while True:
                 try:
-                    if (
+                    if self._stop or (
                         self.all_thread_is_done()
                         and self.task_is_done()
                         and self.related_spider_is_done()

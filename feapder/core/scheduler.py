@@ -155,6 +155,8 @@ class Scheduler(threading.Thread):
         # 重置丢失的任务
         self.reset_task()
 
+        self._stop = False
+
     def init_metrics(self):
         """
         初始化打点系统
@@ -176,7 +178,7 @@ class Scheduler(threading.Thread):
 
         while True:
             try:
-                if self.all_thread_is_done():
+                if self._stop or self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
                         self._is_notify_end = True
@@ -586,3 +588,6 @@ class Scheduler(threading.Thread):
             lose_count = len(datas)
             if lose_count:
                 log.info("重置丢失任务完毕，共{}条".format(len(datas)))
+
+    def stop_spider(self):
+        self._stop = True

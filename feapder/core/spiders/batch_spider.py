@@ -1002,7 +1002,7 @@ class BatchSpider(BatchParser, Scheduler):
 
             while True:
                 try:
-                    if (
+                    if self._stop or (
                         self.task_is_done() and self.all_thread_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                         if not self._is_notify_end:
