@@ -155,7 +155,7 @@ class Scheduler(threading.Thread):
         # 重置丢失的任务
         self.reset_task()
 
-        self._stop = False
+        self._stop_spider = False
 
     def init_metrics(self):
         """
@@ -590,4 +590,4 @@ class Scheduler(threading.Thread):
                 log.info("重置丢失任务完毕，共{}条".format(len(datas)))
 
     def stop_spider(self):
-        self._stop = True
+        self._stop_spider = True

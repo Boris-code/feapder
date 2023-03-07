@@ -46,7 +46,7 @@ class AirSpider(BaseParser, Thread):
             db=self._memory_db, dedup_name=self.name
         )
 
-        self._stop = False
+        self._stop_spider = False
         metrics.init(**setting.METRICS_OTHER_ARGS)
 
     def distribute_task(self):
@@ -98,7 +98,7 @@ class AirSpider(BaseParser, Thread):
 
         while True:
             try:
-                if self._stop or self.all_thread_is_done():
+                if self._stop_spider or self.all_thread_is_done():
                     # 停止 parser_controls
                     for parser_control in self._parser_controls:
                         parser_control.stop()
@@ -136,4 +136,4 @@ class AirSpider(BaseParser, Thread):
         super().join()
 
     def stop_spider(self):
-        self._stop = True
+        self._stop_spider = True
