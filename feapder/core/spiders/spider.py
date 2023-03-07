@@ -184,7 +184,7 @@ class Spider(
 
         while True:
             try:
-                if self._stop or self.all_thread_is_done():
+                if self._stop_spider or self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
                         self._is_notify_end = True
