@@ -179,7 +179,7 @@ WARNING_CHECK_TASK_COUNT_INTERVAL = 1200  # 检查已做任务数量的时间间
 # 日志
 LOG_NAME = os.path.basename(os.getcwd())
 LOG_PATH = "log/%s.log" % LOG_NAME  # log存储路径
-LOG_LEVEL = os.getenv("LOG_LEVEL", "DEBUG")  # 日志级别
+LOG_LEVEL = os.getenv("LOG_LEVEL", "WARNING")  # 日志级别
 LOG_COLOR = True  # 是否带有颜色
 LOG_IS_WRITE_TO_CONSOLE = True  # 是否打印到控制台
 LOG_IS_WRITE_TO_FILE = False  # 是否写文件
