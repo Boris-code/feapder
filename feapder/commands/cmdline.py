@@ -11,6 +11,7 @@ Created on 2020/5/8 2:24 PM
 import re
 import sys
 from os.path import dirname, join
+import os
 
 import requests
 
@@ -77,6 +78,9 @@ def check_new_version():
             if new_version:
                 version = f"feapder=={VERSION.replace('-beta', 'b')}"
                 tip = NEW_VERSION_TIP.format(version=version, new_version=new_version)
+                # 修复window下print不能带颜色输出的问题
+                if os.name == "nt":
+                    os.system("")
                 print(tip)
     except Exception as e:
         pass
