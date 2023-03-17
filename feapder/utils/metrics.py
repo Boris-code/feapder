@@ -306,6 +306,8 @@ def init(
     use_udp=False,
     timeout=22,
     ssl=False,
+    retention_policy_replication: str = "1",
+    set_retention_policy_default=True,
     **kwargs,
 ):
     """
@@ -326,6 +328,8 @@ def init(
         use_udp: 是否使用udp协议打点
         timeout: 与influxdb建立连接时的超时时间
         ssl: 是否使用https协议
+        retention_policy_replication: 保留策略的副本数, 确保数据的可靠性和高可用性。如果一个节点发生故障，其他节点可以继续提供服务，从而避免数据丢失和服务不可用的情况
+        set_retention_policy_default: 是否设置为默认的保留策略，当retention_policy初次创建时有效
         **kwargs: 可传递MetricsEmitter类的参数
 
     Returns:
@@ -376,8 +380,8 @@ def init(
             influxdb_client.create_retention_policy(
                 retention_policy,
                 retention_policy_duration,
-                replication="1",
-                default=True,
+                replication=retention_policy_replication,
+                default=set_retention_policy_default,
             )
         except Exception as e:
             log.error("metrics init falied: {}".format(e))
