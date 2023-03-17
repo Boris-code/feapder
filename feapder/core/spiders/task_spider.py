@@ -50,6 +50,7 @@ class TaskSpider(TaskParser, Scheduler):
         delete_keys=(),
         keep_alive=None,
         batch_interval=0,
+        use_mysql=True,
         **kwargs,
     ):
         """
@@ -91,6 +92,7 @@ class TaskSpider(TaskParser, Scheduler):
         @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，即where后的条件语句
         @param task_order_by: 取任务时的排序条件 如 id desc
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
+        @param use_mysql: 是否使用mysql数据库
         ---------
         @result:
         """
@@ -109,7 +111,7 @@ class TaskSpider(TaskParser, Scheduler):
         )
 
         self._redisdb = RedisDB()
-        self._mysqldb = MysqlDB()
+        self._mysqldb = MysqlDB() if use_mysql else None
 
         self._task_table = task_table  # mysql中的任务表
         self._task_keys = task_keys  # 需要获取的任务字段

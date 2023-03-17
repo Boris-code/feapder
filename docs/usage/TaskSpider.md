@@ -31,6 +31,7 @@ from feapder import ArgumentParser
 
 class TaskSpiderTest(feapder.TaskSpider):
     # 自定义数据库，若项目中有setting.py文件，此自定义可删除
+    # redis 必须，mysql可选
     __custom_setting__ = dict(
         REDISDB_IP_PORTS="localhost:6379",
         REDISDB_USER_PASS="",
@@ -43,7 +44,7 @@ class TaskSpiderTest(feapder.TaskSpider):
     )
     
     def add_task(self):
-        # 加种子任务
+        # 加种子任务 框架会调用这个函数，方便往redis里塞任务，但不能写成死循环。实际业务中可以自己写个脚本往redis里塞任务
         self._redisdb.zadd(self._task_table, {"id": 1, "url": "https://www.baidu.com"})
 
     def start_requests(self, task):
@@ -69,7 +70,6 @@ def start(args):
         task_keys=["id", "url"], # 表里查询的字段
         redis_key="test:task_spider", # redis里做任务队列的key
         keep_alive=True, # 是否常驻
-        delete_keys=True, # 重启时是否删除redis里的key，若想断点续爬，设置False
     )
     if args == 1:
         spider.start_monitor_task()
@@ -86,7 +86,7 @@ def start2(args):
         task_table_type="redis", # 任务表类型为redis
         redis_key="test:task_spider", # redis里做任务队列的key
         keep_alive=True, # 是否常驻
-        delete_keys=True, # 重启时是否删除redis里的key，若想断点续爬，设置False
+        use_mysql=False, # 若用不到mysql，可以不使用
     )
     if args == 1:
         spider.start_monitor_task()

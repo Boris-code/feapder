@@ -13,7 +13,7 @@ from feapder import ArgumentParser
 
 class TestTaskSpider(feapder.TaskSpider):
     def add_task(self):
-        # 加种子任务
+        # 加种子任务 框架会调用这个函数，方便往redis里塞任务，但不能写成死循环。实际业务中可以自己写个脚本往redis里塞任务
         self._redisdb.zadd(self._task_table, {"id": 1, "url": "https://www.baidu.com"})
 
     def start_requests(self, task):
@@ -40,7 +40,6 @@ def start(args):
         task_keys=["id", "url"],
         redis_key="test:task_spider",
         keep_alive=True,
-        delete_keys=True,
     )
     if args == 1:
         spider.start_monitor_task()
@@ -56,8 +55,8 @@ def start2(args):
         task_table="spider_task2",
         task_table_type="redis",
         redis_key="test:task_spider",
-        keep_alive=False,
-        delete_keys=True,
+        keep_alive=True,
+        use_mysql=False,
     )
     if args == 1:
         spider.start_monitor_task()
@@ -68,8 +67,12 @@ def start2(args):
 if __name__ == "__main__":
     parser = ArgumentParser(description="测试TaskSpider")
 
-    parser.add_argument("--start", type=int, nargs=1, help="用mysql做种子表 (1|2）", function=start)
-    parser.add_argument("--start2", type=int, nargs=1, help="用redis做种子表 (1|2）", function=start2)
+    parser.add_argument(
+        "--start", type=int, nargs=1, help="用mysql做种子表 (1|2）", function=start
+    )
+    parser.add_argument(
+        "--start2", type=int, nargs=1, help="用redis做种子表 (1|2）", function=start2
+    )
 
     parser.start()
 
