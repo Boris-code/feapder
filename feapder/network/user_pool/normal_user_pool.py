@@ -209,9 +209,9 @@ class NormalUserPool(UserPoolInterface):
                                 retry_times = 0
                                 while retry_times <= self._login_retry_times:
                                     try:
-                                        user = self.login(user)
-                                        if user:
-                                            self.add_user(user)
+                                        login_user = self.login(user)
+                                        if login_user:
+                                            self.add_user(login_user)
                                         else:
                                             self.handle_login_failed_user(user)
                                         break
