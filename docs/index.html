@@ -106,53 +106,53 @@
   </script>
 
   <!--gitter 聊天室  -->
-  <script>
-      ((window.gitter = {}).chat = {}).options = {
-      //需要在gitter上创建rootm
-      room: 'feapder/community',
-      preload: true,
-      activation: true
-    };
-  </script>
+<!--  <script>-->
+<!--      ((window.gitter = {}).chat = {}).options = {-->
+<!--      //需要在gitter上创建rootm-->
+<!--      room: 'feapder/community',-->
+<!--      preload: true,-->
+<!--      activation: true-->
+<!--    };-->
+<!--  </script>-->
   <script src="https://sidecar.gitter.im/dist/sidecar.v1.js" async defer></script>
 
   <!-- 评论 -->
   <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.css">
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/gitalk.min.js"></script>
   <script src="//cdn.jsdelivr.net/npm/gitalk/dist/gitalk.min.js"></script>
-  <script>
-    function loadGitalk() {
-      console.log("load gitalk")
-      var path = location.href.match(/(?<=#)[^?]*/g)
-      path = path ? path[0] : "/"
-      var gitalk = new Gitalk({
-        clientID: '9bbc1bce85637dc3fd74',
-        clientSecret: 'fff857ba856732b11b0e38e18103ff3444c667d6',
-        repo: 'feapder',
-        owner: 'Boris-code',
-        admin: 'Boris-code',
-        proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',
-        id: decodeURI(path), // 取地址#xxx? 中的xxx， 防止默认的评论id超过50字
-        // facebook-like distraction free mode
-        distractionFreeMode: false
-      })
-      return gitalk
-    }
-    var gitalk = loadGitalk()
+<!--  <script>-->
+<!--    function loadGitalk() {-->
+<!--      console.log("load gitalk")-->
+<!--      var path = location.href.match(/(?<=#)[^?]*/g)-->
+<!--      path = path ? path[0] : "/"-->
+<!--      var gitalk = new Gitalk({-->
+<!--        clientID: '9bbc1bce85637dc3fd74',-->
+<!--        clientSecret: 'fff857ba856732b11b0e38e18103ff3444c667d6',-->
+<!--        repo: 'feapder',-->
+<!--        owner: 'Boris-code',-->
+<!--        admin: 'Boris-code',-->
+<!--        proxy: 'https://shielded-brushlands-08810.herokuapp.com/https://github.com/login/oauth/access_token',-->
+<!--        id: decodeURI(path), // 取地址#xxx? 中的xxx， 防止默认的评论id超过50字-->
+<!--        // facebook-like distraction free mode-->
+<!--        distractionFreeMode: false-->
+<!--      })-->
+<!--      return gitalk-->
+<!--    }-->
+<!--    var gitalk = loadGitalk()-->
 
-    // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。
-    window.onhashchange = function (event) {
-      if (event.newURL.indexOf("#") !== -1 && event.oldURL.indexOf("#") !== -1) {
-        if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {
-          if (event.newURL.indexOf("?") === -1) {
-            gitalk = loadGitalk()
-          }
-        }
-      }
-    }
-        // 由于docsify/lib/plugins/gitalk.min.js文件中已经有下面代码了，所以不需要在写一次了
-        // gitalk.render('gitalk-container');    // 渲染Gitalk评论组件
-  </script>
+<!--    // 监听URL中hash的变化，如果发现换了一个MD文件，那么刷新页面，解决整个网站使用一个gitalk评论issues的问题。-->
+<!--    window.onhashchange = function (event) {-->
+<!--      if (event.newURL.indexOf("#") !== -1 && event.oldURL.indexOf("#") !== -1) {-->
+<!--        if (event.newURL.match(/(?<=#)[^?]*/g)[0] !== event.oldURL.match(/(?<=#)[^?]*/g)[0]) {-->
+<!--          if (event.newURL.indexOf("?") === -1) {-->
+<!--            gitalk = loadGitalk()-->
+<!--          }-->
+<!--        }-->
+<!--      }-->
+<!--    }-->
+<!--        // 由于docsify/lib/plugins/gitalk.min.js文件中已经有下面代码了，所以不需要在写一次了-->
+<!--        // gitalk.render('gitalk-container');    // 渲染Gitalk评论组件-->
+<!--  </script>-->
 
   <!-- 其他插件 -->
   <script src="./lib/docsify/lib/docsify.min.js"></script>
