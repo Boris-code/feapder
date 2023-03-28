@@ -105,6 +105,15 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 2. 爬虫管理系统：http://feapder.com/#/feapder_platform/feaplat
 3. 验证码识别库：https://github.com/sml2h3/ddddocr
 
+## 参与贡献
+
+贡献之前请先阅读 [贡献指南](./CONTRIBUTING.md)
+
+感谢所有做过贡献的人!
+
+<a href="https://github.com/Boris-code/feapder/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=Boris-code/feapder" />
+</a>
 
 ## 微信赞赏
 
