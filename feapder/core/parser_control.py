@@ -38,6 +38,8 @@ class ParserControl(threading.Thread):
     _failed_task_count = 0
     _total_task_count = 0
 
+    _hook_parsers = set()
+
     def __init__(self, collector, redis_key, request_buffer, item_buffer):
         super(ParserControl, self).__init__()
         self._parsers = []
@@ -431,21 +433,19 @@ class ParserControl(threading.Thread):
 
     def add_parser(self, parser: BaseParser):
         # 动态增加parser.exception_request和parser.failed_request的参数, 兼容旧版本
-        if len(inspect.getfullargspec(parser.exception_request).args) == 3:
-            _exception_request = parser.exception_request
+        if parser not in self.__class__._hook_parsers:
+            self.__class__._hook_parsers.add(parser)
+            if len(inspect.getfullargspec(parser.exception_request).args) == 3:
+                _exception_request = parser.exception_request
+                parser.exception_request = (
+                    lambda request, response, e: _exception_request(request, response)
+                )
 
-            def exception_request(request, response, e):
-                return _exception_request(request, response)
-
-            parser.exception_request = exception_request
-
-        if len(inspect.getfullargspec(parser.failed_request).args) == 3:
-            _failed_request = parser.failed_request
-
-            def failed_request(request, response, e):
-                return _failed_request(request, response)
-
-            parser.failed_request = failed_request
+            if len(inspect.getfullargspec(parser.failed_request).args) == 3:
+                _failed_request = parser.failed_request
+                parser.failed_request = lambda request, response, e: _failed_request(
+                    request, response
+                )
 
         self._parsers.append(parser)
 
