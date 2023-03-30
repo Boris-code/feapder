@@ -44,18 +44,21 @@ requires = [
     "ipython>=7.14.0",
     "redis-py-cluster>=2.1.0",
     "cryptography>=3.3.2",
-    "selenium>=3.141.0",
-    "pymongo>=3.10.1",
     "urllib3>=1.25.8",
     "loguru>=0.5.3",
     "influxdb>=5.3.1",
     "pyperclip>=1.8.2",
-    "webdriver-manager>=3.5.3",
     "terminal-layout>=2.1.3",
-    "playwright",
 ]
 
-extras_requires = ["bitarray>=1.5.3", "PyExecJS>=1.5.1"]
+extras_requires = [
+    "bitarray>=1.5.3",
+    "PyExecJS>=1.5.1",
+    "webdriver-manager>=3.5.3",
+    "playwright",
+    "selenium>=3.141.0",
+    "pymongo>=3.10.1",
+]
 
 setuptools.setup(
     name="feapder",
