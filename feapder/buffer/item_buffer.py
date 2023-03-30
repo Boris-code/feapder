@@ -318,7 +318,9 @@ class ItemBuffer(threading.Thread):
                 table, datas, is_update=True, update_keys=update_keys
             ):
                 export_success = False
-                failed_items["update"].append({"table": table, "datas": datas})
+                failed_items["update"].append(
+                    {"table": table, "datas": datas, "update_keys": update_keys}
+                )
 
         if export_success:
             # 执行回调
@@ -402,10 +404,12 @@ class ItemBuffer(threading.Thread):
         @param datas: 数据 列表
         @return:
         """
-        metrics.emit_counter("total count", len(datas), classify=table)
+        total_count = 0
         for data in datas:
+            total_count += 1
             for k, v in data.items():
                 metrics.emit_counter(k, int(bool(v)), classify=table)
+        metrics.emit_counter("total count", total_count, classify=table)
 
     def close(self):
         # 调用pipeline的close方法

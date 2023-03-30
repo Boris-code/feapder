@@ -18,13 +18,14 @@ from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.collector import Collector
 from feapder.core.handle_failed_requests import HandleFailedRequests
+from feapder.core.handle_failed_items import HandleFailedItems
 from feapder.core.parser_control import ParserControl
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
 from feapder.network.request import Request
+from feapder.utils import metrics
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
-from feapder.utils import metrics
 
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
@@ -123,6 +124,7 @@ class Scheduler(threading.Thread):
 
         self._spider_name = redis_key
         self._project_name = redis_key.split(":")[0]
+        self._task_table = task_table
 
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
         self._tab_requests = setting.TAB_REQUESTS.format(redis_key=redis_key)
@@ -132,6 +134,7 @@ class Scheduler(threading.Thread):
         self._is_notify_end = False  # 是否已经通知结束
         self._last_task_count = 0  # 最近一次任务数量
         self._last_check_task_count_time = 0
+        self._stop_heartbeat = False  # 是否停止心跳
         self._redisdb = RedisDB()
 
         self._project_total_state_table = "{}_total_state".format(self._project_name)
@@ -151,6 +154,8 @@ class Scheduler(threading.Thread):
         self.init_metrics()
         # 重置丢失的任务
         self.reset_task()
+
+        self._stop_spider = False
 
     def init_metrics(self):
         """
@@ -173,17 +178,9 @@ class Scheduler(threading.Thread):
 
         while True:
             try:
-                self.heartbeat()
-                if self.all_thread_is_done():
+                if self._stop or self.all_thread_is_done():
                     if not self._is_notify_end:
                         self.spider_end()  # 跑完一轮
-                        self.record_spider_state(
-                            spider_type=1,
-                            state=1,
-                            spider_end_time=tools.get_current_date(),
-                            batch_interval=self._batch_interval,
-                        )
-
                         self._is_notify_end = True
 
                     if not self._keep_alive:
@@ -203,13 +200,6 @@ class Scheduler(threading.Thread):
     def __add_task(self):
         # 启动parser 的 start_requests
         self.spider_begin()  # 不自动结束的爬虫此处只能执行一遍
-        self.record_spider_state(
-            spider_type=1,
-            state=0,
-            batch_date=tools.get_current_date(),
-            spider_start_time=tools.get_current_date(),
-            batch_interval=self._batch_interval,
-        )
 
         # 判断任务池中属否还有任务，若有接着抓取
         todo_task_count = self._collector.get_requests_count()
@@ -249,6 +239,17 @@ class Scheduler(threading.Thread):
                 self._item_buffer.flush()
 
     def _start(self):
+        # 将失败的item入库
+        if setting.RETRY_FAILED_ITEMS:
+            handle_failed_items = HandleFailedItems(
+                redis_key=self._redis_key,
+                task_table=self._task_table,
+                item_buffer=self._item_buffer,
+            )
+            handle_failed_items.reput_failed_items_to_db()
+
+        # 心跳开始
+        self.heartbeat_start()
         # 启动request_buffer
         self._request_buffer.start()
         # 启动item_buffer
@@ -374,9 +375,13 @@ class Scheduler(threading.Thread):
             current_time - self._last_check_task_count_time
             > setting.WARNING_CHECK_TASK_COUNT_INTERVAL
         ):
-            if self._last_task_count and self._last_task_count == total_task_count:
+            if (
+                self._last_task_count
+                and self._last_task_count == total_task_count
+                and self._redisdb.zget_count(self._tab_requests) > 0
+            ):
                 # 发送报警
-                msg = "《{}》爬虫任务停滞 {}，请检查爬虫是否正常".format(
+                msg = "《{}》爬虫停滞 {}，请检查爬虫是否正常".format(
                     self._spider_name,
                     tools.format_seconds(
                         current_time - self._last_check_task_count_time
@@ -386,7 +391,7 @@ class Scheduler(threading.Thread):
                 self.send_msg(
                     msg,
                     level="error",
-                    message_prefix="《{}》爬虫任务停滞".format(self._spider_name),
+                    message_prefix="《{}》爬虫停滞".format(self._spider_name),
                 )
             else:
                 self._last_task_count = total_task_count
@@ -424,7 +429,7 @@ class Scheduler(threading.Thread):
         # 停止 parser_controls
         for parser_control in self._parser_controls:
             parser_control.stop()
-
+        self.heartbeat_stop()
         self._started.clear()
 
     def send_msg(self, msg, level="debug", message_prefix=""):
@@ -529,17 +534,6 @@ class Scheduler(threading.Thread):
 
         return True
 
-    def record_spider_state(
-        self,
-        spider_type,
-        state,
-        batch_date=None,
-        spider_start_time=None,
-        spider_end_time=None,
-        batch_interval=None,
-    ):
-        pass
-
     def join(self, timeout=None):
         """
         重写线程的join
@@ -550,16 +544,29 @@ class Scheduler(threading.Thread):
         super().join()
 
     def heartbeat(self):
-        self._redisdb.hset(
-            self._tab_spider_status, HEARTBEAT_TIME_KEY, tools.get_current_timestamp()
-        )
+        while not self._stop_heartbeat:
+            try:
+                self._redisdb.hset(
+                    self._tab_spider_status,
+                    HEARTBEAT_TIME_KEY,
+                    tools.get_current_timestamp(),
+                )
+            except Exception as e:
+                log.error("心跳异常: {}".format(e))
+            time.sleep(5)
+
+    def heartbeat_start(self):
+        threading.Thread(target=self.heartbeat).start()
+
+    def heartbeat_stop(self):
+        self._stop_heartbeat = True
 
     def have_alive_spider(self, heartbeat_interval=10):
         heartbeat_time = self._redisdb.hget(self._tab_spider_status, HEARTBEAT_TIME_KEY)
         if heartbeat_time:
             heartbeat_time = int(heartbeat_time)
             current_timestamp = tools.get_current_timestamp()
-            if current_timestamp > heartbeat_time + heartbeat_interval:
+            if current_timestamp - heartbeat_time < heartbeat_interval:
                 return True
         return False
 
@@ -581,3 +588,6 @@ class Scheduler(threading.Thread):
             lose_count = len(datas)
             if lose_count:
                 log.info("重置丢失任务完毕，共{}条".format(len(datas)))
+
+    def stop_spider(self):
+        self._stop_spider = True

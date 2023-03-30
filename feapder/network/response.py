@@ -11,7 +11,8 @@ Created on 2018-07-26 11:40:28
 import datetime
 import os
 import re
-import time
+import tempfile
+import webbrowser
 from urllib.parse import urlparse, urlunparse, urljoin
 
 from bs4 import UnicodeDammit, BeautifulSoup
@@ -210,10 +211,10 @@ class Response(res):
 
     def _absolute_links(self, text):
         regexs = [
-            r'(<(?i)a.*?href\s*?=\s*?["\'])(.+?)(["\'])',  # a
-            r'(<(?i)img.*?src\s*?=\s*?["\'])(.+?)(["\'])',  # img
-            r'(<(?i)link.*?href\s*?=\s*?["\'])(.+?)(["\'])',  # css
-            r'(<(?i)script.*?src\s*?=\s*?["\'])(.+?)(["\'])',  # js
+            r'(<a.*?href\s*?=\s*?["\'])(.+?)(["\'])',  # a
+            r'(<img.*?src\s*?=\s*?["\'])(.+?)(["\'])',  # img
+            r'(<link.*?href\s*?=\s*?["\'])(.+?)(["\'])',  # css
+            r'(<script.*?src\s*?=\s*?["\'])(.+?)(["\'])',  # js
         ]
 
         for regex in regexs:
@@ -226,7 +227,7 @@ class Response(res):
                 # return re.sub(regex, r'\1{}\3'.format(absolute_link), html) # 使用正则替换，个别字符不支持。如该网址源代码http://permit.mep.gov.cn/permitExt/syssb/xxgk/xxgk!showImage.action?dataid=0b092f8115ff45c5a50947cdea537726
                 return text.group(1) + absolute_link + text.group(3)
 
-            text = re.sub(regex, replace_href, text, flags=re.S)
+            text = re.sub(regex, replace_href, text, flags=re.S | re.I)
 
         return text
 
@@ -379,13 +380,14 @@ class Response(res):
     def __del__(self):
         self.close()
 
-    def open(self, delete_temp_file=False):
-        with open("temp.html", "w", encoding=self.encoding, errors="replace") as html:
-            self.encoding_errors = "replace"
-            html.write(self.text)
+    def open(self):
+        body = self.content
+        if b"<base" not in body:
+            # <head> 标签后插入一个<base href="url">标签
+            repl = fr'\1<base href="{self.url}">'
+            body = re.sub(rb"(<head(?:>|\s.*?>))", repl.encode("utf-8"), body)
 
-        os.system("open temp.html")
-
-        if delete_temp_file:
-            time.sleep(1)
-            os.remove("temp.html")
+        fd, fname = tempfile.mkstemp(".html")
+        os.write(fd, body)
+        os.close(fd)
+        return webbrowser.open(f"file://{fname}")

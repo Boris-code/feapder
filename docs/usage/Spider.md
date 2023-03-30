@@ -25,7 +25,15 @@ Spider是一款基于redis的分布式爬虫，适用于海量数据采集，支
 
 示例: 
 
-    feapder create -s spider_test 2
+```python
+feapder create -s spider_test
+
+请选择爬虫模板
+  AirSpider
+> Spider
+  TaskSpider
+  BatchSpider
+```
 
 生成如下
 

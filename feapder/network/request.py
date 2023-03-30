@@ -60,7 +60,7 @@ class Request:
         "json",
     }
 
-    DEFAULT_KEY_VALUE = dict(
+    _DEFAULT_KEY_VALUE_ = dict(
         url="",
         method=None,
         retry_times=0,
@@ -78,6 +78,12 @@ class Request:
         render_time=0,
         make_absolute_links=None,
     )
+
+    _CUSTOM_PROPERTIES_ = {
+        "requests_kwargs",
+        "custom_ua",
+        "custom_proxies",
+    }
 
     def __init__(
         self,
@@ -153,19 +159,23 @@ class Request:
         self.download_midware = download_midware
         self.is_abandoned = is_abandoned
         self.render = render
-        self.render_time = render_time or setting.WEBDRIVER.get("render_time", 0)
+        self.render_time = render_time
         self.make_absolute_links = (
             make_absolute_links
             if make_absolute_links is not None
             else setting.MAKE_ABSOLUTE_LINKS
         )
 
+        # 自定义属性，不参与序列化
         self.requests_kwargs = {}
         for key, value in kwargs.items():
             if key in self.__class__.__REQUEST_ATTRS__:  # 取requests参数
                 self.requests_kwargs[key] = value
 
             self.__dict__[key] = value
+
+        self.custom_ua = False
+        self.custom_proxies = False
 
     def __repr__(self):
         try:
@@ -246,9 +256,9 @@ class Request:
 
         for key, value in self.__dict__.items():
             if (
-                key in self.__class__.DEFAULT_KEY_VALUE
-                and self.__class__.DEFAULT_KEY_VALUE.get(key) == value
-                or key == "requests_kwargs"
+                key in self.__class__._DEFAULT_KEY_VALUE_
+                and self.__class__._DEFAULT_KEY_VALUE_.get(key) == value
+                or key in self.__class__._CUSTOM_PROPERTIES_
             ):
                 continue
 
@@ -301,23 +311,21 @@ class Request:
                 method = "GET"
         self.method = method
 
-        # 随机user—agent
+        # 设置user—agent
         headers = self.requests_kwargs.get("headers", {})
         if "user-agent" not in headers and "User-Agent" not in headers:
-            if self.render:  # 如果是渲染默认，优先使用WEBDRIVER中配置的ua
-                ua = setting.WEBDRIVER.get(
-                    "user_agent"
-                ) or self.__class__.user_agent_pool.get(setting.USER_AGENT_TYPE)
-            else:
-                ua = self.__class__.user_agent_pool.get(setting.USER_AGENT_TYPE)
-
             if self.random_user_agent and setting.RANDOM_HEADERS:
+                # 随机user—agent
+                ua = self.__class__.user_agent_pool.get(setting.USER_AGENT_TYPE)
                 headers.update({"User-Agent": ua})
                 self.requests_kwargs.update(headers=headers)
+            else:
+                # 使用默认的user—agent
+                self.requests_kwargs.setdefault(
+                    "headers", {"User-Agent": setting.DEFAULT_USERAGENT}
+                )
         else:
-            self.requests_kwargs.setdefault(
-                "headers", {"User-Agent": setting.DEFAULT_USERAGENT}
-            )
+            self.custom_ua = True
 
         # 代理
         proxies = self.requests_kwargs.get("proxies", -1)
@@ -329,6 +337,8 @@ class Request:
                     break
                 else:
                     log.debug("暂无可用代理 ...")
+        else:
+            self.custom_proxies = True
 
     def get_response(self, save_cached=False):
         """
@@ -343,7 +353,7 @@ class Request:
                 -------------- %srequest for ----------------
                 url  = %s
                 method = %s
-                body = %s
+                args = %s
                 """
             % (
                 ""
@@ -360,7 +370,7 @@ class Request:
                     or "parse",
                 ),
                 self.url,
-                self.requests_kwargs.get("method"),
+                self.method,
                 self.requests_kwargs,
             )
         )

@@ -13,12 +13,13 @@ from threading import Thread
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
+from feapder.buffer.request_buffer import AirSpiderRequestBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.parser_control import AirSpiderParserControl
-from feapder.db.memory_db import MemoryDB
+from feapder.db.memorydb import MemoryDB
 from feapder.network.request import Request
-from feapder.utils.log import log
 from feapder.utils import metrics
+from feapder.utils.log import log
 
 
 class AirSpider(BaseParser, Thread):
@@ -41,7 +42,11 @@ class AirSpider(BaseParser, Thread):
         self._memory_db = MemoryDB()
         self._parser_controls = []
         self._item_buffer = ItemBuffer(redis_key="air_spider")
+        self._request_buffer = AirSpiderRequestBuffer(
+            db=self._memory_db, dedup_name=self.name
+        )
 
+        self._stop_spider = False
         metrics.init(**setting.METRICS_OTHER_ARGS)
 
     def distribute_task(self):
@@ -50,7 +55,7 @@ class AirSpider(BaseParser, Thread):
                 raise ValueError("仅支持 yield Request")
 
             request.parser_name = request.parser_name or self.name
-            self._memory_db.add(request)
+            self._request_buffer.put_request(request, ignore_max_size=False)
 
     def all_thread_is_done(self):
         for i in range(3):  # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
@@ -78,7 +83,11 @@ class AirSpider(BaseParser, Thread):
         self.start_callback()
 
         for i in range(self._thread_count):
-            parser_control = AirSpiderParserControl(self._memory_db, self._item_buffer)
+            parser_control = AirSpiderParserControl(
+                memory_db=self._memory_db,
+                request_buffer=self._request_buffer,
+                item_buffer=self._item_buffer,
+            )
             parser_control.add_parser(self)
             parser_control.start()
             self._parser_controls.append(parser_control)
@@ -89,7 +98,7 @@ class AirSpider(BaseParser, Thread):
 
         while True:
             try:
-                if self.all_thread_is_done():
+                if self._stop_spider or self.all_thread_is_done():
                     # 停止 parser_controls
                     for parser_control in self._parser_controls:
                         parser_control.stop()
@@ -100,7 +109,10 @@ class AirSpider(BaseParser, Thread):
                     # 关闭webdirver
                     Request.render_downloader and Request.render_downloader.close_all()
 
-                    log.info("无任务，爬虫结束")
+                    if self._stop:
+                        log.info("爬虫被停止")
+                    else:
+                        log.info("无任务，爬虫结束")
                     break
 
             except Exception as e:
@@ -122,3 +134,6 @@ class AirSpider(BaseParser, Thread):
             return
 
         super().join()
+
+    def stop_spider(self):
+        self._stop_spider = True

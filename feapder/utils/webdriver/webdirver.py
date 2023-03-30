@@ -12,6 +12,22 @@ import abc
 from feapder import setting
 
 
+class InterceptRequest:
+    def __init__(self, url, data, headers):
+        self.url = url
+        self.data = data
+        self.headers = headers
+
+
+class InterceptResponse:
+    def __init__(self, request: InterceptRequest, url, headers, content, status_code):
+        self.request = request
+        self.url = url
+        self.headers = headers
+        self.content = content
+        self.status_code = status_code
+
+
 class WebDriver:
     def __init__(
         self,
@@ -24,7 +40,6 @@ class WebDriver:
         window_size=(1024, 800),
         executable_path=None,
         custom_argument=None,
-        xhr_url_regexes: list = None,
         download_path=None,
         auto_install_driver=True,
         use_stealth_js=True,
@@ -42,7 +57,6 @@ class WebDriver:
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径
             custom_argument: 自定义参数 用于webdriver.Chrome(options=chrome_options, **kwargs)
-            xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
             download_path: 文件下载保存路径；如果指定，不再出现“保留”“放弃”提示，仅对Chrome有效
             auto_install_driver: 自动下载浏览器驱动 支持chrome 和 firefox
             use_stealth_js: 使用stealth.min.js隐藏浏览器特征
@@ -56,7 +70,6 @@ class WebDriver:
         self._window_size = window_size
         self._executable_path = executable_path
         self._custom_argument = custom_argument
-        self._xhr_url_regexes = xhr_url_regexes
         self._download_path = download_path
         self._auto_install_driver = auto_install_driver
         self._use_stealth_js = use_stealth_js

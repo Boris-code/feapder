@@ -269,27 +269,85 @@ ssh-keygen -t rsa -C "备注" -f 生成路径/文件名
 
 默认的爬虫镜像只打包了`feapder`、`scrapy`框架，若需要其它环境，可基于`.env`文件里的`SPIDER_IMAGE`镜像自行构建
 
-如将常用的python库打包到镜像
+如自定义python版本，安装常用的库等，需修改feaplat下的`feapder_dockerfile`
+
 ```
-FROM registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:[最新版本号]
+# 基于最新的版本，若需要自定义python版本，则要求feapder版本号>=2.4
+FROM registry.cn-hangzhou.aliyuncs.com/feapderd/feapder:2.4
+
+# 安装自定义的python版本，3.10.8
+RUN set -ex \
+    && wget https://www.python.org/ftp/python/3.10.8/Python-3.10.8.tgz \
+    && tar -zxvf Python-3.10.8.tgz \
+    && cd Python-3.10.8 \
+    && ./configure prefix=/usr/local/python-3.10.8 \
+    && make \
+    && make install \
+    && make clean \
+    && rm -rf /Python-3.10.8* \
+    # 配置软链接
+    && ln -s /usr/local/python-3.10.8/bin/python3 /usr/bin/python3.10.8 \
+    && ln -s /usr/local/python-3.10.8/bin/pip3 /usr/bin/pip3.10.8
+
+# 删除之前的默认python版本
+RUN set -ex \
+    && rm -rf /usr/bin/python3 \
+    && rm -rf /usr/bin/pip3 \
+    && rm -rf /usr/bin/python \
+    && rm -rf /usr/bin/pip
+
+# 设置默认为python3.10.8
+RUN set -ex \
+    && ln -s /usr/local/python-3.10.8/bin/python3 /usr/bin/python \
+    && ln -s /usr/local/python-3.10.8/bin/python3 /usr/bin/python3 \
+    && ln -s /usr/local/python-3.10.8/bin/pip3 /usr/bin/pip \
+    && ln -s /usr/local/python-3.10.8/bin/pip3 /usr/bin/pip3
+
+# 将python3.10.8加入到环境变量
+ENV PATH=$PATH:/usr/local/python-3.10.8/bin/
 
 # 安装依赖
 RUN pip3 install feapder \
     && pip3 install scrapy
+    
+# 安装node依赖包，内置的node为v10.15.3版本
+# RUN npm install packageName -g
 
 ```
 
-自己随便搞事情，搞完修改下 `.env`文件里的 SPIDER_IMAGE 的值即可
+改好后要打包镜像，打包命令：
+```
+docker build -f feapder_dockerfile -t 镜像名:版本号 .
+```
+如
+```
+docker build -f feapder_dockerfile -t my_feapder:1.0 .
+```
 
+打包好后修改下 `.env`文件里的 SPIDER_IMAGE 的值即可如：
+```
+SPIDER_IMAGE=my_feapder:1.0
+```
+
+注：
+1. 若有多个worker服务器，且没将镜像传到镜像服务，则需要手动将镜像推到其他服务器上，否则无法拉取此镜像运行
+2. 若自定义了python版本，则需要添加挂载，否则feaplat上自动安装的依赖库不会保留。挂载方式：修改`docker-compose.yaml`的        SPIDER_RUN_ARGS参数。如
+   ```
+   SPIDER_RUN_ARGS=["--mount type=volume,source=feapder_python3.10,destination=/usr/local/python-3.10.8"]
+   ```
 
 ## 价格
 
-| 类型   | 价格   | 说明                  |
-|------|------|---------------------|
-| 试用版  | 0元   | 可部署20个任务，删除任务不可恢复额度 |
-| 正式版 | 888元 | 有效期一年，可换绑服务器        |
+可免费部署20个任务，超出额度时，需购买授权码，在授权有效期内不限额度，可换绑服务器
 
-**部署后默认为试用版，购买授权码后配置到系统里即为正式版**
+| 授权时长   | 价格   | 说明 |
+|------|------|---------------------|
+| 1个月  | 168元   | 无折扣|
+| 6个月| 666元   | 原价1008元，减免342元|
+| 1年 | 888元 | 原价2016元，减免1128元|
+| 2年 | 1500元 | 原价4032元，减免2532元|
+
+**删除任务不可恢复额度**
 
 购买方式：添加微信 `boris_tm`
 

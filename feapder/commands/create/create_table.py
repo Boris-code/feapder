@@ -33,12 +33,6 @@ class CreateTable:
             return False
 
     def get_key_type(self, value):
-        try:
-            value = eval(value)
-        except:
-            value = value
-
-        key_type = "varchar(255)"
         if isinstance(value, int):
             key_type = "int"
         elif isinstance(value, float):
@@ -55,6 +49,8 @@ class CreateTable:
                 key_type = "varchar(255)"
         elif isinstance(value, (dict, list)):
             key_type = "longtext"
+        else:
+            key_type = "varchar(255)"
 
         return key_type
 

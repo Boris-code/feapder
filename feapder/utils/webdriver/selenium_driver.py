@@ -21,26 +21,10 @@ from webdriver_manager.firefox import GeckoDriverManager
 
 from feapder.utils import tools
 from feapder.utils.log import log, OTHERS_LOG_LEVAL
-from feapder.utils.webdriver.webdirver import WebDriver
+from feapder.utils.webdriver.webdirver import *
 
 # 屏蔽webdriver_manager日志
 logging.getLogger("WDM").setLevel(OTHERS_LOG_LEVAL)
-
-
-class XhrRequest:
-    def __init__(self, url, data, headers):
-        self.url = url
-        self.data = data
-        self.headers = headers
-
-
-class XhrResponse:
-    def __init__(self, request: XhrRequest, url, headers, content, status_code):
-        self.request = request
-        self.url = url
-        self.headers = headers
-        self.content = content
-        self.status_code = status_code
 
 
 class SeleniumDriver(WebDriver, RemoteWebDriver):
@@ -82,10 +66,17 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         "service_log_path",
     }
 
-    def __init__(self, **kwargs):
-        super(SeleniumDriver, self).__init__(**kwargs)
+    def __init__(self, xhr_url_regexes: list = None, **kwargs):
+        """
 
-        if self._xhr_url_regexes and self.driver_type != SeleniumDriver.CHROME:
+        Args:
+            xhr_url_regexes: 拦截xhr接口，支持正则，数组类型
+            **kwargs:
+        """
+        super(SeleniumDriver, self).__init__(**kwargs)
+        self._xhr_url_regexes = xhr_url_regexes
+
+        if self._xhr_url_regexes and self._driver_type != SeleniumDriver.CHROME:
             raise Exception(
                 "xhr_url_regexes only support by chrome now! eg: driver_type=SeleniumDriver.CHROME"
             )
@@ -364,15 +355,15 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
     def user_agent(self):
         return self.driver.execute_script("return navigator.userAgent;")
 
-    def xhr_response(self, xhr_url_regex) -> Optional[XhrResponse]:
+    def xhr_response(self, xhr_url_regex) -> Optional[InterceptResponse]:
         data = self.driver.execute_script(
             f'return window.__ajaxData["{xhr_url_regex}"];'
         )
         if not data:
             return None
 
-        request = XhrRequest(**data["request"])
-        response = XhrResponse(request, **data["response"])
+        request = InterceptRequest(**data["request"])
+        response = InterceptResponse(request, **data["response"])
         return response
 
     def xhr_data(self, xhr_url_regex) -> Union[str, dict, None]:

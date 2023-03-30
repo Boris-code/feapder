@@ -29,16 +29,17 @@
 # ITEM_PIPELINES = [
 #     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
 #     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+#     # "feapder.pipelines.console_pipeline.ConsolePipeline",
 # ]
 # EXPORT_DATA_MAX_FAILED_TIMES = 10  # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
 # EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
 #
 # # 爬虫相关
 # # COLLECTOR
-# COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量
+# COLLECTOR_TASK_COUNT = 32  # 每次获取任务数量，追求速度推荐32
 #
 # # SPIDER
-# SPIDER_THREAD_COUNT = 32  # 爬虫并发数
+# SPIDER_THREAD_COUNT = 1  # 爬虫并发数，追求速度推荐32
 # # 下载时间间隔 单位秒。 支持随机 如 SPIDER_SLEEP_TIME = [2, 5] 则间隔为 2~5秒之间的随机数，包含2和5
 # SPIDER_SLEEP_TIME = 0
 # SPIDER_MAX_RETRY_TIMES = 10  # 每个请求最大重试次数
@@ -48,7 +49,7 @@
 # DOWNLOADER = "feapder.network.downloader.RequestsDownloader"
 # SESSION_DOWNLOADER = "feapder.network.downloader.RequestsSessionDownloader"
 # RENDER_DOWNLOADER = "feapder.network.downloader.SeleniumDownloader"
-# # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader",
+# # RENDER_DOWNLOADER="feapder.network.downloader.PlaywrightDownloader"
 # MAKE_ABSOLUTE_LINKS = True  # 自动转成绝对连接
 
 # # 浏览器渲染
@@ -77,18 +78,24 @@
 #     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
 #     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
 #     headless=False,  # 是否为无头浏览器
+#     driver_type="chromium",  # chromium、firefox、webkit
 #     timeout=30,  # 请求超时时间
 #     window_size=(1024, 800),  # 窗口大小
 #     executable_path=None,  # 浏览器路径，默认为默认路径
 #     download_path=None,  # 下载文件的路径
 #     render_time=0,  # 渲染时长，即打开网页等待指定时间后再获取源码
+#     wait_until="networkidle",  # 等待页面加载完成的事件,可选值："commit", "domcontentloaded", "load", "networkidle"
 #     use_stealth_js=False,  # 使用stealth.min.js隐藏浏览器特征
-#     page_on_event_callback=None,
-#     storage_state_path=None,
+#     page_on_event_callback=None,  # page.on() 事件的回调 如 page_on_event_callback={"dialog": lambda dialog: dialog.accept()}
+#     storage_state_path=None,  # 保存浏览器状态的路径
+#     url_regexes=None,  # 拦截接口，支持正则，数组类型
+#     save_all=False,  # 是否保存所有拦截的接口, 配合url_regexes使用，为False时只保存最后一次拦截的接口
 # )
 #
 # # 爬虫启动时，重新抓取失败的requests
 # RETRY_FAILED_REQUESTS = False
+# # 爬虫启动时，重新入库失败的item
+# RETRY_FAILED_ITEMS = False
 # # 保存失败的request
 # SAVE_FAILED_REQUEST = True
 # # request防丢机制。（指定的REQUEST_LOST_TIMEOUT时间内request还没做完，会重新下发 重做）
@@ -126,10 +133,10 @@
 # ITEM_FILTER_ENABLE = False  # item 去重
 # REQUEST_FILTER_ENABLE = False  # request 去重
 # ITEM_FILTER_SETTING = dict(
-#     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+#     filter_type=1  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、轻量去重（LiteFilter）= 4
 # )
 # REQUEST_FILTER_SETTING = dict(
-#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3
+#     filter_type=3,  # 永久去重（BloomFilter） = 1 、内存去重（MemoryFilter） = 2、 临时去重（ExpireFilter）= 3、 轻量去重（LiteFilter）= 4
 #     expire_time=2592000,  # 过期时间1个月
 # )
 #

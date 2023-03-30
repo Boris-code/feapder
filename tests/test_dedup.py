@@ -22,7 +22,7 @@ class TestDedup(unittest.TestCase):
 
     def mock_data(self):
         self.data = {"xxx": 123, "xxxx": "xxxx"}
-        self.datas = ["xxx", "bbb"]
+        self.datas = ["xxx", "bbb", "xxx"]
 
     def test_MemoryFilter(self):
         dedup = Dedup(
@@ -34,8 +34,9 @@ class TestDedup(unittest.TestCase):
         self.assertEqual(dedup.get(self.data), 1)
 
         # 批量去重
-        self.assertEqual(dedup.add(self.datas), [1, 1])
-        self.assertEqual(dedup.get(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [0, 0, 1])
+        self.assertEqual(dedup.add(self.datas), [1, 1, 0])
+        self.assertEqual(dedup.get(self.datas), [1, 1, 1])
 
     def test_ExpireFilter(self):
         dedup = Dedup(
@@ -50,8 +51,9 @@ class TestDedup(unittest.TestCase):
         self.assertEqual(dedup.get(self.data), 1)
 
         # 批量去重
-        self.assertEqual(dedup.add(self.datas), [1, 1])
-        self.assertEqual(dedup.get(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [0, 0, 1])
+        self.assertEqual(dedup.add(self.datas), [1, 1, 0])
+        self.assertEqual(dedup.get(self.datas), [1, 1, 1])
 
     def test_BloomFilter(self):
         dedup = Dedup(
@@ -65,8 +67,9 @@ class TestDedup(unittest.TestCase):
         self.assertEqual(dedup.get(self.data), 1)
 
         # 批量去重
-        self.assertEqual(dedup.add(self.datas), [1, 1])
-        self.assertEqual(dedup.get(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [0, 0, 1])
+        self.assertEqual(dedup.add(self.datas), [1, 1, 0])
+        self.assertEqual(dedup.get(self.datas), [1, 1, 1])
 
     def test_LiteFilter(self):
         dedup = Dedup(
@@ -78,8 +81,9 @@ class TestDedup(unittest.TestCase):
         self.assertEqual(dedup.get(self.data), 1)
 
         # 批量去重
-        self.assertEqual(dedup.add(self.datas), [1, 1])
-        self.assertEqual(dedup.get(self.datas), [1, 1])
+        self.assertEqual(dedup.get(self.datas), [0, 0, 1])
+        self.assertEqual(dedup.add(self.datas), [1, 1, 0])
+        self.assertEqual(dedup.get(self.datas), [1, 1, 1])
 
     def test_filter(self):
         dedup = Dedup(

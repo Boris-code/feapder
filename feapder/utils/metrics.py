@@ -4,6 +4,7 @@ import os
 import queue
 import random
 import socket
+import string
 import threading
 import time
 from collections import Counter
@@ -36,7 +37,6 @@ class MetricsEmitter:
         add_hostname=False,
         max_points=10240,
         default_tags=None,
-        time_precision="s",
     ):
         """
         Args:
@@ -49,7 +49,6 @@ class MetricsEmitter:
             debug: 是否打印调试日志
             add_hostname: 是否添加 hostname 作为 tag
             max_points: 本地 buffer 最多累计多少个点
-            time_precision: 打点精度 默认 s
         """
         self.pending_points = queue.Queue()
         self.batch_size = batch_size
@@ -66,7 +65,6 @@ class MetricsEmitter:
         self.add_hostname = add_hostname
         self.ratio = ratio
         self.default_tags = default_tags or {}
-        self.time_precision = time_precision
 
     def define_tagkv(self, tagk, tagvs):
         self.tagkv[tagk] = set(tagvs)
@@ -111,8 +109,15 @@ class MetricsEmitter:
                     continue
                 new_points.append(point)
 
-        # 把累加得到的 counter 值添加进来
-        new_points.extend(counters.values())
+        for point in counters.values():
+            # 修改下counter类型的点的时间戳，补足19位, 伪装成纳秒级时间戳，防止influxdb对同一秒内的数据进行覆盖
+            time_len = len(str(point["time"]))
+            random_str = "".join(random.sample(string.digits, 19 - time_len))
+            point["time"] = int(str(point["time"]) + random_str)
+            new_points.append(point)
+
+            # 把拟合后的 counter 值添加进来
+            new_points.append(point)
         return new_points
 
     def _get_ready_emit(self, force=False):
@@ -167,10 +172,11 @@ class MetricsEmitter:
             if not points:
                 return
             try:
+                # h(hour) m(minutes), s(seconds), ms(milliseconds), u(microseconds), n(nanoseconds)
                 self.influxdb.write_points(
                     points,
                     batch_size=self.batch_size,
-                    time_precision=self.time_precision,
+                    time_precision="n",
                     retention_policy=self.retention_policy,
                 )
             except Exception:
@@ -295,12 +301,13 @@ def init(
     retention_policy=None,
     retention_policy_duration="180d",
     emit_interval=60,
-    batch_size=10,
+    batch_size=100,
     debug=False,
     use_udp=False,
-    timeout=10,
-    time_precision="s",
+    timeout=22,
     ssl=False,
+    retention_policy_replication: str = "1",
+    set_retention_policy_default=True,
     **kwargs,
 ):
     """
@@ -320,8 +327,9 @@ def init(
         debug: 是否开启调试
         use_udp: 是否使用udp协议打点
         timeout: 与influxdb建立连接时的超时时间
-        time_precision: 打点精度 默认秒
         ssl: 是否使用https协议
+        retention_policy_replication: 保留策略的副本数, 确保数据的可靠性和高可用性。如果一个节点发生故障，其他节点可以继续提供服务，从而避免数据丢失和服务不可用的情况
+        set_retention_policy_default: 是否设置为默认的保留策略，当retention_policy初次创建时有效
         **kwargs: 可传递MetricsEmitter类的参数
 
     Returns:
@@ -372,8 +380,8 @@ def init(
             influxdb_client.create_retention_policy(
                 retention_policy,
                 retention_policy_duration,
-                replication="1",
-                default=True,
+                replication=retention_policy_replication,
+                default=set_retention_policy_default,
             )
         except Exception as e:
             log.error("metrics init falied: {}".format(e))
@@ -383,7 +391,6 @@ def init(
         influxdb_client,
         debug=debug,
         batch_size=batch_size,
-        time_precision=time_precision,
         retention_policy=retention_policy,
         emit_interval=emit_interval,
         **kwargs,

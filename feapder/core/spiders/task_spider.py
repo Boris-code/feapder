@@ -8,7 +8,6 @@ Created on 2020/4/22 12:06 AM
 @email: boris_liu@foxmail.com
 """
 
-import datetime
 import os
 import time
 import warnings
@@ -28,7 +27,6 @@ from feapder.utils.log import log
 from feapder.utils.perfect_dict import PerfectDict
 
 CONSOLE_PIPELINE_PATH = "feapder.pipelines.console_pipeline.ConsolePipeline"
-MYSQL_PIPELINE_PATH = "feapder.pipelines.mysql_pipeline.MysqlPipeline"
 
 
 class TaskSpider(TaskParser, Scheduler):
@@ -52,6 +50,7 @@ class TaskSpider(TaskParser, Scheduler):
         delete_keys=(),
         keep_alive=None,
         batch_interval=0,
+        use_mysql=True,
         **kwargs,
     ):
         """
@@ -93,6 +92,7 @@ class TaskSpider(TaskParser, Scheduler):
         @param task_condition: 任务条件 用于从一个大任务表中挑选出数据自己爬虫的任务，即where后的条件语句
         @param task_order_by: 取任务时的排序条件 如 id desc
         @param batch_interval: 抓取时间间隔 默认为0 天为单位 多次启动时，只有当前时间与第一次抓取结束的时间间隔大于指定的时间间隔时，爬虫才启动
+        @param use_mysql: 是否使用mysql数据库
         ---------
         @result:
         """
@@ -111,7 +111,7 @@ class TaskSpider(TaskParser, Scheduler):
         )
 
         self._redisdb = RedisDB()
-        self._mysqldb = MysqlDB()
+        self._mysqldb = MysqlDB() if use_mysql else None
 
         self._task_table = task_table  # mysql中的任务表
         self._task_keys = task_keys  # 需要获取的任务字段
@@ -142,34 +142,8 @@ class TaskSpider(TaskParser, Scheduler):
         )
         self._task_order_by = task_order_by and " order by {}".format(task_order_by)
 
-        self._batch_date_cache = None
-        if self._batch_interval >= 1:
-            self._date_format = "%Y-%m-%d"
-        elif self._batch_interval < 1 and self._batch_interval >= 1 / 24:
-            self._date_format = "%Y-%m-%d %H"
-        else:
-            self._date_format = "%Y-%m-%d %H:%M"
-
-        # 报警相关
-        self._send_msg_interval = datetime.timedelta(hours=1)  # 每隔1小时发送一次报警
-        self._last_send_msg_time = None
-
-        self._spider_last_done_time = None  # 爬虫最近已做任务数量时间
-        self._spider_last_done_count = 0  # 爬虫最近已做任务数量
-        self._spider_deal_speed_cached = None
-
         self._is_more_parsers = True  # 多模版类爬虫
-        self.reset_task(heartbeat_interval=60)
-
-    def init_property(self):
-        """
-        每个批次开始时需要重置的属性
-        @return:
-        """
-        self._last_send_msg_time = None
-
-        self._spider_last_done_time = None
-        self._spider_last_done_count = 0  # 爬虫刚开始启动时已做任务数量
+        self.reset_task()
 
     def add_parser(self, parser, **kwargs):
         parser = parser(
@@ -212,6 +186,12 @@ class TaskSpider(TaskParser, Scheduler):
                             if self._keep_alive:
                                 log.info("任务均已做完，爬虫常驻, 等待新任务")
                                 time.sleep(self._check_task_interval)
+                                continue
+                            elif self.have_alive_spider():
+                                log.info("任务均已做完，但还有爬虫在运行，等待爬虫结束")
+                                time.sleep(self._check_task_interval)
+                                continue
+                            elif not self.related_spider_is_done():
                                 continue
                             else:
                                 log.info("任务均已做完，爬虫结束")
@@ -469,6 +449,7 @@ class TaskSpider(TaskParser, Scheduler):
 
         for related_redis_task_table in self._related_task_tables:
             if self._redisdb.exists_key(related_redis_task_table):
+                log.info(f"依赖的爬虫还未结束，任务表为：{related_redis_task_table}")
                 return False
 
         if self._related_batch_record:
@@ -480,9 +461,10 @@ class TaskSpider(TaskParser, Scheduler):
 
             if is_done is None:
                 log.warning("相关联的批次表不存在或无批次信息")
-                return None
+                return True
 
             if not is_done:
+                log.info(f"依赖的爬虫还未结束，批次表为：{self._related_batch_record}")
                 return False
 
         return True
@@ -536,25 +518,20 @@ class TaskSpider(TaskParser, Scheduler):
 
             while True:
                 try:
-                    self.heartbeat()
-                    if (
-                        self.all_thread_is_done() and self.task_is_done()
+                    if self._stop_spider or (
+                        self.all_thread_is_done()
+                        and self.task_is_done()
+                        and self.related_spider_is_done()
                     ):  # redis全部的任务已经做完 并且mysql中的任务已经做完（检查各个线程all_thread_is_done，防止任务没做完，就更新任务状态，导致程序结束的情况）
                         if not self._is_notify_end:
                             self.spider_end()
-                            self.record_spider_state(
-                                spider_type=2,
-                                state=1,
-                                batch_date=self._batch_date_cache,
-                                spider_end_time=tools.get_current_date(),
-                                batch_interval=self._batch_interval,
-                            )
-
                             self._is_notify_end = True
 
                         if not self._keep_alive:
                             self._stop_all_thread()
                             break
+                        else:
+                            log.info("常驻爬虫，等待新任务")
                     else:
                         self._is_notify_end = False
 
@@ -603,7 +580,6 @@ class DebugTaskSpider(TaskSpider):
         REQUEST_FILTER_ENABLE=False,
         OSS_UPLOAD_TABLES=(),
         DELETE_KEYS=True,
-        ITEM_PIPELINES=[CONSOLE_PIPELINE_PATH],
     )
 
     def __init__(
@@ -611,7 +587,7 @@ class DebugTaskSpider(TaskSpider):
         task_id=None,
         task=None,
         save_to_db=False,
-        update_stask=False,
+        update_task=False,
         *args,
         **kwargs,
     ):
@@ -619,7 +595,7 @@ class DebugTaskSpider(TaskSpider):
         @param task_id:  任务id
         @param task:  任务  task 与 task_id 二者选一即可。如 task = {"url":""}
         @param save_to_db: 数据是否入库 默认否
-        @param update_stask: 是否更新任务 默认否
+        @param update_task: 是否更新任务 默认否
         @param args:
         @param kwargs:
         """
@@ -631,10 +607,10 @@ class DebugTaskSpider(TaskSpider):
             raise Exception("task_id 与 task 不能同时为空")
 
         kwargs["redis_key"] = kwargs["redis_key"] + "_debug"
-        if save_to_db and not self.__class__.__custom_setting__.get("ITEM_PIPELINES"):
-            self.__class__.__debug_custom_setting__.update(
-                ITEM_PIPELINES=[MYSQL_PIPELINE_PATH]
-            )
+        if not save_to_db:
+            self.__class__.__debug_custom_setting__["ITEM_PIPELINES"] = [
+                CONSOLE_PIPELINE_PATH
+            ]
         self.__class__.__custom_setting__.update(
             self.__class__.__debug_custom_setting__
         )
@@ -643,7 +619,7 @@ class DebugTaskSpider(TaskSpider):
 
         self._task_id = task_id
         self._task = task
-        self._update_task = update_stask
+        self._update_task = update_task
 
     def start_monitor_task(self):
         """
@@ -755,14 +731,3 @@ class DebugTaskSpider(TaskSpider):
             tools.delay_time(1)  # 1秒钟检查一次爬虫状态
 
         self.delete_tables([self._redis_key + "*"])
-
-    def record_spider_state(
-        self,
-        spider_type,
-        state,
-        batch_date=None,
-        spider_start_time=None,
-        spider_end_time=None,
-        batch_interval=None,
-    ):
-        pass

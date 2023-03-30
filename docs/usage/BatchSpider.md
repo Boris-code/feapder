@@ -12,7 +12,15 @@ BatchSpider是一款分布式批次爬虫，对于需要周期性采集的数据
 
 示例:
 
-    feapder create -s batch_spider_test 3
+```python
+feapder create -s batch_spider_test
+
+请选择爬虫模板
+  AirSpider
+  Spider
+  TaskSpider
+> BatchSpider
+```
 
 生成如下
 

@@ -28,10 +28,25 @@ class SeleniumDownloader(RenderDownloader):
         return self.__class__.webdriver_pool
 
     def download(self, request) -> Response:
-        proxy = request.get_proxy()
-        user_agent = request.get_user_agent()
+        # 代理优先级 自定义 > 配置文件 > 随机
+        if request.custom_proxies:
+            proxy = request.get_proxy()
+        elif setting.WEBDRIVER.get("proxy"):
+            proxy = setting.WEBDRIVER.get("proxy")
+        else:
+            proxy = request.get_proxy()
+
+        # user_agent优先级 自定义 > 配置文件 > 随机
+        if request.custom_ua:
+            user_agent = request.get_user_agent()
+        elif setting.WEBDRIVER.get("user_agent"):
+            user_agent = setting.WEBDRIVER.get("user_agent")
+        else:
+            user_agent = request.get_user_agent()
+
         cookies = request.get_cookies()
         url = request.url
+        render_time = request.render_time or setting.WEBDRIVER.get("render_time")
         if request.get_params():
             url = tools.joint_url(url, request.get_params())
 
@@ -45,8 +60,8 @@ class SeleniumDownloader(RenderDownloader):
                 # 刷新使cookie生效
                 browser.get(url)
 
-            if request.render_time:
-                tools.delay_time(request.render_time)
+            if render_time:
+                tools.delay_time(render_time)
 
             html = browser.page_source
             response = Response.from_dict(

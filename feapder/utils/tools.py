@@ -515,8 +515,8 @@ def get_param(url, key):
 
 def get_all_params(url):
     """
-    >>> get_all_params("https://api.pinduoduo.com/api/alexa/homepage/hub?page_id=index.html?dy_sub_page=home&install_token=72b46dd5-6065-454a-8ed1-4ada787df0d6&list_id=68853135&client_time=1636438142852&top_opt_version=1&scale=2.75&support_formats=1&nuz_version=2&req_action_type=10&engine_version=2.0&launch_channel=1&pdduid=")
-    {'page_id': 'index.html?dy_sub_page=home', 'install_token': '72b46dd5-6065-454a-8ed1-4ada787df0d6', 'list_id': '68853135', 'client_time': '1636438142852', 'top_opt_version': '1', 'scale': '2.75', 'support_formats': '1', 'nuz_version': '2', 'req_action_type': '10', 'engine_version': '2.0', 'launch_channel': '1', 'pdduid': ''}
+    >>> get_all_params("https://www.baidu.com/s?wd=feapder")
+    {'wd': 'feapder'}
     """
     params_json = {}
     params = url.split("?", 1)[-1].split("&")
@@ -532,7 +532,7 @@ def get_all_params(url):
 
 def parse_url_params(url):
     """
-    解析yrl参数
+    解析url参数
     :param url:
     :return:
 
@@ -546,8 +546,8 @@ def parse_url_params(url):
     ('', {'wd': '你好', 'pn': '10'})
     >>> parse_url_params("https://www.baidu.com")
     ('https://www.baidu.com', {})
-    >>> parse_url_params("https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html")
-    ('https://www.zcool.com.cn/work/ZNjAyNDE5MDA=.html', {})
+    >>> parse_url_params("https://www.spidertools.cn/#/")
+    ('https://www.spidertools.cn/#/', {})
     """
     root_url = ""
     params = {}
@@ -591,7 +591,7 @@ def urldecode(url):
     params_json = {}
     params = url.split("?")[-1].split("&")
     for param in params:
-        key, value = param.split("=")
+        key, value = param.split("=", 1)
         params_json[key] = unquote_url(value)
 
     return params_json
@@ -872,6 +872,8 @@ def del_html_tag(content, save_line_break=True, save_p=False, save_img=False):
     @param save_line_break: 保留\n换行
     @return:
     """
+    if not content:
+        return content
     # js
     content = re.sub("(?i)<script(.|\n)*?</script>", "", content)  # (?)忽略大小写
     # css
@@ -1172,10 +1174,10 @@ def read_file(filename, readlines=False, encoding="utf-8"):
 def get_oss_file_list(oss_handler, prefix, date_range_min, date_range_max=None):
     """
     获取文件列表
-    @param prefix: 路径前缀 如 data/car_service_line/yiche/yiche_serial_zongshu_info
+    @param prefix: 路径前缀 如 xxx/xxx
     @param date_range_min: 时间范围 最小值 日期分隔符为/ 如 2019/03/01 或 2019/03/01/00/00/00
     @param date_range_max: 时间范围 最大值 日期分隔符为/ 如 2019/03/01 或 2019/03/01/00/00/00
-    @return: 每个文件路径 如 html/e_commerce_service_line/alibaba/alibaba_shop_info/2019/03/22/15/53/15/8ca8b9e4-4c77-11e9-9dee-acde48001122.json.snappy
+    @return: 每个文件路径 如 html/xxx/xxx/2019/03/22/15/53/15/8ca8b9e4-4c77-11e9-9dee-acde48001122.json.snappy
     """
 
     # 计算时间范围
@@ -2191,7 +2193,7 @@ def make_batch_sql(
     if not datas:
         return
 
-    keys = list(datas[0].keys())
+    keys = list(set([key for data in datas for key in data]))
     values_placeholder = ["%s"] * len(keys)
 
     values = []
