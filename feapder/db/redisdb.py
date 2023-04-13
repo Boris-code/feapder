@@ -148,8 +148,9 @@ class RedisDB:
                     if self._service_name:
                         # log.debug("使用redis哨兵模式")
                         hosts = [(node["host"], node["port"]) for node in startup_nodes]
-                        sentinel_kwargs = {"password": self._sentinel_password}
-                        sentinel = Sentinel(hosts, socket_timeout=3, sentinel_kwargs=sentinel_kwargs, **self._kwargs)
+                        if self._sentinel_password:
+                            self._kwargs['sentinel_kwargs'] = {"password": self._sentinel_password}
+                        sentinel = Sentinel(hosts, socket_timeout=3, **self._kwargs)
                         self._redis = sentinel.master_for(
                             self._service_name,
                             password=self._user_pass,
