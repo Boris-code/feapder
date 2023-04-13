@@ -35,6 +35,7 @@ REDISDB_USER_PASS = os.getenv("REDISDB_USER_PASS")
 REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
 # 适用于redis哨兵模式
 REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
+SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
 
 # 数据入库的pipeline，可自定义，默认MysqlPipeline
 ITEM_PIPELINES = [
