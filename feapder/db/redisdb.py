@@ -64,6 +64,7 @@ class RedisDB:
         decode_responses=True,
         service_name=None,
         max_connections=1000,
+        sentinel_password=None,
         **kwargs,
     ):
         """
@@ -87,6 +88,8 @@ class RedisDB:
             user_pass = setting.REDISDB_USER_PASS
         if service_name is None:
             service_name = setting.REDISDB_SERVICE_NAME
+        if sentinel_password is None:
+            sentinel_password = setting.SENTINEL_PASSWORD
 
         self._is_redis_cluster = False
 
@@ -95,6 +98,7 @@ class RedisDB:
         self._ip_ports = ip_ports
         self._db = db
         self._user_pass = user_pass
+        self._sentinel_password = sentinel_password
         self._decode_responses = decode_responses
         self._service_name = service_name
         self._max_connections = max_connections
@@ -144,7 +148,10 @@ class RedisDB:
                     if self._service_name:
                         # log.debug("使用redis哨兵模式")
                         hosts = [(node["host"], node["port"]) for node in startup_nodes]
-                        sentinel = Sentinel(hosts, socket_timeout=3, **self._kwargs)
+                        sentinel_kwargs = {}
+                        if self._sentinel_password:
+                            sentinel_kwargs = {"password": self._sentinel_password}
+                        sentinel = Sentinel(hosts, socket_timeout=3, sentinel_kwargs=sentinel_kwargs, **self._kwargs)
                         self._redis = sentinel.master_for(
                             self._service_name,
                             password=self._user_pass,
