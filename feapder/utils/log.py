@@ -11,6 +11,7 @@ Created on 2018-12-08 16:50
 import logging
 import os
 import sys
+import types
 from logging.handlers import BaseRotatingHandler
 
 import loguru
@@ -257,3 +258,15 @@ class Log:
 
 
 log = Log()
+
+# PEP282
+for level_name, level in setting.CUSTOM_LOG_LEVEL.items():
+    logging.addLevelName(level, level_name)
+
+    def func(log_level):
+        def wrapper(self, msg, *args, **kwargs):
+            if self.isEnabledFor(log_level):
+                self._log(log_level, msg, args, **kwargs)
+        return wrapper
+
+    setattr(log, level_name.lower(), types.MethodType(func(level), log))
