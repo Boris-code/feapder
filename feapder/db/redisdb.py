@@ -87,6 +87,8 @@ class RedisDB:
             user_pass = setting.REDISDB_USER_PASS
         if service_name is None:
             service_name = setting.REDISDB_SERVICE_NAME
+        if kwargs is None:
+            kwargs = setting.REDISDB_KWARGS
 
         self._is_redis_cluster = False
 
@@ -180,7 +182,7 @@ class RedisDB:
                     self._is_redis_cluster = False
             else:
                 self._redis = redis.StrictRedis.from_url(
-                    self._url, decode_responses=self._decode_responses
+                    self._url, decode_responses=self._decode_responses, **self._kwargs
                 )
                 self._is_redis_cluster = False
 
