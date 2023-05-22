@@ -33,6 +33,8 @@ MONGO_USER_PASS = os.getenv("MONGO_USER_PASS")
 REDISDB_IP_PORTS = os.getenv("REDISDB_IP_PORTS")
 REDISDB_USER_PASS = os.getenv("REDISDB_USER_PASS")
 REDISDB_DB = int(os.getenv("REDISDB_DB", 0))
+# 连接redis时携带的其他参数，如ssl=True
+REDISDB_KWARGS = dict()
 # 适用于redis哨兵模式
 REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
 
