@@ -72,6 +72,19 @@ class MetricsEmitter:
     def _point_tagset(self, p):
         return f"{p['measurement']}-{sorted(p['tags'].items())}-{p['time']}"
 
+    def _make_time_to_ns(self, _time):
+        """
+        将时间转换为 ns 级别的时间戳，补足长度 19 位
+        Args:
+            _time:
+
+        Returns:
+
+        """
+        time_len = len(str(_time))
+        random_str = "".join(random.sample(string.digits, 19 - time_len))
+        return int(str(_time) + random_str)
+
     def _accumulate_points(self, points):
         """
         对于处于同一个 key 的点做聚合
@@ -102,18 +115,18 @@ class MetricsEmitter:
                     continue
                 # 增加 _seq tag，以便区分不同的点
                 point["tags"]["_seq"] = timer_seqs[tagset]
+                point["time"] = self._make_time_to_ns(point["time"])
                 timer_seqs[tagset] += 1
                 new_points.append(point)
             else:
                 if self.ratio < 1.0 and random.random() > self.ratio:
                     continue
+                point["time"] = self._make_time_to_ns(point["time"])
                 new_points.append(point)
 
         for point in counters.values():
             # 修改下counter类型的点的时间戳，补足19位, 伪装成纳秒级时间戳，防止influxdb对同一秒内的数据进行覆盖
-            time_len = len(str(point["time"]))
-            random_str = "".join(random.sample(string.digits, 19 - time_len))
-            point["time"] = int(str(point["time"]) + random_str)
+            point["time"] = self._make_time_to_ns(point["time"])
             new_points.append(point)
 
             # 把拟合后的 counter 值添加进来
