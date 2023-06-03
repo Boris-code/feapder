@@ -1,7 +1,7 @@
 better-exceptions>=0.2.2
 DBUtils>=2.0
 parsel>=1.5.2
-PyExecJS>=1.5.1
+PyExecJS2>=1.6.1
 pymongo>=3.10.1
 PyMySQL>=0.9.3
 redis>=2.10.6,<4.0.0
