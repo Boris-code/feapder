@@ -10,7 +10,6 @@ Created on 2016-11-16 16:25
 import time
 
 import redis
-from redis._compat import unicode, long, basestring
 from redis.connection import Encoder as _Encoder
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
@@ -34,19 +33,19 @@ class Encoder(_Encoder):
         #     )
         elif isinstance(value, float):
             value = repr(value).encode()
-        elif isinstance(value, (int, long)):
+        elif isinstance(value, int):
             # python 2 repr() on longs is '123L', so use str() instead
             value = str(value).encode()
         elif isinstance(value, (list, dict, tuple)):
-            value = unicode(value)
-        elif not isinstance(value, basestring):
+            value = str(value)
+        elif not isinstance(value, str):
             # a value we don't know how to deal with. throw an error
             typename = type(value).__name__
             raise DataError(
                 "Invalid input of type: '%s'. Convert to a "
                 "bytes, string, int or float first." % typename
             )
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             value = value.encode(self.encoding, self.encoding_errors)
         return value
 
