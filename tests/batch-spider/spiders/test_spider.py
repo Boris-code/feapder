@@ -18,7 +18,7 @@ class TestSpider(feapder.BatchSpider):
     def start_requests(self, task):
         # task 为在任务表中取出的每一条任务
         id, url = task  # id， url为所取的字段，main函数中指定的
-        yield feapder.Request(url, task_id=id)
+        yield feapder.Request(url, task_id=id, render=True)  # task_id为任务id，用于更新任务状态
 
     def parse(self, request, response):
         title = response.xpath('//title/text()').extract_first()  # 取标题
