@@ -238,6 +238,8 @@ class ParserControl(threading.Thread):
                         self.record_download_status(
                             ParserControl.DOWNLOAD_EXCEPTION, parser.name
                         )
+                        if request.retry_times % setting.PROXY_MAX_FAILED_TIMES == 0:
+                            request.del_proxy()
 
                     else:
                         # 记录解析程序异常
@@ -611,6 +613,8 @@ class AirSpiderParserControl(ParserControl):
                         self.record_download_status(
                             ParserControl.DOWNLOAD_EXCEPTION, parser.name
                         )
+                        if request.retry_times % setting.PROXY_MAX_FAILED_TIMES == 0:
+                            request.del_proxy()
 
                     else:
                         # 记录解析程序异常

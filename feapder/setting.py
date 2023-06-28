@@ -132,6 +132,7 @@ DELETE_KEYS = []
 # 设置代理
 PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n
 PROXY_ENABLE = True
+PROXY_MAX_FAILED_TIMES = 5  # 代理最大失败次数，超过则不使用，自动删除
 
 # 随机headers
 RANDOM_HEADERS = True

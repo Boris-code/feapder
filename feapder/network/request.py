@@ -427,6 +427,12 @@ class Request:
                 "http.*?//", "", proxies.get("http", "") or proxies.get("https", "")
             )
 
+    def del_proxy(self):
+        proxy = self.get_proxy()
+        if proxy:
+            self._proxies_pool.del_proxy(proxy)
+            del self.requests_kwargs["proxies"]
+
     def get_headers(self) -> dict:
         return self.requests_kwargs.get("headers", {})
 

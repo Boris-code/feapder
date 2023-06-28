@@ -14,9 +14,10 @@
 # 设置代理
 PROXY_EXTRACT_API = None  # 代理提取API ，返回的代理分割符为\r\n
 PROXY_ENABLE = True
+PROXY_MAX_FAILED_TIMES = 5  # 代理最大失败次数，超过则不使用，自动删除
 ```
 
-要求API返回的代理格式为：
+要求API返回的代理格式为使用 /r/n 分隔：
 
 ```
 ip:port
@@ -28,11 +29,9 @@ ip:port
 
 ### 高阶
 
-> 注意：高阶用法现在不太友好，后期会调整使用方式
+1. 删除代理（默认是请求异常连续5次，再删除代理）
 
-1. 标记代理失效或延时使用
-
-    例如在发生异常时处理代理
+    例如在发生异常时删除代理
     
     ```python
     import feapder
@@ -44,45 +43,9 @@ ip:port
             print(response)
         
         def exception_request(self, request, response):
-    
-            # request.proxies_pool.tag_proxy(request.requests_kwargs.get("proxies"), -1)  # 废弃本次代理
-            request.proxies_pool.tag_proxy(request.requests_kwargs.get("proxies"), 1, 30)  # 延迟本次代理30秒后再使用
+            request.del_proxy()
+            
     ```
-
-1. 指定代理拉取时间间隔等
-
-    在代码头部给feapder.Request.proxies_pool重新赋值
-
-    ```python
-    import feapder
-    from feapder.network.proxy_pool import ProxyPool
-    
-    proxy_pool= ProxyPool(reset_interval_max=180, reset_interval=5)
-    feapder.Request.proxies_pool = proxy_pool
-    ```
-    
-    相当于修改了代理池的默认参数值，更多参数看源码
-
-1. 从redis里提取代理
-    
-    ```python
-    import feapder
-    from feapder.network.proxy_pool import ProxyPool
-    
-    proxy_pool = ProxyPool(
-        proxy_source_url="redis://:passwd@host:ip/db", redis_proxies_key="proxies"
-    )
-    feapder.Request.proxies_pool = proxy_pool
-    ```
-    
-    要求redis使用zset集合存储代理，存储内容示例如下：
-    ```
-    ip:port
-    ip:port
-    ip:port
-    ```
-    
-    redis_proxies_key及为存储代理的key，每次拉取时会拉取全量
 
 ## 2. 自己写
 
