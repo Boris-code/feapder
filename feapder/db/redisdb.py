@@ -6,7 +6,7 @@ Created on 2016-11-16 16:25
 ---------
 @author: Boris
 """
-
+import os
 import time
 
 import redis
@@ -14,7 +14,6 @@ from redis.connection import Encoder as _Encoder
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
 from redis.sentinel import Sentinel
-from rediscluster import RedisCluster
 
 import feapder.setting as setting
 from feapder.utils.log import log
@@ -157,6 +156,12 @@ class RedisDB:
                         )
 
                     else:
+                        try:
+                            from rediscluster import RedisCluster
+                        except ModuleNotFoundError as e:
+                            log.error('请安装 pip install "feapder[all]"')
+                            os._exit(0)
+
                         # log.debug("使用redis集群模式")
                         self._redis = RedisCluster(
                             startup_nodes=startup_nodes,
@@ -584,7 +589,6 @@ class RedisDB:
         return is_exists
 
     def lpush(self, table, values):
-
         if isinstance(values, list):
             pipe = self._redis.pipeline()
 

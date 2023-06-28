@@ -42,7 +42,6 @@ requires = [
     "requests>=2.22.0",
     "bs4>=0.0.1",
     "ipython>=7.14.0",
-    "redis-py-cluster>=2.1.0",
     "cryptography>=3.3.2",
     "urllib3>=1.25.8",
     "loguru>=0.5.3",
@@ -61,6 +60,7 @@ all_requires = [
     "bitarray>=1.5.3",
     "PyExecJS>=1.5.1",
     "pymongo>=3.10.1",
+    "redis-py-cluster>=2.1.0",
 ] + render_requires
 
 setuptools.setup(
