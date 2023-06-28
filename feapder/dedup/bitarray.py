@@ -48,7 +48,7 @@ class MemoryBitArray(BitArray):
             import bitarray
         except Exception as e:
             raise Exception(
-                "需要安装feapder完整版\ncommand: pip install feapder[all]\n若安装出错，参考：https://feapder.com/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98"
+                '需要安装feapder完整版\ncommand: pip install "feapder[all]"\n若安装出错，参考：https://feapder.com/#/question/%E5%AE%89%E8%A3%85%E9%97%AE%E9%A2%98'
             )
 
         self.num_bits = num_bits
