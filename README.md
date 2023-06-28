@@ -35,21 +35,28 @@
 
 From PyPi:
 
-通用版
+精简版
 
 ```shell
-pip3 install feapder
+pip install feapder
+```
+
+浏览器渲染版：
+```shell
+pip install "feapder[render]"
 ```
 
 完整版：
 
 ```shell
-pip3 install feapder[all]
+pip install "feapder[all]"
 ```
 
-通用版与完整版区别：
+三个版本区别：
 
-1. 完整版支持基于内存去重
+1. 精简版：不支持浏览器渲染、不支持基于内存去重、不支持入库mongo
+2. 浏览器渲染版：不支持基于内存去重、不支持入库mongo
+3. 完整版：支持所有功能
 
 完整版可能会安装出错，若安装出错，请参考[安装问题](question/安装问题)
 
