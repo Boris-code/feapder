@@ -10,4 +10,10 @@ Created on 2021/6/18 10:36 上午
 
 from feapder.utils.log import log
 
-log.debug(1)
+log.debug("debug")
+log.info("info")
+log.success("success")
+log.warning("warning")
+log.error("error")
+log.critical("critical")
+log.exception("exception")

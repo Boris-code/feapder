@@ -67,7 +67,6 @@ class RotatingFileHandler(BaseRotatingHandler):
             self.stream = self._open()
 
     def shouldRollover(self, record):
-
         if self.stream is None:  # delay was set...
             self.stream = self._open()
         if self.max_bytes > 0:  # are we rolling over?
@@ -225,6 +224,13 @@ for STOP_LOG in STOP_LOGS:
 class Log:
     log = None
 
+    def func(self, log_level):
+        def wrapper(msg, *args, **kwargs):
+            if self.isEnabledFor(log_level):
+                self._log(log_level, msg, args, **kwargs)
+
+        return wrapper
+
     def __getattr__(self, name):
         # 调用log时再初始化，为了加载最新的setting
         if self.__class__.log is None:
@@ -238,6 +244,12 @@ class Log:
     @property
     def info(self):
         return self.__class__.log.info
+
+    @property
+    def success(self):
+        log_level = logging.INFO + 1
+        logging.addLevelName(log_level, "success".upper())
+        return self.func(log_level)
 
     @property
     def warning(self):
