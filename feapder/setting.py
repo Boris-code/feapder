@@ -207,7 +207,6 @@ os.environ["LOGURU_FORMAT"] = (
     "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>line:{line}</cyan> | <level>{message}</level>"
 )
 OTHERS_LOG_LEVAL = "ERROR"  # 第三方库的log等级
-CUSTOM_LOG_LEVEL = {"SUCCESS": 30}
 
 # 打点监控 influxdb 配置
 INFLUXDB_HOST = os.getenv("INFLUXDB_HOST", "localhost")
