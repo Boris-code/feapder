@@ -9,6 +9,7 @@ Created on 2018-07-25 11:49:08
 """
 
 import copy
+import os
 import re
 
 import requests
@@ -224,9 +225,13 @@ class Request:
     @property
     def _render_downloader(self):
         if not self.__class__.render_downloader:
-            self.__class__.render_downloader = tools.import_cls(
-                setting.RENDER_DOWNLOADER
-            )()
+            try:
+                self.__class__.render_downloader = tools.import_cls(
+                    setting.RENDER_DOWNLOADER
+                )()
+            except AttributeError:
+                log.error('当前是渲染模式，请安装 pip install "feapder[render]"')
+                os._exit(0)
 
         return self.__class__.render_downloader
 
