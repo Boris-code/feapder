@@ -314,7 +314,25 @@ class AirSpeedTest(feapder.AirSpider):
         print(title)
 ```
 
-## 15. 完整的代码示例
+## 15. 主动停止爬虫
+
+```
+import feapder
+
+
+class AirTest(feapder.AirSpider):
+    def start_requests(self):
+        yield feapder.Request("http://www.baidu.com")
+
+    def parse(self, request, response):
+        self.stop_spider() # 停止爬虫，可以在任意地方调用该方法
+
+
+if __name__ == "__main__":
+    AirTest().start()
+```
+
+## 16. 完整的代码示例
 
 AirSpider：https://github.com/Boris-code/feapder/blob/master/tests/air-spider/test_air_spider.py
 
