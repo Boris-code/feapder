@@ -59,7 +59,7 @@ class PlaywrightDriver(WebDriver):
         self.url = None
         self.storage_state_path = storage_state_path
 
-        self._driver_type = driver_type
+        self._driver_type = driver_type or "chromium"
         self._page_on_event_callback = page_on_event_callback
         self._url_regexes = url_regexes
         self._save_all = save_all

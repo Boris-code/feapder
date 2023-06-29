@@ -75,6 +75,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         """
         super(SeleniumDriver, self).__init__(**kwargs)
         self._xhr_url_regexes = xhr_url_regexes
+        self._driver_type = self._driver_type or SeleniumDriver.CHROME
 
         if self._xhr_url_regexes and self._driver_type != SeleniumDriver.CHROME:
             raise Exception(
