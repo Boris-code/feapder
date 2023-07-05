@@ -595,11 +595,11 @@ class RedisDB:
             if not self._is_redis_cluster:
                 pipe.multi()
             for value in values:
-                pipe.rpush(table, value)
+                pipe.lpush(table, value)
             pipe.execute()
 
         else:
-            return self._redis.rpush(table, values)
+            return self._redis.lpush(table, values)
 
     def lpop(self, table, count=1):
         """
