@@ -490,8 +490,8 @@ class Scheduler(threading.Thread):
             spand_time = tools.get_current_timestamp() - begin_timestamp
 
             msg = "《%s》爬虫%s，采集耗时 %s" % (
-                "被终止" if not self._keep_alive else "结束",
                 self._spider_name,
+                "被终止" if not self._keep_alive else "结束",
                 tools.format_seconds(spand_time),
             )
             log.info(msg)
