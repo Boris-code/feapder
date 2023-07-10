@@ -491,7 +491,7 @@ class Scheduler(threading.Thread):
 
             msg = "《%s》爬虫%s，采集耗时 %s" % (
                 self._spider_name,
-                "被终止" if not self._keep_alive else "结束",
+                "被终止" if self._stop_spider else "结束",
                 tools.format_seconds(spand_time),
             )
             log.info(msg)
