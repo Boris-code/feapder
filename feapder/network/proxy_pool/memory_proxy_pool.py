@@ -12,14 +12,19 @@ from queue import Queue
 import requests
 
 import feapder.setting as setting
+from feapder.network.proxy_pool.base import ProxyPool
 from feapder.utils import metrics
 from feapder.utils import tools
-from feapder.utils.log import log
 
 
-class ProxyPool:
-    def __init__(self, proxy_api=setting.PROXY_EXTRACT_API, **kwargs):
-        self.proxy_api = proxy_api
+class MemoryProxyPool(ProxyPool):
+    """
+    通过API提取代理，存储在内存中，无代理时会自动提取
+    API返回的代理以 \r\n 分隔
+    """
+
+    def __init__(self, proxy_api=None, **kwargs):
+        self.proxy_api = proxy_api or setting.PROXY_EXTRACT_API
         self.proxy_queue = Queue()
 
     def format_proxy(self, proxy):
@@ -30,7 +35,7 @@ class ProxyPool:
         resp = requests.get(self.proxy_api)
         proxies = resp.text.strip()
         resp.close()
-        if "{" in proxies:
+        if "{" in proxies or not proxies:
             raise Exception("获取代理失败", proxies)
         # 使用 /r/n 分隔
         return proxies.split("\r\n")
@@ -53,8 +58,6 @@ class ProxyPool:
             tools.send_msg("获取代理失败", level="error")
             raise Exception("获取代理失败", e)
 
-    get = get_proxy
-
     def del_proxy(self, proxy):
         """
         @summary: 删除代理
@@ -64,13 +67,3 @@ class ProxyPool:
         if proxy in self.proxy_queue.queue:
             self.proxy_queue.queue.remove(proxy)
             metrics.emit_counter("invalid", 1, classify="proxy")
-
-    def tag_proxy(self, **kwargs):
-        """
-        @summary: 标记代理
-        ---------
-        @param kwargs:
-        @return:
-        """
-        log.warning("暂不支持标记代理")
-        pass

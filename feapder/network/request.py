@@ -202,7 +202,7 @@ class Request:
     @property
     def _proxies_pool(self):
         if not self.__class__.proxies_pool:
-            self.__class__.proxies_pool = ProxyPool()
+            self.__class__.proxies_pool = tools.import_cls(setting.PROXY_POOL)()
 
         return self.__class__.proxies_pool
 
@@ -336,7 +336,7 @@ class Request:
         proxies = self.requests_kwargs.get("proxies", -1)
         if proxies == -1 and setting.PROXY_ENABLE and setting.PROXY_EXTRACT_API:
             while True:
-                proxies = self._proxies_pool.get()
+                proxies = self._proxies_pool.get_proxy()
                 if proxies:
                     self.requests_kwargs.update(proxies=proxies)
                     break
