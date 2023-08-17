@@ -96,8 +96,10 @@ class TestProxy(feapder.AirSpider):
         yield feapder.Request("https://www.baidu.com")
         
     def download_midware(self, request):
-        # 这里随机取个代理使用即可
-        request.proxies = {"https": "https://ip:port", "http": "http://ip:port"} 
+        # 这里随机取个代理使用即可,
+        #proxies 是requests的参数,需要通过request.requests_kwargs传递
+        request.requests_kwargs = {}
+        request.requests_kwargs['proxies'] = {"https": "https://ip:port", "http": "http://ip:port"}
         return request
 
     def parse(self, request, response):
