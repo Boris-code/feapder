@@ -53,9 +53,9 @@ ip:port
 1. 编写代理池：例如在你的项目下创建个my_proxypool.py，实现下面的函数
     
     ```python
-    from feapder.network.proxy_pool import ProxyPool 
+    from feapder.network.proxy_pool import BaseProxyPool 
         
-    class MyProxyPool(ProxyPool):
+    class MyProxyPool(BaseProxyPool):
         def get_proxy(self):
             """
             获取代理

@@ -13,7 +13,7 @@ import abc
 from feapder.utils.log import log
 
 
-class ProxyPool:
+class BaseProxyPool:
     @abc.abstractmethod
     def get_proxy(self):
         """

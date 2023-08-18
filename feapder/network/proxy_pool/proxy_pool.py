@@ -12,12 +12,12 @@ from queue import Queue
 import requests
 
 import feapder.setting as setting
-from feapder.network.proxy_pool.base import ProxyPool
+from feapder.network.proxy_pool.base import BaseProxyPool
 from feapder.utils import metrics
 from feapder.utils import tools
 
 
-class MemoryProxyPool(ProxyPool):
+class ProxyPool(BaseProxyPool):
     """
     通过API提取代理，存储在内存中，无代理时会自动提取
     API返回的代理以 \r\n 分隔

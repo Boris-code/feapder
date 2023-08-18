@@ -21,7 +21,7 @@ import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
 from feapder.network import user_agent
 from feapder.network.downloader.base import Downloader, RenderDownloader
-from feapder.network.proxy_pool import ProxyPool
+from feapder.network.proxy_pool import BaseProxyPool
 from feapder.network.response import Response
 from feapder.utils.log import log
 
@@ -31,7 +31,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class Request:
     user_agent_pool = user_agent
-    proxies_pool: ProxyPool = None
+    proxies_pool: BaseProxyPool = None
 
     cache_db = None  # redis / pika
     cached_redis_key = None  # 缓存response的文件文件夹 response_cached:cached_redis_key:md5
