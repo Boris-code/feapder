@@ -122,8 +122,7 @@ class Scheduler(threading.Thread):
             setattr(setting, "SPIDER_THREAD_COUNT", thread_count)
         self._thread_count = setting.SPIDER_THREAD_COUNT
 
-        self._spider_name = redis_key
-        self._project_name = redis_key.split(":")[0]
+        self._spider_name = self.name
         self._task_table = task_table
 
         self._tab_spider_status = setting.TAB_SPIDER_STATUS.format(redis_key=redis_key)
@@ -136,9 +135,6 @@ class Scheduler(threading.Thread):
         self._last_check_task_count_time = 0
         self._stop_heartbeat = False  # 是否停止心跳
         self._redisdb = RedisDB()
-
-        self._project_total_state_table = "{}_total_state".format(self._project_name)
-        self._is_exist_project_total_state_table = False
 
         # Request 缓存设置
         Request.cached_redis_key = redis_key
