@@ -2784,3 +2784,39 @@ def import_cls(cls_info):
     module, class_name = cls_info.rsplit(".", 1)
     cls = importlib.import_module(module).__getattribute__(class_name)
     return cls
+
+
+###################
+def convert_to_uppercase(input_string):
+    """
+    将输入字符串转换为大写。
+
+    参数:
+        input_string (str): 要转换为大写的输入字符串。
+
+    返回:
+        str: 转换后的大写字符串。
+
+    示例用法:
+        original_string = "Hello, World!"
+        new_string = convert_to_uppercase(original_string)
+        print(new_string)  # 输出: HELLO, WORLD!
+    """
+    return input_string.upper()
+
+def convert_to_lowercase(input_string):
+    """
+    将输入字符串转换为小写。
+
+    参数:
+        input_string (str): 要转换为小写的输入字符串。
+
+    返回:
+        str: 转换后的小写字符串。
+
+    示例用法:
+        original_string = "Hello, World!"
+        new_string = convert_to_lowercase(original_string)
+        print(new_string)  # 输出: hello, world!
+    """
+    return input_string.lower()
