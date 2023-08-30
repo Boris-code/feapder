@@ -58,7 +58,7 @@ class HandleFailedItems:
                         for _data in datas:
                             item = UpdateItem(**_data)
                             item.table_name = table
-                            item.update_keys = update_keys
+                            item.update_key = update_keys
                             self._item_buffer.put_item(item)
                             total_count += 1
 
