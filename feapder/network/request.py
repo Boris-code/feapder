@@ -270,11 +270,11 @@ class Request:
             if value is not None:
                 if key in self.__class__.__REQUEST_ATTRS__:
                     if not isinstance(
-                        value, (bytes, bool, float, int, str, tuple, list, dict)
+                        value, (bool, float, int, str, tuple, list, dict)
                     ):
                         value = tools.dumps_obj(value)
                 else:
-                    if not isinstance(value, (bytes, bool, float, int, str)):
+                    if not isinstance(value, (bool, float, int, str)):
                         value = tools.dumps_obj(value)
 
             request_dict[key] = value
