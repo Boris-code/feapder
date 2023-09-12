@@ -52,7 +52,7 @@ class WebDriver:
             user_agent: 字符串 或 无参函数，返回值为user_agent
             proxy: xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
             headless: 是否启用无头模式
-            driver_type: CHROME 或 PHANTOMJS,FIREFOX
+            driver_type: CHROME,EDGE 或 PHANTOMJS,FIREFOX
             timeout: 请求超时时间
             window_size: # 窗口大小
             executable_path: 浏览器路径，默认为默认路径

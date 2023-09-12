@@ -243,7 +243,7 @@ def start_requests(self):
 ```
 在返回的Request中传递`render=True`即可
 
-框架支持`CHROME`和`PHANTOMJS`两种浏览器渲染，可通过[配置文件](source_code/配置文件)进行配置。相关配置如下：
+框架支持`CHROME`、`EDGE`和`PHANTOMJS`浏览器渲染，可通过[配置文件](source_code/配置文件)进行配置。相关配置如下：
 
 ```python
 # 浏览器渲染
@@ -253,7 +253,7 @@ WEBDRIVER = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
-    driver_type="CHROME",  # CHROME 或 PHANTOMJS,
+    driver_type="CHROME",  # CHROME、EDGE或PHANTOMJS,
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
@@ -282,7 +282,7 @@ class AirSpeedTest(feapder.AirSpider):
         return request, response
 
     def parse(self, request, response):
-        print(response) 
+        print(response)
 
 
 if __name__ == "__main__":
