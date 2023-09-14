@@ -135,6 +135,11 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         return self.driver
 
     def firefox_driver(self):
+        if webdriver.__version__ >= "4.0.0":
+            raise Exception(
+                f"暂未适配selenium=={webdriver.__version__}版本的firefox API，建议安装selenium==3.141.0版本或使用CHROME浏览器"
+            )
+
         firefox_profile = webdriver.FirefoxProfile()
         firefox_options = webdriver.FirefoxOptions()
         firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
@@ -300,7 +305,6 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
 
         return driver
 
-
     def edge_driver(self):
         edge_options = webdriver.EdgeOptions()
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
@@ -359,12 +363,12 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             if self._executable_path:
                 kwargs.update(executable_path=self._executable_path)
             elif self._auto_install_driver:
-                raise NotImplementedError('edge not support auto install driver')
+                raise NotImplementedError("edge not support auto install driver")
         else:
             if self._executable_path:
                 kwargs.update(service=Service(self._executable_path))
             elif self._auto_install_driver:
-                raise NotImplementedError('edge not support auto install driver')
+                raise NotImplementedError("edge not support auto install driver")
 
         driver = webdriver.Edge(options=edge_options, **kwargs)
 
@@ -404,7 +408,6 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             driver.execute("send_command", params)
 
         return driver
-
 
     def phantomjs_driver(self):
         import warnings

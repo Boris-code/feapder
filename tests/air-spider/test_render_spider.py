@@ -15,11 +15,11 @@ class TestAirSpider(feapder.AirSpider):
     def start_requests(self, *args, **kws):
         yield feapder.Request("https://www.baidu.com", render=True)
 
-    def download_midware(self, request):
-        request.proxies = {
-            "http": "http://xxx.xxx.xxx.xxx:8888",
-            "https": "http://xxx.xxx.xxx.xxx:8888",
-        }
+    # def download_midware(self, request):
+    #     request.proxies = {
+    #         "http": "http://xxx.xxx.xxx.xxx:8888",
+    #         "https": "http://xxx.xxx.xxx.xxx:8888",
+    #     }
 
     def parse(self, request, response):
         print(response.bs4().title)

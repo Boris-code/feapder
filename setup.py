@@ -51,7 +51,7 @@ requires = [
 ]
 
 render_requires = [
-    "webdriver-manager>=3.5.3",
+    "webdriver-manager>=4.0.0",
     "playwright",
     "selenium>=3.141.0",
 ]
