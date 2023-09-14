@@ -4,7 +4,7 @@
 
 框架内置一个浏览器渲染池，默认的池子大小为1，请求时重复利用浏览器实例，只有当代理失效请求异常时，才会销毁、创建一个新的浏览器实例
 
-内置浏览器渲染支持 **CHROME** 、**PHANTOMJS**、**FIREFOX**
+内置浏览器渲染支持 **CHROME**、**EDGE**、**PHANTOMJS**、**FIREFOX**
 
 ## 使用方式：
 
@@ -14,7 +14,7 @@ def start_requests(self):
 ```
 在返回的Request中传递`render=True`即可
 
-框架支持`CHROME`、`PHANTOMJS`、`FIREFOX` 三种浏览器渲染，可通过[配置文件](source_code/配置文件)进行配置。相关配置如下：
+框架支持`CHROME`、`EDGE`、`PHANTOMJS`、`FIREFOX` 三种浏览器渲染，可通过[配置文件](source_code/配置文件)进行配置。相关配置如下：
 
 ```python
 # 浏览器渲染
@@ -24,7 +24,7 @@ WEBDRIVER = dict(
     user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
     proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
     headless=False,  # 是否为无头浏览器
-    driver_type="CHROME",  # CHROME 、PHANTOMJS、FIREFOX
+    driver_type="CHROME",  # CHROME、EDGE、PHANTOMJS、FIREFOX
     timeout=30,  # 请求超时时间
     window_size=(1024, 800),  # 窗口大小
     executable_path=None,  # 浏览器路径，默认为默认路径
@@ -80,7 +80,7 @@ def download_midware(self, request):
     }
     return request
 ```
-    
+
 ## 设置Cookie
 
 通过 `feapder.Request`携带，如：
@@ -219,7 +219,7 @@ class TestRender(feapder.AirSpider):
             user_agent=None,  # 字符串 或 无参函数，返回值为user_agent
             proxy=None,  # xxx.xxx.xxx.xxx:xxxx 或 无参函数，返回值为代理地址
             headless=False,  # 是否为无头浏览器
-            driver_type="CHROME",  # CHROME、PHANTOMJS、FIREFOX
+            driver_type="CHROME",  # CHROME、EDGE、PHANTOMJS、FIREFOX
             timeout=30,  # 请求超时时间
             window_size=(1024, 800),  # 窗口大小
             executable_path=None,  # 浏览器路径，默认为默认路径
