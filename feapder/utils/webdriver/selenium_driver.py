@@ -181,10 +181,16 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         return driver
 
     def chrome_driver(self):
+        # 直接调用undetected_chromedriver；
+        import undetected_chromedriver as uc
         chrome_options = webdriver.ChromeOptions()
+        
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        chrome_options.add_experimental_option("useAutomationExtension", False)
+        ################## 注释掉了，使用undetected_chromedriver时会导致异常；##################
+#       chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+#       chrome_options.add_experimental_option("useAutomationExtension", False)
+        ################## 注释掉了，使用undetected_chromedriver时会导致异常；##################
+        
         # docker 里运行需要
         chrome_options.add_argument("--no-sandbox")
 
@@ -234,8 +240,10 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             kwargs.update(executable_path=self._executable_path)
         elif self._auto_install_driver:
             kwargs.update(executable_path=ChromeDriverManager().install())
-
-        driver = webdriver.Chrome(options=chrome_options, **kwargs)
+        
+        # 直接调用了undetected_chromedriver；如果能根据use_stealth_js参数的是或者否来判断进行实例化最好；
+#       driver = webdriver.Chrome(options=chrome_options, **kwargs)
+        driver = uc.Chrome(options=chrome_options, **kwargs)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
@@ -393,3 +401,4 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
 
     # def __del__(self):
     #     self.quit()
+            
