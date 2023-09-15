@@ -167,6 +167,7 @@ REQUEST_FILTER_SETTING = dict(
 DINGDING_WARNING_URL = ""  # 钉钉机器人api
 DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
 DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
+DINGDING_WARNING_SECRET = None  # 加签密钥
 # 飞书报警
 # https://open.feishu.cn/document/ukTMukTMukTM/ucTM5YjL3ETO24yNxkjN#e1cdee9f
 FEISHU_WARNING_URL = ""  # 飞书机器人api
