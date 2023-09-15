@@ -7,6 +7,7 @@ Created on 2018-09-06 14:21
 @author: Boris
 @email: boris_liu@foxmail.com
 """
+import hmac
 import asyncio
 import base64
 import calendar
@@ -2466,12 +2467,20 @@ def reach_freq_limit(rate_limit, *key):
 
 
 def dingding_warning(
-    message, message_prefix=None, rate_limit=None, url=None, user_phone=None
+    message, message_prefix=None, rate_limit=None, url=None, user_phone=None, secret=None
 ):
     # 为了加载最新的配置
     rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
     url = url or setting.DINGDING_WARNING_URL
     user_phone = user_phone or setting.DINGDING_WARNING_PHONE
+    secret = secret or setting.DINGDING_WARNING_SECRET
+    if secret:
+        timestamp = str(round(time.time() * 1000))
+        secret_enc = secret.encode('utf-8')
+        string_to_sign_enc = f'{timestamp}\n{secret}'.encode('utf-8')
+        hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
+        sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+        url = f"{url}&timestamp={timestamp}&sign={sign}"
 
     if not all([url, message]):
         return
