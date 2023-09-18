@@ -156,13 +156,16 @@ yum -y install git
 ```
 #### 1. 下载项目
 
+> 先按照下面命令拉取develop分支代码运行。
+> master分支不支持urllib3>=2.0版本，现在已经运行不起来了，但之前老用户不受影响。待后续测试好兼容性，不影响老用户后，会将develop分支合并到master
+
 gitub
 ```shell
-git clone https://github.com/Boris-code/feaplat.git
+git clone -b develop https://github.com/Boris-code/feaplat.git
 ```
 gitee
 ```shell
-git clone https://gitee.com/Boris-code/feaplat.git
+git clone -b develop https://gitee.com/Boris-code/feaplat.git
 ```
 
 #### 2. 运行 
