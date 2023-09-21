@@ -249,6 +249,7 @@ class Request:
             self.download_midware = [
                 getattr(download_midware, "__name__")
                 if callable(download_midware)
+                and download_midware.__class__.__name__ == "method"
                 else download_midware
                 for download_midware in self.download_midware
             ]
@@ -256,6 +257,7 @@ class Request:
             self.download_midware = (
                 getattr(self.download_midware, "__name__")
                 if callable(self.download_midware)
+                and self.download_midware.__class__.__name__ == "method"
                 else self.download_midware
             )
 
