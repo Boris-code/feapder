@@ -58,9 +58,18 @@ class ItemBuffer(threading.Thread):
             self._mysql_pipeline = None
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
-                self.__class__.dedup = Dedup(
-                    to_md5=False, **setting.ITEM_FILTER_SETTING
-                )
+                if setting.ITEM_FILTER_SETTING.get(
+                    "filter_type"
+                ) == Dedup.BloomFilter or setting.ITEM_FILTER_SETTING.get("name"):
+                    self.__class__.dedup = Dedup(
+                        to_md5=False, **setting.ITEM_FILTER_SETTING
+                    )
+                else:
+                    self.__class__.dedup = Dedup(
+                        to_md5=False,
+                        name=self._redis_key,
+                        **setting.ITEM_FILTER_SETTING,
+                    )
 
             # 导出重试的次数
             self.export_retry_times = 0

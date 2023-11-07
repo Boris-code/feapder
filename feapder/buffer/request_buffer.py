@@ -28,14 +28,16 @@ class AirSpiderRequestBuffer:
         self._db = db or MemoryDB()
 
         if not self.__class__.dedup and setting.REQUEST_FILTER_ENABLE:
-            if dedup_name:
-                self.__class__.dedup = Dedup(
-                    name=dedup_name, to_md5=False, **setting.REQUEST_FILTER_SETTING
-                )  # 默认使用内存去重
-            else:
+            if setting.REQUEST_FILTER_SETTING.get(
+                "filter_type"
+            ) == Dedup.BloomFilter or setting.REQUEST_FILTER_SETTING.get("name"):
                 self.__class__.dedup = Dedup(
                     to_md5=False, **setting.REQUEST_FILTER_SETTING
-                )  # 默认使用内存去重
+                )
+            else:
+                self.__class__.dedup = Dedup(
+                    to_md5=False, name=dedup_name, **setting.REQUEST_FILTER_SETTING
+                )
 
     def is_exist_request(self, request):
         if (
