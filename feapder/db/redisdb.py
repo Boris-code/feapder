@@ -790,6 +790,20 @@ class RedisDB:
         return self._redis.bitcount(table)
 
     def strset(self, table, value, **kwargs):
+        """
+        设置键值
+        Args:
+            table:
+            value:
+            **kwargs:
+                ex: Union[None, int, timedelta] = ..., 设置键的过期时间为 second 秒
+                px: Union[None, int, timedelta] = ..., 设置键的过期时间为 millisecond 毫秒
+                nx: bool = ..., 只有键不存在时，才对键进行设置操作
+                xx: bool = ..., 只有键已经存在时，才对键进行设置操作
+                keepttl: bool = ..., 保留键的过期时间
+        Returns:
+
+        """
         return self._redis.set(table, value, **kwargs)
 
     def str_incrby(self, table, value):
