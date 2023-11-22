@@ -62,7 +62,7 @@ class RedisLock:
             if self.locked:
                 # 延长锁的时间
                 thread = threading.Thread(target=self.prolong_life)
-                thread.setDaemon(True)
+                thread.daemon = True
                 thread.start()
         return self
 
@@ -83,11 +83,12 @@ class RedisLock:
 
             if self.wait_timeout > 0:
                 if time.time() - start > self.wait_timeout:
-                    log.info("加锁失败")
+                    log.debug("获取锁失败")
                     break
             else:
+                log.debug("获取锁失败")
                 break
-            log.debug("等待加锁: {} wait:{}".format(self, time.time() - start))
+            log.debug("等待锁: {} wait:{}".format(self, time.time() - start))
             if self.wait_timeout > 10:
                 time.sleep(5)
             else:
