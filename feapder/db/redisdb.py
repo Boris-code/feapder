@@ -8,6 +8,7 @@ Created on 2016-11-16 16:25
 """
 import os
 import time
+from typing import Union, List
 
 import redis
 from redis.connection import Encoder as _Encoder
@@ -743,27 +744,38 @@ class RedisDB:
     def hkeys(self, table):
         return self._redis.hkeys(table)
 
-    def setbit(self, table, offsets, values):
+    def setbit(
+        self, table, offsets: Union[int, List[int]], values: Union[int, List[int]]
+    ):
         """
-        设置字符串数组某一位的值， 返回之前的值
-        @param table:
+        设置字符串数组某一位的值，返回之前的值
+        @param table: Redis key
         @param offsets: 支持列表或单个值
         @param values: 支持列表或单个值
         @return: list / 单个值
         """
         if isinstance(offsets, list):
-            if not isinstance(values, list):
-                values = [values] * len(offsets)
+            if isinstance(values, int):
+                # 使用lua脚本，数据是一起传给redis的，降低了网络开销，但redis会阻塞
+                script = """
+                            local value = table.remove(ARGV, 1)
+                            local offsets = ARGV
+                            local results = {}
+                            for i, offset in ipairs(offsets) do
+                                results[i] = redis.call('SETBIT', KEYS[1], offset, value)
+                            end
+                            return results
+                        """
+                return self._redis.eval(script, 1, table, values, *offsets)
             else:
                 assert len(offsets) == len(values), "offsets值要与values值一一对应"
+                pipe = self._redis.pipeline()
+                pipe.multi()
 
-            pipe = self._redis.pipeline()
-            pipe.multi()
+                for offset, value in zip(offsets, values):
+                    pipe.setbit(table, offset, value)
 
-            for offset, value in zip(offsets, values):
-                pipe.setbit(table, offset, value)
-
-            return pipe.execute()
+                return pipe.execute()
 
         else:
             return self._redis.setbit(table, offsets, values)
