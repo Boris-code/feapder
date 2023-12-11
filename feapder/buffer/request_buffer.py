@@ -34,6 +34,12 @@ class AirSpiderRequestBuffer:
                 self.__class__.dedup = Dedup(
                     to_md5=False, **setting.REQUEST_FILTER_SETTING
                 )
+            elif setting.REQUEST_FILTER_SETTING.get(
+                "filter_type"
+            ) == Dedup.CustomFilter:
+                self.__class__.dedup = Dedup(
+                    to_md5=False, custom_filter=setting.CUSTOM_FILTER, **setting.REQUEST_FILTER_SETTING
+                )
             else:
                 self.__class__.dedup = Dedup(
                     to_md5=False, name=dedup_name, **setting.REQUEST_FILTER_SETTING

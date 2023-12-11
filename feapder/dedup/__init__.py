@@ -11,10 +11,11 @@ Created on 2018-12-13 21:08
 import copy
 from typing import Any, List, Union, Optional, Tuple, Callable
 
-from feapder.utils.tools import get_md5
+from feapder.utils.tools import get_md5, import_cls
 from .bloomfilter import BloomFilter, ScalableBloomFilter
 from .expirefilter import ExpireFilter
 from .litefilter import LiteFilter
+from .basefilter import BaseFilter
 
 
 class Dedup:
@@ -22,6 +23,7 @@ class Dedup:
     MemoryFilter = 2
     ExpireFilter = 3
     LiteFilter = 4
+    CustomFilter = 5
 
     def __init__(self, filter_type: int = BloomFilter, to_md5: bool = True, **kwargs):
         """
@@ -38,6 +40,7 @@ class Dedup:
                        默认会读取setting中的redis配置，若无setting，则需要专递redis_url
             initial_capacity: 单个布隆过滤器去重容量 默认100000000，当布隆过滤器容量满时会扩展下一个布隆过滤器
             error_rate：布隆过滤器的误判率 默认0.00001
+            custom_filter: 自定义去重模块，必须继承并实现BaseFilter类
             **kwargs:
         """
 
@@ -61,6 +64,18 @@ class Dedup:
 
         elif filter_type == Dedup.LiteFilter:
             self.dedup = LiteFilter()
+
+        elif filter_type == Dedup.CustomFilter:
+            try:
+                custom_filter_class = import_cls(kwargs.get("custom_filter"))
+            except:
+                raise ValueError("导入自定义去重模块失败，请检查setting文件中 CUSTOM_FILTER 配置")
+            if issubclass(custom_filter_class, BaseFilter):
+                self.dedup = custom_filter_class()
+            else:
+                raise ValueError(
+                    "自定义去重模块，必须继承并实现BaseFilter类"
+                )
 
         else:
             initial_capacity = kwargs.get("initial_capacity", 100000000)
