@@ -744,6 +744,9 @@ class RedisDB:
     def hkeys(self, table):
         return self._redis.hkeys(table)
 
+    def hvals(self, key):
+        return self._redis.hvals(key)
+
     def setbit(
         self, table, offsets: Union[int, List[int]], values: Union[int, List[int]]
     ):
