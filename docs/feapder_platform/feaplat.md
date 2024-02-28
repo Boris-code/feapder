@@ -174,6 +174,8 @@ git clone -b develop https://gitee.com/Boris-code/feaplat.git
 
 ```shell
 cd feaplat
+docker compose up -d
+如果报错，尝试用下面命令运行
 docker-compose up -d
 ```
 
