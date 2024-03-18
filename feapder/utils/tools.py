@@ -7,7 +7,6 @@ Created on 2018-09-06 14:21
 @author: Boris
 @email: boris_liu@foxmail.com
 """
-import hmac
 import asyncio
 import base64
 import calendar
@@ -16,6 +15,7 @@ import configparser  # 读配置文件的
 import datetime
 import functools
 import hashlib
+import hmac
 import html
 import importlib
 import json
@@ -2467,18 +2467,41 @@ def reach_freq_limit(rate_limit, *key):
 
 
 def dingding_warning(
-    message, message_prefix=None, rate_limit=None, url=None, user_phone=None, secret=None
+    message,
+    *,
+    message_prefix=None,
+    rate_limit=None,
+    url=None,
+    user_phone=None,
+    user_id=None,
+    secret=None,
 ):
+    """
+    钉钉报警，user_phone与user_id 二选一即可
+    Args:
+        message:
+        message_prefix: 消息摘要，用于去重
+        rate_limit: 包名频率，单位秒，相同的报警内容在rate_limit时间内只会报警一次
+        url: 钉钉报警url
+        user_phone: 被@的群成员手机号，支持列表，可指定多个。
+        user_id: 被@的群成员userId，支持列表，可指定多个
+        secret: 钉钉报警加签密钥
+    Returns:
+
+    """
     # 为了加载最新的配置
     rate_limit = rate_limit if rate_limit is not None else setting.WARNING_INTERVAL
     url = url or setting.DINGDING_WARNING_URL
     user_phone = user_phone or setting.DINGDING_WARNING_PHONE
+    user_id = user_id or setting.DINGDING_WARNING_USER_ID
     secret = secret or setting.DINGDING_WARNING_SECRET
     if secret:
         timestamp = str(round(time.time() * 1000))
-        secret_enc = secret.encode('utf-8')
-        string_to_sign_enc = f'{timestamp}\n{secret}'.encode('utf-8')
-        hmac_code = hmac.new(secret_enc, string_to_sign_enc, digestmod=hashlib.sha256).digest()
+        secret_enc = secret.encode("utf-8")
+        string_to_sign_enc = f"{timestamp}\n{secret}".encode("utf-8")
+        hmac_code = hmac.new(
+            secret_enc, string_to_sign_enc, digestmod=hashlib.sha256
+        ).digest()
         sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
         url = f"{url}&timestamp={timestamp}&sign={sign}"
 
@@ -2492,10 +2515,17 @@ def dingding_warning(
     if isinstance(user_phone, str):
         user_phone = [user_phone] if user_phone else []
 
+    if isinstance(user_id, str):
+        user_id = [user_id] if user_id else []
+
     data = {
         "msgtype": "text",
         "text": {"content": message},
-        "at": {"atMobiles": user_phone, "isAtAll": setting.DINGDING_WARNING_ALL},
+        "at": {
+            "atMobiles": user_phone,
+            "atUserIds": user_id,
+            "isAtAll": setting.DINGDING_WARNING_ALL,
+        },
     }
 
     headers = {"Content-Type": "application/json"}
