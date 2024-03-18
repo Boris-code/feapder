@@ -12,7 +12,7 @@ from typing import List, Dict, Optional
 from urllib import parse
 
 import pymongo
-from pymongo import MongoClient
+from pymongo import MongoClient, UpdateOne
 from pymongo.collection import Collection
 from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, BulkWriteError
@@ -23,14 +23,14 @@ from feapder.utils.log import log
 
 class MongoDB:
     def __init__(
-        self,
-        ip=None,
-        port=None,
-        db=None,
-        user_name=None,
-        user_pass=None,
-        url=None,
-        **kwargs,
+            self,
+            ip=None,
+            port=None,
+            db=None,
+            user_name=None,
+            user_pass=None,
+            url=None,
+            **kwargs,
     ):
         if url:
             self.client = MongoClient(url, **kwargs)
@@ -94,7 +94,7 @@ class MongoDB:
         return self.db.get_collection(coll_name, **kwargs)
 
     def find(
-        self, coll_name: str, condition: Optional[Dict] = None, limit: int = 0, **kwargs
+            self, coll_name: str, condition: Optional[Dict] = None, limit: int = 0, **kwargs
     ) -> List[Dict]:
         """
         @summary:
@@ -133,13 +133,13 @@ class MongoDB:
         return dataset
 
     def add(
-        self,
-        coll_name,
-        data: Dict,
-        replace=False,
-        update_columns=(),
-        update_columns_value=(),
-        insert_ignore=False,
+            self,
+            coll_name,
+            data: Dict,
+            replace=False,
+            update_columns=(),
+            update_columns_value=(),
+            insert_ignore=False,
     ):
         """
         添加单条数据
@@ -195,13 +195,13 @@ class MongoDB:
         return affect_count
 
     def add_batch(
-        self,
-        coll_name: str,
-        datas: List[Dict],
-        replace=False,
-        update_columns=(),
-        update_columns_value=(),
-        condition_fields: dict = None,
+            self,
+            coll_name: str,
+            datas: List[Dict],
+            replace=False,
+            update_columns=(),
+            update_columns_value=(),
+            condition_fields: dict = None,
     ):
         """
         批量添加数据
@@ -331,6 +331,70 @@ class MongoDB:
         else:
             return True
 
+    def update_many(self, coll_name, data: Dict, condition: Dict, upsert: bool = False):
+        """
+        批量更新
+        Args:
+            coll_name: 集合名
+            data: 单条数据 {"xxx":"xxx"}
+            condition: 更新条件 {"_id": "xxxx"}
+            upsert: 数据不存在则插入,默认为 False
+
+        Returns: True / False
+        """
+        try:
+            collection = self.get_collection(coll_name)
+            collection.update_many(condition, {"$set": data}, upsert=upsert)
+        except Exception as e:
+            log.error(
+                """
+                error:{}
+                condition: {}
+            """.format(
+                    e, condition
+                )
+            )
+            return False
+        else:
+            return True
+
+    def update_batch(
+            self,
+            coll_name: str,
+            update_data_list: List[Dict],
+            condition_field: str,
+            upsert: bool = False,
+    ):
+        """
+        批量更新数据
+        Args:
+            coll_name: 集合名
+            update_data_list: 更新数据列表
+            condition_field: 更新条件字段
+            upsert: 数据不存在则插入，默认为 False
+
+        Returns: 更新行数
+
+        """
+        if not update_data_list:
+            return 0
+
+        collection = self.get_collection(coll_name)
+        bulk_operations = []
+
+        for update_data in update_data_list:
+            condition = {condition_field: update_data.get(condition_field)}
+            update_operation = UpdateOne(
+                condition, {"$set": update_data}, upsert=upsert
+            )
+            bulk_operations.append(update_operation)
+        try:
+            result = collection.bulk_write(bulk_operations, ordered=False)
+            return result.modified_count + result.upserted_count
+        except BulkWriteError as e:
+            log.error(f"Bulk write error: {e.details}")
+            return 0
+
     def delete(self, coll_name, condition: Dict) -> bool:
         """
         删除
@@ -401,7 +465,7 @@ class MongoDB:
         return index_keys
 
     def __get_update_condition(
-        self, coll_name: str, data: dict, duplicate_errmsg: str
+            self, coll_name: str, data: dict, duplicate_errmsg: str
     ) -> dict:
         """
         根据索引冲突的报错信息 获取更新条件
@@ -420,3 +484,17 @@ class MongoDB:
 
     def __getattr__(self, name):
         return getattr(self.db, name)
+
+
+if __name__ == '__main__':
+    update_data_list = [
+        {"_id": "1", "status": 1},
+        {"_id": "2", "status": 1}]
+    mongo = MongoDB()
+    updated_count = mongo.update_batch("your_table_name", update_data_list, "_id")
+    print(f"Updated {updated_count} documents.")
+
+    id_list = ['1', '2']
+    result = mongo.update_many("your_table_name",
+                               {"status": 1},
+                               {"_id": {"$in": id_list}})
