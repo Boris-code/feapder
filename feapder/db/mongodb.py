@@ -23,14 +23,14 @@ from feapder.utils.log import log
 
 class MongoDB:
     def __init__(
-            self,
-            ip=None,
-            port=None,
-            db=None,
-            user_name=None,
-            user_pass=None,
-            url=None,
-            **kwargs,
+        self,
+        ip=None,
+        port=None,
+        db=None,
+        user_name=None,
+        user_pass=None,
+        url=None,
+        **kwargs,
     ):
         if url:
             self.client = MongoClient(url, **kwargs)
@@ -94,7 +94,7 @@ class MongoDB:
         return self.db.get_collection(coll_name, **kwargs)
 
     def find(
-            self, coll_name: str, condition: Optional[Dict] = None, limit: int = 0, **kwargs
+        self, coll_name: str, condition: Optional[Dict] = None, limit: int = 0, **kwargs
     ) -> List[Dict]:
         """
         @summary:
@@ -133,13 +133,13 @@ class MongoDB:
         return dataset
 
     def add(
-            self,
-            coll_name,
-            data: Dict,
-            replace=False,
-            update_columns=(),
-            update_columns_value=(),
-            insert_ignore=False,
+        self,
+        coll_name,
+        data: Dict,
+        replace=False,
+        update_columns=(),
+        update_columns_value=(),
+        insert_ignore=False,
     ):
         """
         添加单条数据
@@ -195,13 +195,13 @@ class MongoDB:
         return affect_count
 
     def add_batch(
-            self,
-            coll_name: str,
-            datas: List[Dict],
-            replace=False,
-            update_columns=(),
-            update_columns_value=(),
-            condition_fields: dict = None,
+        self,
+        coll_name: str,
+        datas: List[Dict],
+        replace=False,
+        update_columns=(),
+        update_columns_value=(),
+        condition_fields: dict = None,
     ):
         """
         批量添加数据
@@ -359,11 +359,11 @@ class MongoDB:
             return True
 
     def update_batch(
-            self,
-            coll_name: str,
-            update_data_list: List[Dict],
-            condition_field: str,
-            upsert: bool = False,
+        self,
+        coll_name: str,
+        update_data_list: List[Dict],
+        condition_field: str,
+        upsert: bool = False,
     ):
         """
         批量更新数据
@@ -465,7 +465,7 @@ class MongoDB:
         return index_keys
 
     def __get_update_condition(
-            self, coll_name: str, data: dict, duplicate_errmsg: str
+        self, coll_name: str, data: dict, duplicate_errmsg: str
     ) -> dict:
         """
         根据索引冲突的报错信息 获取更新条件
@@ -486,15 +486,13 @@ class MongoDB:
         return getattr(self.db, name)
 
 
-if __name__ == '__main__':
-    update_data_list = [
-        {"_id": "1", "status": 1},
-        {"_id": "2", "status": 1}]
+if __name__ == "__main__":
+    update_data_list = [{"_id": "1", "status": 1}, {"_id": "2", "status": 1}]
     mongo = MongoDB()
     updated_count = mongo.update_batch("your_table_name", update_data_list, "_id")
     print(f"Updated {updated_count} documents.")
 
-    id_list = ['1', '2']
-    result = mongo.update_many("your_table_name",
-                               {"status": 1},
-                               {"_id": {"$in": id_list}})
+    id_list = ["1", "2"]
+    result = mongo.update_many(
+        "your_table_name", {"status": 1}, {"_id": {"$in": id_list}}
+    )
