@@ -196,6 +196,12 @@ class Request:
         if key in self.__class__.__REQUEST_ATTRS__:
             self.requests_kwargs[key] = value
 
+    # def __getattr__(self, item):
+    #     try:
+    #         return self.__dict__[item]
+    #     except:
+    #         raise AttributeError("Request has no attribute %s" % item)
+
     def __lt__(self, other):
         return self.priority < other.priority
 
