@@ -26,6 +26,8 @@
 
 ## 功能概览
 
+暂时不支持 苹果电脑的Apple芯片
+
 ### 1. 项目管理
 
 添加/编辑项目
@@ -136,7 +138,12 @@ systemctl start docker
     # 如果你的 Docker 主机有多个网卡，拥有多个 IP，必须使用 --advertise-addr 指定 IP
     docker swarm init --advertise-addr 192.168.99.100
 
-### 3. 安装docker-compose
+### 3. 安装docker-compose(非必须)
+一般安装完docker后，会自带 docker compose。可先输入下面的命令验证是否有改环境，若有则不需要安装
+``` shell
+docker compose
+```
+若无`docker compose`命令，则按照下面的安装
 
 ```shell
 sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -147,6 +154,9 @@ sudo chmod +x /usr/local/bin/docker-compose
 sudo curl -L "https://get.daocloud.io/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 ```
+安装后输入`docker-compose`验证是否成功
+
+注：`docker-compose` 与 `docker compose` 两种命令用法一样，是一个东西，只不过不同版本的docker可能叫法不一
 
 ### 4. 部署feaplat爬虫管理系统
 #### 预备项
@@ -175,7 +185,7 @@ git clone -b develop https://gitee.com/Boris-code/feaplat.git
 ```shell
 cd feaplat
 docker compose up -d
-如果报错，尝试用下面命令运行
+或者
 docker-compose up -d
 ```
 
@@ -250,28 +260,9 @@ docker node ls
 docker swarm leave
 ```
 
-## 拉取私有项目
+## 使用
 
-拉取私有项目需在git仓库里添加如下公钥
-
-```
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCd/k/tjbcMislEunjtYQNXxz5tgEDc/fSvuLHBNUX4PtfmMQ07TuUX2XJIIzLRPaqv3nsMn3+QZrV0xQd545FG1Cq83JJB98ATTW7k5Q0eaWXkvThdFeG5+n85KeVV2W4BpdHHNZ5h9RxBUmVZPpAZacdC6OUSBYTyCblPfX9DvjOk+KfwAZVwpJSkv4YduwoR3DNfXrmK5P+wrYW9z/VHUf0hcfWEnsrrHktCKgohZn9Fe8uS3B5wTNd9GgVrLGRk85ag+CChoqg80DjgFt/IhzMCArqwLyMn7rGG4Iu2Ie0TcdMc0TlRxoBhqrfKkN83cfQ3gDf41tZwp67uM9ZN feapder@qq.com
-```
-
-或在系统设置页面配置您的SSH私钥，然后在git仓库里添加您的公钥，例如：
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/10/19/16346353514967.jpg)
-
-注意，公私钥加密方式为RSA，其他的可能会有问题
-
-生成RSA公私钥方式如下：
-```shell
-ssh-keygen -t rsa -C "备注" -f 生成路径/文件名
-```
-如：
-`ssh-keygen -t rsa -C "feaplat" -f id_rsa`
-然后一路回车，不要输密码
-![](http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/11/17/16371210640228.jpg)
-最终生成 `id_rsa`、`id_rsa.pub` 文件，复制`id_rsa.pub`文件内容到git仓库，复制`id_rsa`文件内容到feaplat爬虫管理系统
+见 [FEAPLAT使用说明](feapder_platform/usage)
 
 ## 自定义爬虫镜像
 
