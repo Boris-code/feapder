@@ -16,6 +16,7 @@
 # MONGO_DB = ""
 # MONGO_USER_NAME = ""
 # MONGO_USER_PASS = ""
+# MONGO_URL = "
 #
 # # REDIS
 # # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]

@@ -32,19 +32,22 @@ class MongoDB:
         url=None,
         **kwargs,
     ):
+        if not ip:
+            ip = setting.MONGO_IP
+        if not port:
+            port = setting.MONGO_PORT
+        if not db:
+            db = setting.MONGO_DB
+        if not user_name:
+            user_name = setting.MONGO_USER_NAME
+        if not user_pass:
+            user_pass = setting.MONGO_USER_PASS
+        if not url:
+            url = setting.MONGO_URL
+
         if url:
             self.client = MongoClient(url, **kwargs)
         else:
-            if not ip:
-                ip = setting.MONGO_IP
-            if not port:
-                port = setting.MONGO_PORT
-            if not db:
-                db = setting.MONGO_DB
-            if not user_name:
-                user_name = setting.MONGO_USER_NAME
-            if not user_pass:
-                user_pass = setting.MONGO_USER_PASS
             self.client = MongoClient(
                 host=ip, port=port, username=user_name, password=user_pass
             )
