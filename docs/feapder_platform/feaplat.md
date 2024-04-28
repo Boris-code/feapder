@@ -354,18 +354,18 @@ SPIDER_IMAGE=my_feapder:1.0
 
 ## 学习交流
 
-<table border="0"> 
-    <tr> 
-     <td> 知识星球：17321694 </td> 
-     <td> 作者微信： boris_tm </td> 
-     <td> QQ群号：750614606 </td> 
-    </tr> 
-    <tr> 
+<table border="0">
+    <tr>
+     <td> 知识星球：17321694 </td>
+     <td> 作者微信： boris_tm </td>
+     <td> QQ群号：521494615</td>
+    </tr>
+    <tr>
     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg" width=250px>
- </td> 
-     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/er-wei-ma.jpeg" width="250px" /> </td> 
-     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/16260897330897.jpg" width="250px" /> </td> 
-    </tr> 
-  </table> 
-  
-  加好友备注：feaplat
+ </td>
+     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/er-wei-ma.jpeg?x-oss-process=style/markdown-media" width="250px" /> </td>
+     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2024/04/28/17142933285892.jpg" width="250px" /> </td>
+    </tr>
+  </table>
+
+  加好友备注：feapder
