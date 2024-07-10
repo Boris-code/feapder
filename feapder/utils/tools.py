@@ -2684,13 +2684,12 @@ def feishu_warning(message, message_prefix=None, rate_limit=None, url=None, user
         return False
 
 
-def send_msg(msg, level="DEBUG", message_prefix=""):
+def send_msg(msg, level="DEBUG", message_prefix="", keyword="feapder报警系统\n"):
     if setting.WARNING_LEVEL == "ERROR":
         if level.upper() != "ERROR":
             return
 
     if setting.DINGDING_WARNING_URL:
-        keyword = "feapder报警系统\n"
         dingding_warning(keyword + msg, message_prefix=message_prefix)
 
     if setting.EMAIL_RECEIVER:
@@ -2700,11 +2699,9 @@ def send_msg(msg, level="DEBUG", message_prefix=""):
         email_warning(msg, message_prefix=message_prefix, title=title)
 
     if setting.WECHAT_WARNING_URL:
-        keyword = "feapder报警系统\n"
         wechat_warning(keyword + msg, message_prefix=message_prefix)
 
     if setting.FEISHU_WARNING_URL:
-        keyword = "feapder报警系统\n"
         feishu_warning(keyword + msg, message_prefix=message_prefix)
 
 
