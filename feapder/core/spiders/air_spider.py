@@ -8,8 +8,6 @@ Created on 2020/4/22 12:05 AM
 @email: boris_liu@foxmail.com
 """
 
-from threading import Thread
-
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
@@ -20,9 +18,10 @@ from feapder.db.memorydb import MemoryDB
 from feapder.network.request import Request
 from feapder.utils import metrics
 from feapder.utils.log import log
+from feapder.utils.tail_thread import TailThread
 
 
-class AirSpider(BaseParser, Thread):
+class AirSpider(BaseParser, TailThread):
     __custom_setting__ = {}
 
     def __init__(self, thread_count=None):

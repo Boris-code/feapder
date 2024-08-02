@@ -300,7 +300,7 @@ class MysqlDB:
 
         return affect_count
 
-    def add_batch_smart(self, table, datas: List[Dict], **kwargs):
+    def add_batch_smart(self, table, datas: List[Dict], **kwargs) -> int:
         """
         批量添加数据, 直接传递list格式的数据，不用拼sql
         Args:
@@ -314,12 +314,13 @@ class MysqlDB:
         sql, datas = make_batch_sql(table, datas, **kwargs)
         return self.add_batch(sql, datas)
 
-    def update(self, sql):
+    def update(self, sql) -> int:
+        affect_count = None
         conn, cursor = None, None
 
         try:
             conn, cursor = self.get_connection()
-            cursor.execute(sql)
+            affect_count = cursor.execute(sql)
             conn.commit()
         except Exception as e:
             log.error(
@@ -329,13 +330,12 @@ class MysqlDB:
             """
                 % (e, sql)
             )
-            return False
-        else:
-            return True
         finally:
             self.close_connection(conn, cursor)
 
-    def update_smart(self, table, data: Dict, condition):
+        return affect_count
+
+    def update_smart(self, table, data: Dict, condition) -> int:
         """
         更新, 不用拼sql
         Args:
@@ -343,25 +343,26 @@ class MysqlDB:
             data: 数据 {"xxx":"xxx"}
             condition: 更新条件 where后面的条件，如 condition='status=1'
 
-        Returns: True / False
+        Returns: 影响行数
 
         """
         sql = make_update_sql(table, data, condition)
         return self.update(sql)
 
-    def delete(self, sql):
+    def delete(self, sql) -> int:
         """
         删除
         Args:
             sql:
 
-        Returns: True / False
+        Returns: 影响行数
 
         """
+        affect_count = None
         conn, cursor = None, None
         try:
             conn, cursor = self.get_connection()
-            cursor.execute(sql)
+            affect_count = cursor.execute(sql)
             conn.commit()
         except Exception as e:
             log.error(
@@ -371,17 +372,24 @@ class MysqlDB:
             """
                 % (e, sql)
             )
-            return False
-        else:
-            return True
         finally:
             self.close_connection(conn, cursor)
 
-    def execute(self, sql):
+        return affect_count
+
+    def execute(self, sql) -> int:
+        """
+
+        Args:
+            sql:
+
+        Returns: 影响行数
+        """
+        affect_count = None
         conn, cursor = None, None
         try:
             conn, cursor = self.get_connection()
-            cursor.execute(sql)
+            affect_count = cursor.execute(sql)
             conn.commit()
         except Exception as e:
             log.error(
@@ -391,8 +399,7 @@ class MysqlDB:
             """
                 % (e, sql)
             )
-            return False
-        else:
-            return True
         finally:
             self.close_connection(conn, cursor)
+
+        return affect_count

@@ -13,6 +13,9 @@ import feapder.utils.tools as tools
 from feapder.db.mysqldb import MysqlDB
 from feapder.network.item import UpdateItem
 from feapder.utils.log import log
+from feapder.network.request import Request
+from feapder.network.response import Response
+from feapder.utils.perfect_dict import PerfectDict
 
 
 class BaseParser(object):
@@ -26,7 +29,7 @@ class BaseParser(object):
 
         pass
 
-    def download_midware(self, request):
+    def download_midware(self, request: Request):
         """
         @summary: 下载中间件 可修改请求的一些参数, 或可自定义下载，然后返回 request, response
         ---------
@@ -37,7 +40,7 @@ class BaseParser(object):
 
         pass
 
-    def validate(self, request, response):
+    def validate(self, request: Request, response: Response):
         """
         @summary: 校验函数, 可用于校验response是否正确
         若函数内抛出异常，则重试请求
@@ -53,7 +56,7 @@ class BaseParser(object):
 
         pass
 
-    def parse(self, request, response):
+    def parse(self, request: Request, response: Response):
         """
         @summary: 默认的解析函数
         ---------
@@ -65,7 +68,7 @@ class BaseParser(object):
 
         pass
 
-    def exception_request(self, request, response, e):
+    def exception_request(self, request: Request, response: Response, e: Exception):
         """
         @summary: 请求或者parser里解析出异常的request
         ---------
@@ -78,7 +81,7 @@ class BaseParser(object):
 
         pass
 
-    def failed_request(self, request, response, e):
+    def failed_request(self, request: Request, response: Response, e: Exception):
         """
         @summary: 超过最大重试次数的request
         可返回修改后的request  若不返回request，则将传进来的request直接人redis的failed表。否则将修改后的request入failed表
@@ -135,7 +138,7 @@ class TaskParser(BaseParser):
         @result:
         """
 
-    def start_requests(self, task):
+    def start_requests(self, task: PerfectDict):
         """
         @summary:
         ---------

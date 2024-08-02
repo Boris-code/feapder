@@ -138,13 +138,13 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
     <tr> 
      <td> 知识星球：17321694 </td> 
      <td> 作者微信： boris_tm </td> 
-     <td> QQ群号：485067374 </td> 
+     <td> QQ群号：521494615</td>
     </tr> 
     <tr> 
     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2020/02/16/zhi-shi-xing-qiu.jpeg" width=250px>
  </td> 
      <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2021/07/12/er-wei-ma.jpeg?x-oss-process=style/markdown-media" width="250px" /> </td> 
-     <td> <img src="https://tva1.sinaimg.cn/large/008vxvgGly1h8byl060lnj30ku11c76h.jpg" width="250px" /> </td> 
+     <td> <img src="http://markdown-media.oss-cn-beijing.aliyuncs.com/2024/04/28/17142933285892.jpg" width="250px" /> </td> 
     </tr> 
   </table> 
 

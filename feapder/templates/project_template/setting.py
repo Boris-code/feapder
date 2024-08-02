@@ -16,6 +16,7 @@
 # MONGO_DB = ""
 # MONGO_USER_NAME = ""
 # MONGO_USER_PASS = ""
+# MONGO_URL = "
 #
 # # REDIS
 # # ip:port 多个可写为列表或者逗号隔开 如 ip1:port1,ip2:port2 或 ["ip1:port1", "ip2:port2"]
@@ -147,7 +148,8 @@
 # # 报警 支持钉钉、飞书、企业微信、邮件
 # # 钉钉报警
 # DINGDING_WARNING_URL = ""  # 钉钉机器人api
-# DINGDING_WARNING_PHONE = ""  # 报警人 支持列表，可指定多个
+# DINGDING_WARNING_PHONE = ""  # 被@的群成员手机号，支持列表，可指定多个。
+# DINGDING_WARNING_USER_ID = ""  # 被@的群成员userId，支持列表，可指定多个
 # DINGDING_WARNING_ALL = False  # 是否提示所有人， 默认为False
 # DINGDING_WARNING_SECRET = None  # 加签密钥
 # # 飞书报警

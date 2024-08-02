@@ -17,8 +17,8 @@ from feapder.buffer.item_buffer import ItemBuffer
 from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.base_parser import BaseParser
 from feapder.core.collector import Collector
-from feapder.core.handle_failed_requests import HandleFailedRequests
 from feapder.core.handle_failed_items import HandleFailedItems
+from feapder.core.handle_failed_requests import HandleFailedRequests
 from feapder.core.parser_control import ParserControl
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
@@ -26,6 +26,7 @@ from feapder.network.request import Request
 from feapder.utils import metrics
 from feapder.utils.log import log
 from feapder.utils.redis_lock import RedisLock
+from feapder.utils.tail_thread import TailThread
 
 SPIDER_START_TIME_KEY = "spider_start_time"
 SPIDER_END_TIME_KEY = "spider_end_time"
@@ -33,7 +34,7 @@ SPIDER_LAST_TASK_COUNT_RECORD_TIME_KEY = "last_task_count_record_time"
 HEARTBEAT_TIME_KEY = "heartbeat_time"
 
 
-class Scheduler(threading.Thread):
+class Scheduler(TailThread):
     __custom_setting__ = {}
 
     def __init__(
