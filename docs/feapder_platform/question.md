@@ -94,8 +94,10 @@ INFLUXDB_PORT_UDP=8089
 rm -f /etc/localtime
 ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-# 校对时间
+# 校对时间 方式1
 clock --hctosys
+# 校对时间 方式2
+ntpdate 0.asia.pool.ntp.org
 ```
 
 ## 我搭建了个集群，如何让主节点不跑任务
@@ -123,3 +125,31 @@ attaching to network failed, make sure your network options are correct and chec
     ```    
     
 原因是Drain节点，不能为其分配网络资源，需要先改成active，然后启动，之后在改回drain
+
+**若不是以上情况，可能是network内的可分配的ip满了（老版本feaplat会有这个问题），那么可继续往下看**
+
+1. 先检查feaplat目录下的docker-compost.yaml，翻到最后，看network相关配置是否为如下。若不是，则改成下面这样的。若下面指定的11 ip段和主机有冲突，可以写12、13等
+
+    ```
+    networks:
+      default:
+        name: feaplat
+        driver: overlay
+        attachable: true
+        ipam:
+          config:
+            - subnet: 11.0.0.0/8
+              gateway: 11.0.0.1
+    ```
+    
+    完整配置见：https://github.com/Boris-code/feaplat/blob/develop/docker-compose.yaml
+
+
+2. 改完后，需要删除之前的network，使其重新创建，命令如下：
+
+    ```
+    docker service ls -q | xargs docker service rm # 注意 这个会停止掉所有任务。
+    docker network rm feaplat # 删除网络
+    docker compose rm # 删除之前feaplat运行环境
+    docker compose up -d # 启动
+    ```
