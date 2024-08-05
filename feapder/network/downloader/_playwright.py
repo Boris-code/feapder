@@ -58,7 +58,8 @@ class PlaywrightDownloader(RenderDownloader):
             if cookies:
                 driver.url = url
                 driver.cookies = cookies
-            driver.page.goto(url, wait_until=wait_until)
+            http_response = driver.page.goto(url, wait_until=wait_until)
+            status_code = http_response.status
 
             if render_time:
                 tools.delay_time(render_time)
@@ -69,7 +70,7 @@ class PlaywrightDownloader(RenderDownloader):
                     "url": driver.page.url,
                     "cookies": driver.cookies,
                     "_content": html.encode(),
-                    "status_code": 200,
+                    "status_code": status_code,
                     "elapsed": 666,
                     "headers": {
                         "User-Agent": driver.user_agent,
