@@ -49,7 +49,7 @@ class MongoDB:
             self.client = MongoClient(url, **kwargs)
         else:
             self.client = MongoClient(
-                host=ip, port=port, username=user_name, password=user_pass
+                host=ip, port=port, username=user_name, password=user_pass, **kwargs
             )
 
         self.db = self.get_database(db)
