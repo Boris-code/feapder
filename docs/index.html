@@ -75,8 +75,8 @@
         function (hook) {
           var header = [
             '<p>',
-            '<a href="https://www.aliyun.com/sale-season/2020/procurement-new-members?userCode=44mjc0yx">',
-            '<img src="/images/aliyun_sale.jpg" alt="阿里云" width="640px" height="60px">',
+            '<a href="https://www.qg.net/product/proxyip.html?web=feapder&keyword=%E4%BB%A3%E7%90%86ip&campaign=w-1" target="_blank">',
+            '<img src="/images/qingguo.jpg" alt="青果代理" width="640px" height="60px">',
             '</a>',
             '</p>'
           ].join('')
@@ -89,7 +89,7 @@
           hook.afterEach(function (html) {
             // var isReadme = window.location.href.indexOf("README");
             var isReadme = 1 // 可以投放广告
-            if (isReadme === -1) {
+            if (isReadme === 1) {
               return header + html + footer
             } else {
               return html + footer

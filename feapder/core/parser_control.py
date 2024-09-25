@@ -135,7 +135,7 @@ class ParserControl(threading.Thread):
                                     )
                                 )
                             used_download_midware_enable = True
-                            if not response:
+                            if response is None:
                                 response = (
                                     request_temp.get_response()
                                     if not setting.RESPONSE_CACHED_USED
@@ -545,7 +545,7 @@ class AirSpiderParserControl(ParserControl):
                                 )
                             request = request_temp
 
-                        if not response:
+                        if response is None:
                             response = (
                                 request.get_response()
                                 if not setting.RESPONSE_CACHED_USED
