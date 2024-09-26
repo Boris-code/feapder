@@ -508,7 +508,8 @@ def fit_url(urls, identis):
 
 
 def get_param(url, key):
-    match = re.search(f"{key}=([^&]+)", url)
+    pattern = r"(?:[?&])" + re.escape(key) + r"=([^&]+)"
+    match = re.search(pattern, url)
     if match:
         return match.group(1)
     return None
