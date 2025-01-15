@@ -54,11 +54,9 @@ class SeleniumDownloader(RenderDownloader):
             user_agent=user_agent, proxy=proxy
         )
         try:
-            browser.get(url)
             if cookies:
                 browser.cookies = cookies
-                # 刷新使cookie生效
-                browser.get(url)
+            browser.get(url)
 
             if render_time:
                 tools.delay_time(render_time)
