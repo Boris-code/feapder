@@ -12,6 +12,7 @@ import re
 import parsel
 import six
 from lxml import etree
+from packaging import version
 from parsel import Selector as ParselSelector
 from parsel import SelectorList as ParselSelectorList
 from parsel import selector
@@ -65,7 +66,7 @@ def create_root_node(text, parser_cls, base_url=None):
     return root
 
 
-if parsel.__version__ < "1.7.0":
+if version.parse(parsel.__version__) < version.parse("1.7.0"):
     selector.create_root_node = create_root_node
 
 

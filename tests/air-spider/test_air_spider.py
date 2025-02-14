@@ -24,7 +24,7 @@ class TestAirSpider(feapder.AirSpider):
         print("爬虫结束")
 
     def start_requests(self, *args, **kws):
-        for i in range(200):
+        for i in range(1):
             print(i)
             yield feapder.Request("https://www.baidu.com")
 
