@@ -182,6 +182,10 @@ EMAIL_SMTPSERVER = "smtp.163.com"  # 邮件服务器 默认为163邮箱
 WECHAT_WARNING_URL = ""  # 企业微信机器人api
 WECHAT_WARNING_PHONE = ""  # 报警人 将会在群内@此人, 支持列表，可指定多人
 WECHAT_WARNING_ALL = False  # 是否提示所有人， 默认为False
+# QMSG报警
+QMSG_WARNING_URL = ""  # qmsg机器人api
+QMSG_WARNING_QQ = ""  # 指定要接收消息的QQ号或者QQ群。多个以英文逗号分割，例如：12345,12346,支持列表，可指定多人
+QMSG_WARNING_BOT = ""  # 机器人的QQ号
 # 时间间隔
 WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / INFO / ERROR
