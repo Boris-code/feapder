@@ -97,9 +97,11 @@ worker节点根据任务动态生成，一个worker只运行一个任务实例�
 
 ## 部署
 
-> 下面部署以centos为例， 其他平台docker安装方式可参考docker官方文档：https://docs.docker.com/compose/install/
+> 安装方式参考docker官方文档：https://docs.docker.com/compose/install/
 
 ### 1. 安装docker
+
+#### 1.1 centos系统
 
 > docker --version
 > 作者的docker版本为 20.10.12，低于此版本的可能会存在问题
@@ -123,13 +125,68 @@ yum install -y yum-utils device-mapper-persistent-data lvm2 && python2 /usr/bin/
 curl -sSL https://get.daocloud.io/docker | sh
 ```
 
+启动docker服务
 
-
-启动
 ```shell
 systemctl enable docker
 systemctl start docker
 ```
+
+验证: 打开终端，输入
+
+```shell
+docker ps
+```
+
+#### 1.2 ubuntu系统
+
+```
+sudo apt update
+sudo apt install docker.io docker-compose
+```
+
+启动docker服务
+
+```shell
+sudo systemctl enable docker
+sudo systemctl start docker
+```
+
+验证: 打开终端，输入
+
+```shell
+sudo docker ps
+```
+
+#### 1.3 window系统
+
+访问下面的链接，下载Docker Desktop, 然后安装即可
+
+<a href="https://docs.docker.com/desktop/setup/install/windows-install/" target="_blank">https://docs.docker.com/desktop/setup/install/windows-install/ </a>
+
+
+运行安装好的Docker Desktop
+
+验证: 打开cmd终端，输入
+
+```shell
+docker ps
+```
+
+#### 1.4 mac系统
+
+访问下面的链接，下载Docker Desktop, 然后安装即可
+
+<a href="https://docs.docker.com/desktop/setup/install/mac-install/" target="_blank">https://docs.docker.com/desktop/setup/install/mac-install/</a>
+
+
+运行安装好的Docker Desktop
+
+验证: 打开终端，输入
+```shell
+docker ps
+```
+
 
 ### 2. 安装 docker swarm
     
