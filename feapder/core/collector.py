@@ -63,7 +63,7 @@ class Collector(threading.Thread):
 
         current_timestamp = tools.get_current_timestamp()
 
-        # 取任务，只取当前时间搓以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_LOST_TIMEOUT
+        # 取任务，只取当前时间戳以内的任务，同时将任务分数修改为 current_timestamp + setting.REQUEST_LOST_TIMEOUT
         requests_list = self._db.zrangebyscore_set_score(
             self._tab_requests,
             priority_min="-inf",
