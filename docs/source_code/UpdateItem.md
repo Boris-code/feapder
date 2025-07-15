@@ -1,6 +1,6 @@
 # UpdateItem
 
-UpdateItem用于更新数据，继承至Item，所以使用方式基本与Item一致，下载只说不同之处
+UpdateItem用于更新数据，继承至Item，所以使用方式基本与Item一致，下面只说不同之处
 
 ## 更新逻辑
 
