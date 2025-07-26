@@ -41,7 +41,7 @@ def auto_retry(func):
 
 class MysqlDB:
     def __init__(
-        self, ip=None, port=None, db=None, user_name=None, user_pass=None, **kwargs
+        self, ip=None, port=None, db=None, user_name=None, user_pass=None, set_session=None, **kwargs
     ):
         # 可能会改setting中的值，所以此处不能直接赋值为默认值，需要后加载赋值
         if not ip:
@@ -69,7 +69,9 @@ class MysqlDB:
                 passwd=user_pass,
                 db=db,
                 charset="utf8mb4",
+                setsession=set_session,
                 cursorclass=cursors.SSCursor,
+                **kwargs
             )  # cursorclass 使用服务的游标，默认的在多线程下大批量插入数据会使内存递增
 
         except Exception as e:
