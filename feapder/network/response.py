@@ -58,7 +58,7 @@ class Response(res):
         self._cached_text = None
         self._cached_json = None
 
-        self._encoding = None
+        self._encoding = response.encoding
 
         self.encoding_errors = "strict"  # strict / replace / ignore
         self.browser = self.driver = None
