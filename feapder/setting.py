@@ -43,6 +43,7 @@ REDISDB_SERVICE_NAME = os.getenv("REDISDB_SERVICE_NAME")
 ITEM_PIPELINES = [
     "feapder.pipelines.mysql_pipeline.MysqlPipeline",
     # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+    # "feapder.pipelines.csv_pipeline.CsvPipeline",
     # "feapder.pipelines.console_pipeline.ConsolePipeline",
 ]
 EXPORT_DATA_MAX_FAILED_TIMES = 10  # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
