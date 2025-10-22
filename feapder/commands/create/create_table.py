@@ -141,8 +141,9 @@ class CreateTable:
             unique=unique,
         )
         print(sql)
-
-        if self._db.execute(sql):
+        result=self._db.execute(sql)
+        # 建立表成功。受影响的行数为 0，因此返回0
+        if result==0:
             print("\n%s 创建成功" % table_name)
             print("注意手动检查下字段类型，确保无误！！！")
         else:
