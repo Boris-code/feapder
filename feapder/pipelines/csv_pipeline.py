@@ -28,10 +28,15 @@ class CsvPipeline(BasePipeline):
     - 自动创建导出目录
     - 支持追加模式，便于断点续爬
     - 通过fsync确保数据落盘
+    - 表级别的字段名缓存，确保跨批字段顺序一致
     """
 
     # 用于保护每个表的文件写入操作（Per-Table Lock）
     _file_locks = {}
+
+    # 用于缓存每个表的字段名顺序（Per-Table Fieldnames Cache）
+    # 确保跨批次、跨线程的字段顺序一致
+    _table_fieldnames = {}
 
     def __init__(self, csv_dir="data/csv"):
         """
@@ -72,6 +77,42 @@ class CsvPipeline(BasePipeline):
             CsvPipeline._file_locks[table] = threading.Lock()
         return CsvPipeline._file_locks[table]
 
+    @staticmethod
+    def _get_and_cache_fieldnames(table, items):
+        """
+        获取并缓存表对应的字段名顺序
+
+        第一次调用时从items[0]提取字段名并缓存，后续调用直接返回缓存的字段名。
+        这样设计确保：
+        1. 跨批次的字段顺序保持一致（解决数据列错位问题）
+        2. 多线程并发时字段顺序不被污染
+        3. 避免重复提取，性能更优
+
+        Args:
+            table: 表名
+            items: 数据列表 [{}，{}，...]
+
+        Returns:
+            list: 字段名列表
+        """
+        # 如果该表已经缓存了字段名，直接返回缓存的
+        if table in CsvPipeline._table_fieldnames:
+            return CsvPipeline._table_fieldnames[table]
+
+        # 第一次调用，从items提取字段名并缓存
+        if not items:
+            return []
+
+        first_item = items[0]
+        fieldnames = list(first_item.keys()) if isinstance(first_item, dict) else []
+
+        if fieldnames:
+            # 缓存字段名（使用静态变量，跨实例共享）
+            CsvPipeline._table_fieldnames[table] = fieldnames
+            log.info(f"表 {table} 的字段名已缓存: {fieldnames}")
+
+        return fieldnames
+
     def _get_csv_file_path(self, table):
         """
         获取表对应的CSV文件路径
@@ -84,24 +125,6 @@ class CsvPipeline(BasePipeline):
         """
         return os.path.join(self.csv_dir, f"{table}.csv")
 
-    def _get_fieldnames(self, items):
-        """
-        从items中提取字段名
-
-        按照items第一条记录的键顺序作为CSV表头，保证列顺序一致。
-
-        Args:
-            items: 数据列表 [{}，{}，...]
-
-        Returns:
-            list: 字段名列表
-        """
-        if not items:
-            return []
-
-        # 使用第一条记录的键作为字段名，保证顺序
-        first_item = items[0]
-        return list(first_item.keys()) if isinstance(first_item, dict) else []
 
     def _file_exists_and_has_content(self, csv_file):
         """
@@ -121,6 +144,7 @@ class CsvPipeline(BasePipeline):
 
         采用追加模式打开文件，支持断点续爬。第一次写入时会自动添加表头。
         使用Per-Table Lock确保多线程写入时的数据一致性。
+        使用缓存的字段名确保跨批次字段顺序一致，避免数据列错位。
 
         Args:
             table: 表名（对应CSV文件名）
@@ -134,7 +158,9 @@ class CsvPipeline(BasePipeline):
             return True
 
         csv_file = self._get_csv_file_path(table)
-        fieldnames = self._get_fieldnames(items)
+
+        # 使用缓存机制获取字段名（关键！确保跨批字段顺序一致）
+        fieldnames = self._get_and_cache_fieldnames(table, items)
 
         if not fieldnames:
             log.warning(f"无法提取字段名，items: {items}")
@@ -161,6 +187,7 @@ class CsvPipeline(BasePipeline):
                         writer.writeheader()
 
                     # 批量写入数据行
+                    # 使用缓存的fieldnames确保列顺序一致，避免跨批数据错位
                     writer.writerows(items)
 
                     # 刷新缓冲区到磁盘，确保数据不丢失
