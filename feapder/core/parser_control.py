@@ -78,6 +78,8 @@ class ParserControl(threading.Thread):
         response = None
         request_redis = request["request_redis"]
         request = request["request_obj"]
+        # 注入request_buffer，用于QPS限制时将请求放回队列
+        request._request_buffer = self._request_buffer
 
         del_request_redis_after_item_to_db = False
         del_request_redis_after_request_to_db = False

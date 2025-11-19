@@ -11,6 +11,18 @@ import feapder
 
 
 class ${spider_name}(feapder.AirSpider):
+    # 自定义配置（可选）
+    # __custom_setting__ = dict(
+    #     # 域名级QPS限制配置（推荐开启）
+    #     DOMAIN_RATE_LIMIT_ENABLE=True,   # 是否启用QPS限制
+    #     DOMAIN_RATE_LIMIT_DEFAULT=10,    # 默认每个域名10 QPS
+    #     DOMAIN_RATE_LIMIT_RULES={        # 特定域名的QPS规则
+    #         # "baidu.com": 5,            # 百度限制5 QPS
+    #         # "api.example.com": 20,     # API接口限制20 QPS
+    #         # "*.google.com": 8,         # 谷歌系域名8 QPS
+    #     }
+    # )
+
     def start_requests(self):
         yield feapder.Request("https://spidertools.cn")
 

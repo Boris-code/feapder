@@ -13,6 +13,7 @@
   * [分布式爬虫-Spider](usage/Spider.md)
   * [任务爬虫-TaskSpider](usage/TaskSpider.md)
   * [批次爬虫-BatchSpider](usage/BatchSpider.md)
+  * [域名级QPS限制](usage/域名级QPS限制.md)
   * [爬虫集成](usage/爬虫集成.md)
 
 * 使用进阶

@@ -359,6 +359,49 @@ class Request:
         @param save_cached: 保存缓存 方便调试时不用每次都重新下载
         @return:
         """
+        # 域名级QPS限制检查（在所有下载器被调用之前）
+        if setting.DOMAIN_RATE_LIMIT_ENABLE:
+            # 导入限速器
+            from feapder.utils.rate_limiter import DomainRateLimiter
+
+            # 初始化限速器（类级别单例）
+            if not hasattr(self.__class__, "_rate_limiter"):
+                self.__class__._rate_limiter = DomainRateLimiter()
+
+            # 提取域名
+            domain = self._extract_domain(self.url)
+
+            if domain:
+                # 获取QPS配置
+                qps_limit = self._get_domain_qps_limit(domain)
+
+                if qps_limit:
+                    # 尝试获取令牌
+                    wait_time = self.__class__._rate_limiter.acquire(
+                        self, domain, qps_limit
+                    )
+
+                    if wait_time > 0:
+                        # 需要等待，延迟调度
+                        log.debug(
+                            f"[QPS限制] 域名 {domain} 达到限制 {qps_limit} QPS, "
+                            f"延迟 {wait_time:.2f}秒后重试"
+                        )
+
+                        # 修改优先级为 当前时间戳 + 等待时间
+                        self.priority = time.time() + wait_time
+
+                        # 放回队列（如果有队列的话）
+                        request_buffer = getattr(self, "_request_buffer", None)
+                        if request_buffer:
+                            request_buffer.put_request(self)
+                            return None  # 返回None，表示本次不执行
+                        else:
+                            # 没有队列（如shell调试模式），降级为同步等待
+                            log.debug(f"[QPS限制] 无队列可用，同步等待 {wait_time:.2f}秒")
+                            time.sleep(wait_time)
+                            # 继续执行下面的下载逻辑
+
         self.make_requests_kwargs()
 
         log.debug(
@@ -541,3 +584,97 @@ class Request:
 
     def copy(self):
         return self.__class__.from_dict(copy.deepcopy(self.to_dict))
+
+    @staticmethod
+    def _extract_domain(url):
+        """
+        从URL提取域名（保留www前缀，后续匹配时处理）
+
+        示例:
+            https://www.baidu.com/s?wd=test -> www.baidu.com (保留www)
+            https://baidu.com/s?wd=test -> baidu.com
+            http://news.sina.com.cn/page.html -> news.sina.com.cn
+            https://api.example.com/v1/data -> api.example.com
+            https://example.com:8080/path -> example.com (自动去除端口号)
+        """
+        try:
+            from urllib.parse import urlparse
+
+            parsed = urlparse(url)
+
+            # 优先使用hostname (已自动去除端口号)
+            hostname = parsed.hostname
+
+            if not hostname:
+                # 如果hostname为空,尝试从netloc提取
+                netloc = parsed.netloc
+                if ":" in netloc:
+                    hostname = netloc.split(":")[0]
+                else:
+                    hostname = netloc
+
+            # 注意: 不再自动去除www前缀，保留完整域名
+            # www的处理交给 _get_domain_qps_limit() 方法
+            return hostname
+        except Exception as e:
+            log.error(f"域名提取失败: {url}, 错误: {e}")
+            return None
+
+    def _get_domain_qps_limit(self, domain):
+        """
+        获取指定域名的QPS限制（混合www处理策略）
+
+        优先级:
+        1. request对象的qps_limit参数（最高优先级）
+        2. DOMAIN_RATE_LIMIT_RULES中的精确域名匹配（包括www.domain）
+        3. DOMAIN_RATE_LIMIT_RULES中的通配符匹配
+        4. 如果是www开头且未匹配，尝试去掉www后再匹配（回退策略）
+        5. DOMAIN_RATE_LIMIT_DEFAULT默认值
+
+        返回: QPS限制值，None表示不限制
+
+        混合策略说明:
+        - 如果显式配置了 "www.baidu.com"，则www.baidu.com精确匹配该配置
+        - 如果只配置了 "baidu.com"，则www.baidu.com会回退到baidu.com
+        - 这样既支持精确控制，又简化了常见场景的配置
+        """
+        if not setting.DOMAIN_RATE_LIMIT_ENABLE:
+            return None
+
+        # 1. 优先使用request对象自定义的qps_limit
+        if hasattr(self, "qps_limit") and self.qps_limit is not None:
+            return self.qps_limit
+
+        # 2. 查找特定域名的配置
+        rules = setting.DOMAIN_RATE_LIMIT_RULES or {}
+
+        # 精确匹配（包括www.baidu.com这样的完整域名）
+        if domain in rules:
+            return rules[domain]
+
+        # 通配符匹配 (如 *.google.com)
+        for pattern, qps in rules.items():
+            if pattern.startswith("*."):
+                suffix = pattern[2:]  # 去掉 '*.'
+                # 只匹配有子域名的情况: maps.google.com 匹配 *.google.com
+                # 但 google.com 不匹配 *.google.com
+                if domain.endswith("." + suffix):
+                    return qps
+
+        # 3. 回退策略：如果是www开头且未匹配，尝试去掉www后再匹配
+        if domain.startswith("www."):
+            domain_without_www = domain[4:]  # 去掉 'www.'
+
+            # 尝试精确匹配去掉www的域名
+            if domain_without_www in rules:
+                return rules[domain_without_www]
+
+            # 尝试通配符匹配去掉www的域名
+            for pattern, qps in rules.items():
+                if pattern.startswith("*."):
+                    suffix = pattern[2:]
+                    if domain_without_www.endswith("." + suffix):
+                        return qps
+
+        # 4. 使用默认值
+        return setting.DOMAIN_RATE_LIMIT_DEFAULT

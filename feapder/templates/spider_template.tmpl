@@ -13,7 +13,17 @@ import feapder
 class ${spider_name}(feapder.Spider):
     # 自定义数据库，若项目中有setting.py文件，此自定义可删除
     __custom_setting__ = dict(
-        REDISDB_IP_PORTS="localhost:6379", REDISDB_USER_PASS="", REDISDB_DB=0
+        REDISDB_IP_PORTS="localhost:6379",
+        REDISDB_USER_PASS="",
+        REDISDB_DB=0,
+        # 域名级QPS限制配置（可选，默认不启用）
+        # DOMAIN_RATE_LIMIT_ENABLE=True,   # 是否启用QPS限制
+        # DOMAIN_RATE_LIMIT_DEFAULT=10,    # 默认每个域名10 QPS
+        # DOMAIN_RATE_LIMIT_RULES={        # 特定域名的QPS规则
+        #     "baidu.com": 5,              # 百度主域名限制5 QPS
+        #     "api.baidu.com": 20,         # 百度API限制20 QPS
+        #     "*.google.com": 8,           # 谷歌系域名8 QPS
+        # }
     )
 
     def start_requests(self):

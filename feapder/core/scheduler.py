@@ -77,6 +77,11 @@ class Scheduler(TailThread):
                 setattr(setting, key, value)
 
         self._redis_key = redis_key or setting.REDIS_KEY
+        # 将redis_key传递给Request类（用于QPS限制）
+        from feapder.network.request import Request
+
+        Request.cached_redis_key = self._redis_key
+
         if not self._redis_key:
             raise Exception(
                 """

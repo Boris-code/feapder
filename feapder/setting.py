@@ -13,6 +13,9 @@ TAB_FAILED_ITEMS = "{redis_key}:s_failed_items"
 TAB_SPIDER_STATUS = "{redis_key}:h_spider_status"
 # 用户池
 TAB_USER_POOL = "{redis_key}:h_{user_type}_pool"
+# 域名级QPS限制相关表名
+TAB_RATE_LIMIT = "{redis_key}:h_rate_limit:{domain}"  # 单个域名的令牌桶状态
+TAB_RATE_LIMIT_CONFIG = "{redis_key}:h_rate_limit_config"  # 用户配置的QPS规则
 
 # MYSQL
 MYSQL_IP = os.getenv("MYSQL_IP")
@@ -224,6 +227,11 @@ INFLUXDB_DATABASE = os.getenv("INFLUXDB_DB")
 INFLUXDB_MEASUREMENT = "task_" + os.getenv("TASK_ID") if os.getenv("TASK_ID") else None
 # 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
 METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
+
+# 域名级QPS限制配置
+DOMAIN_RATE_LIMIT_ENABLE = False  # 是否启用域名级QPS限制，默认关闭
+DOMAIN_RATE_LIMIT_DEFAULT = 10  # 默认每个域名的QPS限制（每秒请求数）
+DOMAIN_RATE_LIMIT_RULES = {}  # 特定域名的QPS规则，格式: {"baidu.com": 5, "*.google.com": 8}
 
 ############# 导入用户自定义的setting #############
 try:
