@@ -225,6 +225,17 @@ INFLUXDB_MEASUREMENT = "task_" + os.getenv("TASK_ID") if os.getenv("TASK_ID") el
 # 打点监控其他参数，若这里也配置了influxdb的参数, 则会覆盖外面的配置
 METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
 
+############# 智能上下文管理 #############
+# 是否启用智能上下文分析，默认关闭
+# 开启后，Request(auto_inherit_context=True) 会自动从调用者的局部变量中捕获参数
+# 只传递目标回调实际需要的参数，节省内存
+SMART_CONTEXT_ENABLE = False
+
+# 智能上下文传递模式
+# - "direct": 只传递给下一层回调需要的参数（节省内存，但可能在多层传递时丢失参数）
+# - "transitive": 传递给当前回调及所有后续回调需要的参数（默认，保证多层传递不丢失）
+SMART_CONTEXT_MODE = "transitive"
+
 ############# 导入用户自定义的setting #############
 try:
     from setting import *
