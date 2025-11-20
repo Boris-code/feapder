@@ -15,7 +15,7 @@ class ${spider_name}(feapder.AirSpider):
     # __custom_setting__ = dict(
     #     # 域名级QPS限制配置（推荐开启）
     #     DOMAIN_RATE_LIMIT_ENABLE=True,   # 是否启用QPS限制
-    #     DOMAIN_RATE_LIMIT_DEFAULT=10,    # 默认每个域名10 QPS
+    #     DOMAIN_RATE_LIMIT_DEFAULT=0,     # 默认不限制（0表示不限制）
     #     DOMAIN_RATE_LIMIT_RULES={        # 特定域名的QPS规则
     #         # "baidu.com": 5,            # 百度限制5 QPS
     #         # "api.example.com": 20,     # API接口限制20 QPS

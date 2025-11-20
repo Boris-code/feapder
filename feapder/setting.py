@@ -230,7 +230,7 @@ METRICS_OTHER_ARGS = dict(retention_policy_duration="180d", emit_interval=60)
 
 # 域名级QPS限制配置
 DOMAIN_RATE_LIMIT_ENABLE = False  # 是否启用域名级QPS限制，默认关闭
-DOMAIN_RATE_LIMIT_DEFAULT = 10  # 默认每个域名的QPS限制（每秒请求数）
+DOMAIN_RATE_LIMIT_DEFAULT = 0  # 默认不限制（0表示不限制，只有在RULES中配置的域名才会被限制）
 DOMAIN_RATE_LIMIT_RULES = {}  # 特定域名的QPS规则，格式: {"baidu.com": 5, "*.google.com": 8}
 
 ############# 导入用户自定义的setting #############
