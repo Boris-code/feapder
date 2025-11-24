@@ -38,15 +38,25 @@ class CsvPipeline(BasePipeline):
     # 确保跨批次、跨线程的字段顺序一致
     _table_fieldnames = {}
 
-    def __init__(self, csv_dir="data/csv"):
+    def __init__(self, csv_dir=None):
         """
         初始化CSV Pipeline
 
         Args:
-            csv_dir: CSV文件保存目录，默认为 data/csv
+            csv_dir: CSV文件保存目录
+                    - 如果不传，从 setting.CSV_EXPORT_PATH 读取
+                    - 支持相对路径（如 "data/csv"）
+                    - 支持绝对路径（如 "/Users/xxx/exports/csv"）
         """
         super().__init__()
-        self.csv_dir = csv_dir
+
+        # 如果未传入参数，从配置文件读取
+        if csv_dir is None:
+            import feapder.setting as setting
+            csv_dir = setting.CSV_EXPORT_PATH
+
+        # 支持绝对路径和相对路径，统一转换为绝对路径
+        self.csv_dir = os.path.abspath(csv_dir)
         self._ensure_csv_dir_exists()
 
     def _ensure_csv_dir_exists(self):

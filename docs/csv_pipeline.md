@@ -10,7 +10,20 @@ Email: ctrlf4@yeah.net
 
 ## 快速开始
 
-### 1. 启用 CSV Pipeline
+### 1. 配置 CSV 保存路径（可选）
+
+在 `feapder/setting.py` 或项目的 `setting.py` 中配置：
+
+```python
+# CSV 文件保存路径
+CSV_EXPORT_PATH = "data/csv"  # 相对路径（默认）
+# 或
+CSV_EXPORT_PATH = "/Users/xxx/exports/csv"  # 绝对路径
+```
+
+如果不设置，默认使用 `data/csv`（相对于运行目录）。
+
+### 2. 启用 CSV Pipeline
 
 在 `feapder/setting.py` 中的 `ITEM_PIPELINES` 中添加 `CsvPipeline`：
 
@@ -22,7 +35,7 @@ ITEM_PIPELINES = [
 ]
 ```
 
-### 2. 定义数据项
+### 3. 定义数据项
 
 ```python
 from feapder.network.item import Item
@@ -34,7 +47,7 @@ class ProductItem(Item):
         pass
 ```
 
-### 3. 在爬虫中使用
+### 4. 在爬虫中使用
 
 ```python
 import feapder
@@ -49,7 +62,7 @@ class MySpider(feapder.AirSpider):
         yield item  # 自动保存为 CSV
 ```
 
-### 4. 查看输出
+### 5. 查看输出
 
 爬虫运行后，CSV 文件会保存在 `data/csv/` 目录下：
 
