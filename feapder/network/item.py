@@ -20,6 +20,7 @@ class ItemMetaclass(type):
         attrs.setdefault("__name_underline__", None)
         attrs.setdefault("__update_key__", None)
         attrs.setdefault("__unique_key__", None)
+        attrs.setdefault("__pipelines__", None)
 
         return type.__new__(cls, name, bases, attrs)
 
@@ -69,6 +70,7 @@ class Item(metaclass=ItemMetaclass):
                 "__name_underline__",
                 "__update_key__",
                 "__unique_key__",
+                "__pipelines__",
             ):
                 if key.startswith(f"_{self.__class__.__name__}"):
                     key = key.replace(f"_{self.__class__.__name__}", "")
@@ -145,6 +147,7 @@ class Item(metaclass=ItemMetaclass):
 
 class UpdateItem(Item):
     __update_key__ = []
+    __pipelines__ = None
 
     def __init__(self, **kwargs):
         super(UpdateItem, self).__init__(**kwargs)
