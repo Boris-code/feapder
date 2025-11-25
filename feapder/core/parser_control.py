@@ -72,28 +72,41 @@ class ParserControl(threading.Thread):
         """
         @summary: 获取请求
                   如果启用了QPS限流，流程为：
-                  1. 从Collector批量取出请求
-                  2. 提交到QPSScheduler进行限流调度
-                  3. 从QPSScheduler的就绪队列获取已获得令牌的请求
+                  1. 优先从就绪队列获取请求（避免死锁）
+                  2. 就绪队列为空时，从Collector取请求提交给调度器
+                  3. 再次尝试从就绪队列获取请求
                   如果未启用QPS限流，直接从Collector获取
         ---------
         @result: 请求字典，包含request_obj和request_redis，队列为空返回None
         """
         if self._qps_scheduler:
             # QPS限流模式
-            # 步骤1：从Collector获取请求并提交给调度器
+            # 步骤1：优先从就绪队列获取请求（非阻塞，避免死锁）
+            request = self._qps_scheduler.get_ready_request_nowait()
+            if request:
+                return request
+
+            # 步骤2：就绪队列为空，从Collector获取请求并提交给调度器
             # Collector.get_request() 返回的是 dict: {"request_obj": Request, "request_redis": str}
             batch_size = max(1, self._qps_scheduler.max_prefetch // 10)
             for _ in range(batch_size):
                 request_dict = self._collector.get_request()
                 if request_dict:
-                    # 将请求字典包装后提交给调度器
-                    self._qps_scheduler.submit(request_dict)
+                    # 非阻塞提交，避免背压导致死锁
+                    self._qps_scheduler.submit(request_dict, block=False)
                 else:
                     break
 
-            # 步骤2：从调度器获取已就绪的请求（与原始模式timeout保持一致）
-            return self._qps_scheduler.get_ready_request(timeout=1.0)
+            # 步骤3：从调度器获取已就绪的请求（带超时）
+            request = self._qps_scheduler.get_ready_request(timeout=1.0)
+
+            # 超时返回None时输出调试日志
+            if request is None and not self._qps_scheduler.is_empty():
+                log.debug(
+                    f"QPS: 等待就绪请求超时，调度器中仍有 {self._qps_scheduler.pending_count()} 个请求在等待令牌"
+                )
+
+            return request
         else:
             # 原始模式：直接从Collector获取
             return self._collector.get_request()
@@ -526,27 +539,41 @@ class AirSpiderParserControl(ParserControl):
         """
         @summary: 获取请求
                   如果启用了QPS限流，流程为：
-                  1. 从MemoryDB批量取出请求
-                  2. 提交到QPSScheduler进行限流调度
-                  3. 从QPSScheduler的就绪队列获取已获得令牌的请求
+                  1. 优先从就绪队列获取请求（避免死锁）
+                  2. 就绪队列为空时，从MemoryDB取请求提交给调度器
+                  3. 再次尝试从就绪队列获取请求
                   如果未启用QPS限流，直接从MemoryDB获取
         ---------
         @result: 请求对象Request，队列为空返回None
         """
         if self._qps_scheduler:
             # QPS限流模式
-            # 步骤1：从MemoryDB批量获取请求并提交给调度器
+            # 步骤1：优先从就绪队列获取请求（非阻塞，避免死锁）
+            request = self._qps_scheduler.get_ready_request_nowait()
+            if request:
+                return request
+
+            # 步骤2：就绪队列为空，从MemoryDB获取请求并提交给调度器
             # 批量大小与max_prefetch相关，避免过多请求堆积在调度器中
             batch_size = max(1, self._qps_scheduler.max_prefetch // 10)
             for _ in range(batch_size):
                 pending_request = self._memory_db.get_nowait()
                 if pending_request:
-                    self._qps_scheduler.submit(pending_request)
+                    # 非阻塞提交，避免背压导致死锁
+                    self._qps_scheduler.submit(pending_request, block=False)
                 else:
                     break
 
-            # 步骤2：从调度器获取已就绪的请求（与原始模式timeout保持一致）
-            return self._qps_scheduler.get_ready_request(timeout=1.0)
+            # 步骤3：从调度器获取已就绪的请求（带超时）
+            request = self._qps_scheduler.get_ready_request(timeout=1.0)
+
+            # 超时返回None时输出调试日志
+            if request is None and not self._qps_scheduler.is_empty():
+                log.debug(
+                    f"QPS: 等待就绪请求超时，调度器中仍有 {self._qps_scheduler.pending_count()} 个请求在等待令牌"
+                )
+
+            return request
         else:
             # 原始模式：直接从MemoryDB获取
             return self._memory_db.get()

@@ -95,6 +95,10 @@ class QPSScheduler:
             'ready': 0,           # 已就绪的请求数
         }
 
+        # 状态日志控制
+        self._last_status_log_time = 0
+        self._status_log_interval = 10  # 每10秒输出一次状态
+
     def start(self) -> None:
         """
         @summary: 启动调度器，启动后台调度线程开始处理请求的QPS限流
@@ -150,6 +154,7 @@ class QPSScheduler:
         # 检查是否需要背压
         if self.max_prefetch > 0:
             start_time = time.time()
+            logged_backpressure = False
             while True:
                 with self._count_lock:
                     if self._domain_pending_count[domain] < self.max_prefetch:
@@ -161,6 +166,13 @@ class QPSScheduler:
 
                 if timeout is not None and (time.time() - start_time) >= timeout:
                     return False
+
+                # 背压阻塞日志（只输出一次，避免刷屏）
+                if not logged_backpressure:
+                    log.debug(
+                        f"QPS背压: 域名 {domain} 待处理数达到上限 {self.max_prefetch}，等待释放..."
+                    )
+                    logged_backpressure = True
 
                 # 等待一小段时间后重试
                 time.sleep(0.01)
@@ -222,6 +234,9 @@ class QPSScheduler:
 
                 # 处理延迟堆（将到期的请求移入就绪队列）
                 moved = self._process_delay_heap()
+
+                # 定期输出状态日志（DEBUG模式下）
+                self._log_status_if_needed()
 
                 # 如果没有任何工作，短暂休眠避免CPU空转
                 if not processed and not moved:
@@ -289,6 +304,30 @@ class QPSScheduler:
                 count += 1
 
         return count
+
+    def _log_status_if_needed(self) -> None:
+        """
+        @summary: 定期输出调度器状态日志（DEBUG模式下）
+        ---------
+        @result:
+        """
+        now = time.time()
+        if now - self._last_status_log_time >= self._status_log_interval:
+            self._last_status_log_time = now
+
+            with self._heap_lock:
+                delay_heap_size = len(self._delay_heap)
+
+            submit_queue_size = self._submit_queue.qsize()
+            ready_queue_size = self._ready_queue.qsize()
+
+            # 只有当有请求在处理时才输出日志
+            if delay_heap_size > 0 or submit_queue_size > 0 or ready_queue_size > 0:
+                log.debug(
+                    f"QPS调度器状态: 提交队列={submit_queue_size}, "
+                    f"延迟堆={delay_heap_size}, 就绪队列={ready_queue_size}, "
+                    f"统计={self._stats}"
+                )
 
     def is_empty(self) -> bool:
         """
