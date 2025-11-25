@@ -40,13 +40,14 @@ class ParserControl(threading.Thread):
 
     _hook_parsers = set()
 
-    def __init__(self, collector, redis_key, request_buffer, item_buffer):
+    def __init__(self, collector, redis_key, request_buffer, item_buffer, qps_scheduler=None):
         super(ParserControl, self).__init__()
         self._parsers = []
         self._collector = collector
         self._redis_key = redis_key
         self._request_buffer = request_buffer
         self._item_buffer = item_buffer
+        self._qps_scheduler = qps_scheduler
 
         self._thread_stop = False
 
@@ -54,7 +55,7 @@ class ParserControl(threading.Thread):
         self._thread_stop = False
         while not self._thread_stop:
             try:
-                request = self._collector.get_request()
+                request = self._get_request()
                 if not request:
                     if not self.is_show_tip:
                         log.debug("等待任务...")
@@ -66,6 +67,36 @@ class ParserControl(threading.Thread):
 
             except Exception as e:
                 log.exception(e)
+
+    def _get_request(self):
+        """
+        @summary: 获取请求
+                  如果启用了QPS限流，流程为：
+                  1. 从Collector批量取出请求
+                  2. 提交到QPSScheduler进行限流调度
+                  3. 从QPSScheduler的就绪队列获取已获得令牌的请求
+                  如果未启用QPS限流，直接从Collector获取
+        ---------
+        @result: 请求字典，包含request_obj和request_redis，队列为空返回None
+        """
+        if self._qps_scheduler:
+            # QPS限流模式
+            # 步骤1：从Collector获取请求并提交给调度器
+            # Collector.get_request() 返回的是 dict: {"request_obj": Request, "request_redis": str}
+            batch_size = max(1, self._qps_scheduler.max_prefetch // 10)
+            for _ in range(batch_size):
+                request_dict = self._collector.get_request()
+                if request_dict:
+                    # 将请求字典包装后提交给调度器
+                    self._qps_scheduler.submit(request_dict)
+                else:
+                    break
+
+            # 步骤2：从调度器获取已就绪的请求（与原始模式timeout保持一致）
+            return self._qps_scheduler.get_ready_request(timeout=1.0)
+        else:
+            # 原始模式：直接从Collector获取
+            return self._collector.get_request()
 
     def is_not_task(self):
         return self.is_show_tip
@@ -465,6 +496,7 @@ class AirSpiderParserControl(ParserControl):
         memory_db: MemoryDB,
         request_buffer: AirSpiderRequestBuffer,
         item_buffer: ItemBuffer,
+        qps_scheduler=None,
     ):
         super(ParserControl, self).__init__()
         self._parsers = []
@@ -472,11 +504,12 @@ class AirSpiderParserControl(ParserControl):
         self._thread_stop = False
         self._request_buffer = request_buffer
         self._item_buffer = item_buffer
+        self._qps_scheduler = qps_scheduler
 
     def run(self):
         while not self._thread_stop:
             try:
-                request = self._memory_db.get()
+                request = self._get_request()
                 if not request:
                     if not self.is_show_tip:
                         log.debug("等待任务...")
@@ -488,6 +521,35 @@ class AirSpiderParserControl(ParserControl):
 
             except Exception as e:
                 log.exception(e)
+
+    def _get_request(self):
+        """
+        @summary: 获取请求
+                  如果启用了QPS限流，流程为：
+                  1. 从MemoryDB批量取出请求
+                  2. 提交到QPSScheduler进行限流调度
+                  3. 从QPSScheduler的就绪队列获取已获得令牌的请求
+                  如果未启用QPS限流，直接从MemoryDB获取
+        ---------
+        @result: 请求对象Request，队列为空返回None
+        """
+        if self._qps_scheduler:
+            # QPS限流模式
+            # 步骤1：从MemoryDB批量获取请求并提交给调度器
+            # 批量大小与max_prefetch相关，避免过多请求堆积在调度器中
+            batch_size = max(1, self._qps_scheduler.max_prefetch // 10)
+            for _ in range(batch_size):
+                pending_request = self._memory_db.get_nowait()
+                if pending_request:
+                    self._qps_scheduler.submit(pending_request)
+                else:
+                    break
+
+            # 步骤2：从调度器获取已就绪的请求（与原始模式timeout保持一致）
+            return self._qps_scheduler.get_ready_request(timeout=1.0)
+        else:
+            # 原始模式：直接从MemoryDB获取
+            return self._memory_db.get()
 
     def deal_request(self, request):
         response = None

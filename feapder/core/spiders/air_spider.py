@@ -19,6 +19,8 @@ from feapder.network.request import Request
 from feapder.utils import metrics
 from feapder.utils.log import log
 from feapder.utils.tail_thread import TailThread
+from feapder.utils.rate_limiter import DomainRateLimiter
+from feapder.core.schedulers import QPSScheduler
 
 
 class AirSpider(BaseParser, TailThread):
@@ -48,6 +50,19 @@ class AirSpider(BaseParser, TailThread):
         self._stop_spider = False
         metrics.init(**setting.METRICS_OTHER_ARGS)
 
+        # 初始化QPS调度器（如果启用）
+        self._qps_scheduler = None
+        if setting.DOMAIN_RATE_LIMIT_ENABLE:
+            rate_limiter = DomainRateLimiter(
+                rules=setting.DOMAIN_RATE_LIMIT_RULES,
+                default_qps=setting.DOMAIN_RATE_LIMIT_DEFAULT,
+                storage="local"  # AirSpider使用本地内存模式
+            )
+            self._qps_scheduler = QPSScheduler(
+                rate_limiter=rate_limiter,
+                max_prefetch=setting.DOMAIN_RATE_LIMIT_MAX_PREFETCH
+            )
+
     def distribute_task(self):
         for request in self.start_requests():
             if not isinstance(request, Request):
@@ -67,6 +82,10 @@ class AirSpider(BaseParser, TailThread):
             if not self._memory_db.empty():
                 return False
 
+            # 检测 QPS调度器状态（如果启用）
+            if self._qps_scheduler and not self._qps_scheduler.is_empty():
+                return False
+
             # 检测 item_buffer 状态
             if (
                 self._item_buffer.get_items_count() > 0
@@ -81,11 +100,17 @@ class AirSpider(BaseParser, TailThread):
     def run(self):
         self.start_callback()
 
+        # 启动QPS调度器（如果启用）
+        if self._qps_scheduler:
+            self._qps_scheduler.start()
+            log.info("域名级QPS限流已启用")
+
         for i in range(self._thread_count):
             parser_control = AirSpiderParserControl(
                 memory_db=self._memory_db,
                 request_buffer=self._request_buffer,
                 item_buffer=self._item_buffer,
+                qps_scheduler=self._qps_scheduler,  # 传递QPS调度器
             )
             parser_control.add_parser(self)
             parser_control.start()
@@ -98,6 +123,10 @@ class AirSpider(BaseParser, TailThread):
         while True:
             try:
                 if self._stop_spider or self.all_thread_is_done():
+                    # 停止QPS调度器（如果启用）
+                    if self._qps_scheduler:
+                        self._qps_scheduler.stop()
+
                     # 停止 parser_controls
                     for parser_control in self._parser_controls:
                         parser_control.stop()

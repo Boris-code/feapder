@@ -113,6 +113,21 @@
 # ITEM_UPLOAD_INTERVAL = 1
 # # 内存任务队列最大缓存的任务数，默认不限制；仅对AirSpider有效。
 # TASK_MAX_CACHED_SIZE = 0
+
+# # 域名级QPS限流配置
+# # 是否启用域名级QPS限流
+# DOMAIN_RATE_LIMIT_ENABLE = False
+# # 默认QPS限制，0表示不限制
+# DOMAIN_RATE_LIMIT_DEFAULT = 0
+# # 域名QPS规则，格式：{"域名或通配符": QPS值}
+# # 示例：{"www.baidu.com": 1, "*.taobao.com": 5}
+# # 支持精确匹配和通配符匹配（*.example.com 匹配所有子域名）
+# DOMAIN_RATE_LIMIT_RULES = {}
+# # 每个域名最大预取请求数，防止内存溢出，0表示不限制
+# DOMAIN_RATE_LIMIT_MAX_PREFETCH = 100
+# # 令牌桶存储模式：local-本地内存（单进程），redis-Redis分布式（多进程共享QPS配额）
+# # AirSpider默认使用local，Spider/BatchSpider/TaskSpider建议使用redis
+# DOMAIN_RATE_LIMIT_STORAGE = "local"
 #
 # # 下载缓存 利用redis缓存，但由于内存大小限制，所以建议仅供开发调试代码时使用，防止每次debug都需要网络请求
 # RESPONSE_CACHED_ENABLE = False  # 是否启用下载缓存 成本高的数据或容易变需求的数据，建议设置为True

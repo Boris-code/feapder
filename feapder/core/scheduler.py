@@ -20,11 +20,13 @@ from feapder.core.collector import Collector
 from feapder.core.handle_failed_items import HandleFailedItems
 from feapder.core.handle_failed_requests import HandleFailedRequests
 from feapder.core.parser_control import ParserControl
+from feapder.core.schedulers import QPSScheduler
 from feapder.db.redisdb import RedisDB
 from feapder.network.item import Item
 from feapder.network.request import Request
 from feapder.utils import metrics
 from feapder.utils.log import log
+from feapder.utils.rate_limiter import DomainRateLimiter
 from feapder.utils.redis_lock import RedisLock
 from feapder.utils.tail_thread import TailThread
 
@@ -154,6 +156,22 @@ class Scheduler(TailThread):
 
         self._stop_spider = False
 
+        # 初始化QPS调度器（如果启用）
+        self._qps_scheduler = None
+        if setting.DOMAIN_RATE_LIMIT_ENABLE:
+            # 分布式爬虫使用Redis令牌桶实现跨进程QPS控制
+            storage = "redis" if setting.DOMAIN_RATE_LIMIT_STORAGE == "redis" else "local"
+            rate_limiter = DomainRateLimiter(
+                rules=setting.DOMAIN_RATE_LIMIT_RULES,
+                default_qps=setting.DOMAIN_RATE_LIMIT_DEFAULT,
+                storage=storage,
+                redis_client=self._redisdb.get_redis_obj() if storage == "redis" else None
+            )
+            self._qps_scheduler = QPSScheduler(
+                rate_limiter=rate_limiter,
+                max_prefetch=setting.DOMAIN_RATE_LIMIT_MAX_PREFETCH
+            )
+
     def init_metrics(self):
         """
         初始化打点系统
@@ -254,6 +272,10 @@ class Scheduler(TailThread):
         # 启动collector
         self._collector.start()
 
+        # 启动QPS调度器（如果启用）
+        if self._qps_scheduler:
+            self._qps_scheduler.start()
+
         # 启动parser control
         for i in range(self._thread_count):
             parser_control = self._parser_control_obj(
@@ -261,6 +283,7 @@ class Scheduler(TailThread):
                 self._redis_key,
                 self._request_buffer,
                 self._item_buffer,
+                qps_scheduler=self._qps_scheduler,  # 传递QPS调度器
             )
 
             for parser in self._parsers:
@@ -299,6 +322,10 @@ class Scheduler(TailThread):
             for parser_control in self._parser_controls:
                 if not parser_control.is_not_task():
                     return False
+
+            # 检测 QPS调度器状态（如果启用）
+            if self._qps_scheduler and not self._qps_scheduler.is_empty():
+                return False
 
             # 检测 item_buffer 状态
             if (
@@ -426,6 +453,9 @@ class Scheduler(TailThread):
         # 停止 parser_controls
         for parser_control in self._parser_controls:
             parser_control.stop()
+        # 停止 QPS调度器（如果启用）
+        if self._qps_scheduler:
+            self._qps_scheduler.stop()
         self.heartbeat_stop()
         self._started.clear()
 

@@ -29,16 +29,32 @@ class MemoryDB:
         else:
             self.priority_queue.put(item)
 
-    def get(self):
+    def get(self, timeout: float = 1):
         """
-        获取任务
-        :return:
+        获取任务（阻塞模式）
+        :param timeout: 超时时间（秒），默认1秒
+        :return: 任务对象，超时返回None
         """
         try:
-            item = self.priority_queue.get(timeout=1)
+            item = self.priority_queue.get(timeout=timeout)
             return item
         except:
             return
+
+    def get_nowait(self):
+        """
+        获取任务（非阻塞模式）
+
+        立即返回，队列为空时返回None，不会阻塞等待。
+        用于QPS调度器快速获取请求。
+
+        :return: 任务对象，队列为空返回None
+        """
+        try:
+            item = self.priority_queue.get_nowait()
+            return item
+        except:
+            return None
 
     def empty(self):
         return self.priority_queue.empty()
