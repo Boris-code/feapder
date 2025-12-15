@@ -41,7 +41,7 @@ def auto_retry(func):
 
 class MysqlDB:
     def __init__(
-        self, ip=None, port=None, db=None, user_name=None, user_pass=None, set_session=None, **kwargs
+        self, ip=None, port=None, db=None, user_name=None, user_pass=None, charset="utf8mb4", set_session=None, **kwargs
     ):
         # 可能会改setting中的值，所以此处不能直接赋值为默认值，需要后加载赋值
         if not ip:
@@ -68,7 +68,7 @@ class MysqlDB:
                 user=user_name,
                 passwd=user_pass,
                 db=db,
-                charset="utf8mb4",
+                charset=charset,
                 setsession=set_session,
                 cursorclass=cursors.SSCursor,
                 **kwargs
@@ -85,7 +85,7 @@ class MysqlDB:
             user_pass: {}
             exception: {}
             """.format(
-                    ip, port, db, user_name, user_pass, e
+                    ip, port, db, user_name, user_pass, charset, e
                 )
             )
         else:
@@ -119,7 +119,9 @@ class MysqlDB:
             "user_pass": url_parsed.password.strip(),
             "db": url_parsed.path.strip("/").strip(),
         }
-
+        # 解析 query 字符串参数，比如 ?charset=utf8
+        query_params = dict(parse.parse_qsl(url_parsed.query))
+        connect_params.update(query_params)
         connect_params.update(kwargs)
 
         return cls(**connect_params)
