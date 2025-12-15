@@ -427,7 +427,7 @@ def emit_any(
         fields: influxdb的field的字段和值
         classify: 点的类别
         measurement: 存储的表
-        timestamp: 点的时间搓，默认为当前时间
+        timestamp: 点的时间戳，默认为当前时间
 
     Returns:
 
@@ -458,7 +458,7 @@ def emit_counter(
         classify: 点的类别
         tags: influxdb的tag的字段和值
         measurement: 存储的表
-        timestamp: 点的时间搓，默认为当前时间
+        timestamp: 点的时间戳，默认为当前时间
 
     Returns:
 
@@ -489,7 +489,7 @@ def emit_timer(
         classify: 点的类别
         tags: influxdb的tag的字段和值
         measurement: 存储的表
-        timestamp: 点的时间搓，默认为当前时间
+        timestamp: 点的时间戳，默认为当前时间
 
     Returns:
 
@@ -520,7 +520,7 @@ def emit_store(
         classify: 点的类别
         tags: influxdb的tag的字段和值
         measurement: 存储的表
-        timestamp: 点的时间搓，默认为当前时间
+        timestamp: 点的时间戳，默认为当前时间
 
     Returns:
 
