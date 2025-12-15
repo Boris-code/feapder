@@ -117,10 +117,8 @@ class MysqlDB:
             "user_pass": url_parsed.password.strip(),
             "db": url_parsed.path.strip("/").strip(),
         }
-        # ✅ 解析 query 字符串参数，比如 ?charset=utf8
+        # 解析 query 字符串参数，比如 ?charset=utf8
         query_params = dict(parse.parse_qsl(url_parsed.query))
-        # ✅ 合并 query 参数和 kwargs 到 connect_params
-
         connect_params.update(query_params)
         connect_params.update(kwargs)
 
