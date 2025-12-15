@@ -129,7 +129,7 @@ class Item(metaclass=ItemMetaclass):
         for key, value in self.to_dict.items():
             if value:
                 if (self.unique_key and key in self.unique_key) or not self.unique_key:
-                    args.append(str(value))
+                    args.append(key + str(value))
 
         if args:
             args = sorted(args)
