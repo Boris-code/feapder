@@ -45,6 +45,8 @@ class MysqlPipeline(BasePipeline):
             log.info(
                 "共导出 %s 条数据 到 %s, 重复 %s 条" % (datas_size, table, datas_size - add_count)
             )
+        else:
+            log.debug("没有插入数据，可能全部重复")
 
         return add_count != None
 
