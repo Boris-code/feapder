@@ -202,7 +202,7 @@ class MysqlDB:
                 if isinstance(col, (datetime.date, datetime.time)):
                     return str(col)
                 elif isinstance(col, str) and (
-                    col.startswith("{") or col.startswith("[")
+                        col.startswith("{") or col.startswith("[")
                 ):
                     try:
                         # col = self.unescape_string(col)

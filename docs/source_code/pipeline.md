@@ -2,11 +2,26 @@
 
 Pipeline是数据入库时流经的管道，用户可自定义，以便对接其他数据库。
 
-框架已内置mysql及mongo管道，其他管道作为扩展方式提供，可从[feapder_pipelines](https://github.com/Boris-code/feapder_pipelines)项目中按需安装
+框架已内置mysql、mongo、csv管道，其他管道作为扩展方式提供，可从[feapder_pipelines](https://github.com/Boris-code/feapder_pipelines)项目中按需安装
 
 项目地址：https://github.com/Boris-code/feapder_pipelines
 
-## 使用方式
+## 选择内置的pipeline
+
+在配置文件 `setting.py` 中的 `ITEM_PIPELINES` 中启用：
+
+```python
+ITEM_PIPELINES = [
+    "feapder.pipelines.mysql_pipeline.MysqlPipeline",
+    # "feapder.pipelines.mongo_pipeline.MongoPipeline",
+    # "feapder.pipelines.csv_pipeline.CsvPipeline",
+    # "feapder.pipelines.console_pipeline.ConsolePipeline",
+]
+```
+
+然后 爬虫中`yield`的`item`会流经选择的pipeline自动存储
+
+## 自定义pipeline
 
 注：item会被聚合成多条一起流经pipeline，方便批量入库
 

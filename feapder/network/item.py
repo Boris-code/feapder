@@ -9,6 +9,7 @@ Created on 2018-07-26 22:28:10
 """
 
 import re
+from typing import List
 
 import feapder.utils.tools as tools
 
@@ -20,12 +21,14 @@ class ItemMetaclass(type):
         attrs.setdefault("__name_underline__", None)
         attrs.setdefault("__update_key__", None)
         attrs.setdefault("__unique_key__", None)
+        attrs.setdefault("__pipelines__", None)
 
         return type.__new__(cls, name, bases, attrs)
 
 
 class Item(metaclass=ItemMetaclass):
-    __unique_key__ = []
+    __unique_key__: List = []
+    __pipelines__: List = None
 
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
@@ -64,11 +67,12 @@ class Item(metaclass=ItemMetaclass):
         propertys = {}
         for key, value in self.__dict__.items():
             if key not in (
-                "__name__",
-                "__table_name__",
-                "__name_underline__",
-                "__update_key__",
-                "__unique_key__",
+                    "__name__",
+                    "__table_name__",
+                    "__name_underline__",
+                    "__update_key__",
+                    "__unique_key__",
+                    "__pipelines__",
             ):
                 if key.startswith(f"_{self.__class__.__name__}"):
                     key = key.replace(f"_{self.__class__.__name__}", "")
@@ -122,6 +126,17 @@ class Item(metaclass=ItemMetaclass):
             self.__unique_key__ = keys
         else:
             self.__unique_key__ = (keys,)
+
+    @property
+    def pipelines(self):
+        return self.__pipelines__ or self.__class__.__pipelines__
+
+    @pipelines.setter
+    def pipelines(self, pipelines):
+        if isinstance(pipelines, (tuple, list)):
+            self.__pipelines__ = pipelines
+        else:
+            self.__pipelines__ = (pipelines,)
 
     @property
     def fingerprint(self):

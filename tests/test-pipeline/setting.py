@@ -19,7 +19,8 @@ REDISDB_DB = 0
 
 # 数据入库的pipeline，可自定义，默认MysqlPipeline
 ITEM_PIPELINES = [
-    "pipeline.Pipeline"
+    "pipeline.Pipeline",
+    # "feapder.pipelines.csv_pipeline.CsvPipeline"
 ]
 
 # # 爬虫相关

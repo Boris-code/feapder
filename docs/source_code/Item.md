@@ -102,6 +102,26 @@ class SpiderDataItem(Item):
         self.title = self.title.strip()
 ```
 
+## 指定入库使用的pipelines
+
+```python
+
+from feapder import Item
+from feapder.pipelines.csv_pipeline import CsvPipeline
+
+
+class SpiderDataItem(Item):
+
+    __pipelines__ = [CsvPipeline()]
+
+    def __init__(self, *args, **kwargs):
+        # self.id = None
+        self.title = None
+```
+
+使用__pipelines__指定后，该item只会流经指定的pipelines处理
+
+
 ## 更新数据
 
 采集过程中，往往会有些数据漏采或解析出错，如果我们想更新已入库的数据，可将Item转为UpdateItem

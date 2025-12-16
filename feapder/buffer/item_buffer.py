@@ -52,6 +52,10 @@ class ItemBuffer(threading.Thread):
                 # 'table_name': ['id', 'name'...] # 缓存table_name与__update_key__的关系
             }
 
+            self._item_pipelines = {
+                # 'table_name': ['pipeline1', 'pipeline2'] # 缓存table_name与pipelines的关系
+            }
+
             self._pipelines = self.load_pipelines()
 
             self._have_mysql_pipeline = MYSQL_PIPELINE_PATH in setting.ITEM_PIPELINES
@@ -59,7 +63,7 @@ class ItemBuffer(threading.Thread):
 
             if setting.ITEM_FILTER_ENABLE and not self.__class__.dedup:
                 if setting.ITEM_FILTER_SETTING.get(
-                    "filter_type"
+                        "filter_type"
                 ) == Dedup.BloomFilter or setting.ITEM_FILTER_SETTING.get("name"):
                     self.__class__.dedup = Dedup(
                         to_md5=False, **setting.ITEM_FILTER_SETTING
@@ -217,7 +221,7 @@ class ItemBuffer(threading.Thread):
         将每个表之间的数据分开 拆分后 原items为空
         @param items:
         @param is_update_item:
-        @return:
+        @return: 表名与数据的字典
         """
         datas_dict = {
             # 'table_name': [{}, {}]
@@ -232,22 +236,24 @@ class ItemBuffer(threading.Thread):
             if not table_name:
                 table_name = item.table_name
                 self._item_tables[item_name] = table_name
+                self._item_pipelines[table_name] = item.pipelines
+
+            if is_update_item and table_name not in self._item_update_keys:
+                self._item_update_keys[table_name] = item.update_key
 
             if table_name not in datas_dict:
                 datas_dict[table_name] = []
 
             datas_dict[table_name].append(item.to_dict)
 
-            if is_update_item and table_name not in self._item_update_keys:
-                self._item_update_keys[table_name] = item.update_key
-
         return datas_dict
 
-    def __export_to_db(self, table, datas, is_update=False, update_keys=()):
-        for pipeline in self._pipelines:
+    def __export_to_db(self, table, datas, is_update=False, update_keys=(), used_pipelines=None):
+        pipelines = used_pipelines or self._pipelines  # 优先采用指定的pipelines
+        for pipeline in pipelines:
             if is_update:
                 if table == self._task_table and not isinstance(
-                    pipeline, MysqlPipeline
+                        pipeline, MysqlPipeline
                 ):
                     continue
 
@@ -267,7 +273,7 @@ class ItemBuffer(threading.Thread):
         # 若是任务表, 且上面的pipeline里没mysql，则需调用mysql更新任务
         if not self._have_mysql_pipeline and is_update and table == self._task_table:
             if not self.mysql_pipeline.update_items(
-                table, datas, update_keys=update_keys
+                    table, datas, update_keys=update_keys
             ):
                 log.error(
                     f"{self.mysql_pipeline.__class__.__name__} 更新数据失败. table: {table}  items: {datas}"
@@ -278,7 +284,7 @@ class ItemBuffer(threading.Thread):
         return True
 
     def __add_item_to_db(
-        self, items, update_items, requests, callbacks, items_fingerprints
+            self, items, update_items, requests, callbacks, items_fingerprints
     ):
         export_success = True
         self._is_adding_to_db = True
@@ -287,7 +293,7 @@ class ItemBuffer(threading.Thread):
         if setting.ITEM_FILTER_ENABLE:
             items, items_fingerprints = self.__dedup_items(items, items_fingerprints)
 
-        # 分捡
+        # 分捡（返回值包含 pipelines_dict）
         items_dict = self.__pick_items(items)
         update_items_dict = self.__pick_items(update_items, is_update_item=True)
 
@@ -295,6 +301,7 @@ class ItemBuffer(threading.Thread):
         failed_items = {"add": [], "update": [], "requests": []}
         while items_dict:
             table, datas = items_dict.popitem()
+            used_pipelines = self._item_pipelines.get(table)
 
             log.debug(
                 """
@@ -305,13 +312,14 @@ class ItemBuffer(threading.Thread):
                 % (table, tools.dumps_json(datas, indent=16))
             )
 
-            if not self.__export_to_db(table, datas):
+            if not self.__export_to_db(table, datas, used_pipelines=used_pipelines):
                 export_success = False
                 failed_items["add"].append({"table": table, "datas": datas})
 
         # 执行批量update
         while update_items_dict:
             table, datas = update_items_dict.popitem()
+            used_pipelines = self._item_pipelines.get(table)
 
             log.debug(
                 """
@@ -324,7 +332,7 @@ class ItemBuffer(threading.Thread):
 
             update_keys = self._item_update_keys.get(table)
             if not self.__export_to_db(
-                table, datas, is_update=True, update_keys=update_keys
+                    table, datas, is_update=True, update_keys=update_keys, used_pipelines=used_pipelines
             ):
                 export_success = False
                 failed_items["update"].append(
