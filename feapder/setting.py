@@ -46,13 +46,9 @@ ITEM_PIPELINES = [
     # "feapder.pipelines.csv_pipeline.CsvPipeline",
     # "feapder.pipelines.console_pipeline.ConsolePipeline",
 ]
+CSV_EXPORT_PATH = "data/csv"  # CSV文件保存路径，支持相对路径和绝对路径
 EXPORT_DATA_MAX_FAILED_TIMES = 10  # 导出数据时最大的失败次数，包括保存和更新，超过这个次数报警
 EXPORT_DATA_MAX_RETRY_TIMES = 10  # 导出数据时最大的重试次数，包括保存和更新，超过这个次数则放弃重试
-
-# CSV Pipeline 配置
-CSV_EXPORT_PATH = "data/csv"  # CSV文件保存路径，支持相对路径和绝对路径
-                               # 相对路径：相对于运行目录（如 "data/csv"）
-                               # 绝对路径：完整路径（如 "/Users/xxx/exports/csv"）
 
 # 爬虫相关
 # COLLECTOR
