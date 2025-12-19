@@ -110,9 +110,10 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## 感谢Tordata代理赞助
 
+
 <a href="https://www.thordata.com/?ls=github&lk=feapder" target="_blank">
 
-<img src="media/mmexport1766141157285.jpg">
+<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2025/12/19/mmexport1766141157285.jpg">
 
 </a>
 
