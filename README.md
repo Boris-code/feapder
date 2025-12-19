@@ -108,7 +108,7 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 2. parse： 解析数据
 
 
-## 感谢Tordata代理赞助
+## 感谢Thordata代理赞助
 
 
 <a href="https://www.thordata.com/?ls=github&lk=feapder" target="_blank">
