@@ -107,6 +107,15 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 1. start_requests： 生产任务
 2. parse： 解析数据
 
+
+## 感谢Tordata代理赞助
+
+<a href="https://www.thordata.com/?ls=github&lk=feapder" target="_blank">
+
+<img src="media/mmexport1766141157285.jpg">
+
+</a>
+
 ## 参与贡献
 
 贡献之前请先阅读 [贡献指南](./CONTRIBUTING.md)
