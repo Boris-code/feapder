@@ -152,6 +152,45 @@ class Scheduler(TailThread):
         # 重置丢失的任务
         self.reset_task()
 
+        # 智能上下文分析
+        if self.__class__.__custom_setting__.get("SMART_CONTEXT_ENABLE", False):
+            import threading
+            from feapder.utils.context_analyzer import ContextAnalyzer
+
+            # 初始化线程本地存储
+            if Request._request_context is None:
+                Request._request_context = threading.local()
+
+            # 执行静态分析
+            analyzer = ContextAnalyzer(self.__class__)
+
+            # 1. 分析每个回调自己需要的参数（direct 模式）
+            callback_needs = analyzer.analyze()
+            Request._callback_needs = callback_needs
+
+            # 2. 构建回调依赖图（谁 yield 了谁）
+            callback_graph = analyzer.build_callback_graph()
+
+            # 3. 计算传递性需求（transitive 模式）
+            transitive_needs = analyzer.compute_transitive_needs(
+                callback_graph, callback_needs
+            )
+            Request._transitive_needs = transitive_needs
+
+            if callback_needs:
+                log.info(f"[智能上下文] 分析完成，检测到 {len(callback_needs)} 个回调函数")
+                for callback_name, params in callback_needs.items():
+                    log.debug(f"[智能上下文] 直接需求 {callback_name}: {params}")
+
+                # 如果有传递性需求，也打印日志
+                if transitive_needs:
+                    log.debug(f"[智能上下文] 传递性需求计算完成")
+                    for callback_name, params in transitive_needs.items():
+                        if params != callback_needs.get(callback_name, set()):
+                            log.debug(f"[智能上下文] 传递需求 {callback_name}: {params}")
+            else:
+                log.warning("[智能上下文] 未检测到任何回调函数使用自定义参数")
+
         self._stop_spider = False
 
     def init_metrics(self):
