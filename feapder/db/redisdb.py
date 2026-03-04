@@ -11,7 +11,11 @@ import time
 from typing import Union, List
 
 import redis
-from redis.connection import Encoder as _Encoder
+
+try:
+    from redis.connection import Encoder as _Encoder
+except ImportError:
+    from redis._parsers.encoders import Encoder as _Encoder
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
 from redis.sentinel import Sentinel
@@ -50,7 +54,11 @@ class Encoder(_Encoder):
         return value
 
 
-redis.connection.Encoder = Encoder
+try:
+    redis.connection.Encoder = Encoder
+except AttributeError:
+    import redis._parsers.encoders
+    redis._parsers.encoders.Encoder = Encoder
 
 
 class RedisDB:
@@ -150,7 +158,7 @@ class RedisDB:
                             self._service_name,
                             password=self._user_pass,
                             db=self._db,
-                            redis_class=redis.StrictRedis,
+                            redis_class=redis.Redis,
                             decode_responses=self._decode_responses,
                             max_connections=self._max_connections,
                             **self._kwargs,
@@ -158,14 +166,14 @@ class RedisDB:
 
                     else:
                         try:
-                            from rediscluster import RedisCluster
-                        except ModuleNotFoundError as e:
-                            log.error('请安装 pip install "feapder[all]"')
-                            os._exit(0)
-
-                        # log.debug("使用redis集群模式")
+                            from redis.cluster import RedisCluster, ClusterNode
+                        except ImportError as e:
+                            raise ImportError(
+                                "当前 redis 版本不支持集群模式，请安装 redis>=4.1.0"
+                            ) from e
+                        cluster_nodes = [ClusterNode(host=node["host"], port=int(node["port"])) for node in startup_nodes]
                         self._redis = RedisCluster(
-                            startup_nodes=startup_nodes,
+                            startup_nodes=cluster_nodes,
                             decode_responses=self._decode_responses,
                             password=self._user_pass,
                             max_connections=self._max_connections,
@@ -175,7 +183,7 @@ class RedisDB:
                     self._is_redis_cluster = True
                 else:
                     ip, port = ip_ports[0].split(":")
-                    self._redis = redis.StrictRedis(
+                    self._redis = redis.Redis(
                         host=ip,
                         port=port,
                         db=self._db,
@@ -186,7 +194,7 @@ class RedisDB:
                     )
                     self._is_redis_cluster = False
             else:
-                self._redis = redis.StrictRedis.from_url(
+                self._redis = redis.Redis.from_url(
                     self._url, decode_responses=self._decode_responses, **self._kwargs
                 )
                 self._is_redis_cluster = False
@@ -298,14 +306,13 @@ class RedisDB:
         """
 
         # 当 SCAN 命令的游标参数被设置为 0 时， 服务器将开始一次新的迭代， 而当服务器向用户返回值为 0 的游标时， 表示迭代已结束
-        cursor = "0"
-        while cursor != 0:
+        cursor = 0
+        while True:
             cursor, data = self._redis.sscan(table, cursor=cursor, count=500)
             for item in data:
-                # pipe.srem(table, item)
                 self._redis.srem(table, item)
-
-            # pipe.execute()
+            if cursor == 0:
+                break
 
     def sismember(self, table, key):
         "Return a boolean indicating if ``value`` is a member of set ``name``"
@@ -925,9 +932,9 @@ class RedisDB:
                 header_style="title",
             )
 
-            keys = self._redis.execute_command("keys *")
+            keys = self._redis.execute_command("KEYS", "*")
             for key in tqdm(keys):
-                key_type = self._redis.execute_command("type {}".format(key))
+                key_type = self._redis.execute_command("TYPE", key)
                 if key_type == "set":
                     value_count = self._redis.scard(key)
                 elif key_type == "zset":
@@ -943,7 +950,7 @@ class RedisDB:
                 else:
                     raise TypeError("尚不支持 {} 类型的key".format(key_type))
 
-                used_memory = self._redis.execute_command("memory usage {}".format(key))
+                used_memory = self._redis.execute_command("MEMORY", "USAGE", key)
                 if used_memory >= filter_key_by_used_memory:
                     used_memory_human = (
                         "%0.2fMB" % (used_memory / 1024 / 1024) if used_memory else 0
