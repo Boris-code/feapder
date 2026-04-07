@@ -342,7 +342,7 @@ class Scheduler(TailThread):
                 message_prefix="《%s》爬虫当前失败任务数报警" % (self._spider_name),
             )
 
-        # parser_control实时统计已做任务数及失败任务数，若成功率<0.5 则报警
+        # parser_control实时统计已做任务数及失败任务数，若成功率低于阈值则报警
         (
             failed_task_count,
             success_task_count,
@@ -351,7 +351,7 @@ class Scheduler(TailThread):
         total_count = success_task_count + failed_task_count
         if total_count > 0:
             task_success_rate = success_task_count / total_count
-            if task_success_rate < 0.5:
+            if task_success_rate < setting.WARNING_SUCCESS_RATE:
                 # 发送报警
                 msg = "《%s》爬虫当前任务成功数%s, 失败数%s, 成功率 %.2f, 请检查爬虫是否正常" % (
                     self._spider_name,

@@ -194,6 +194,7 @@ QMSG_WARNING_BOT = ""  # 机器人的QQ号
 WARNING_INTERVAL = 3600  # 相同报警的报警时间间隔，防止刷屏; 0表示不去重
 WARNING_LEVEL = "DEBUG"  # 报警级别， DEBUG / INFO / ERROR
 WARNING_FAILED_COUNT = 1000  # 任务失败数 超过WARNING_FAILED_COUNT则报警
+WARNING_SUCCESS_RATE = 0.5  # 任务成功率低于WARNING_SUCCESS_RATE则报警
 WARNING_CHECK_TASK_COUNT_INTERVAL = 1200  # 检查已做任务数量的时间间隔，若两次时间间隔之间，任务数无变化则报警
 
 # 日志
