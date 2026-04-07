@@ -137,15 +137,14 @@ class RedisDB:
                     else self._ip_ports.split(",")
                 )
                 if len(ip_ports) > 1:
-                    startup_nodes = []
+                    parsed_nodes = []
                     for ip_port in ip_ports:
                         ip, port = ip_port.split(":")
-                        startup_nodes.append({"host": ip, "port": port})
+                        parsed_nodes.append((ip, int(port)))
 
                     if self._service_name:
                         # log.debug("使用redis哨兵模式")
-                        hosts = [(node["host"], node["port"]) for node in startup_nodes]
-                        sentinel = Sentinel(hosts, socket_timeout=3, **self._kwargs)
+                        sentinel = Sentinel(parsed_nodes, socket_timeout=3, **self._kwargs)
                         self._redis = sentinel.master_for(
                             self._service_name,
                             password=self._user_pass,
@@ -158,10 +157,17 @@ class RedisDB:
 
                     else:
                         try:
-                            from rediscluster import RedisCluster
-                        except ModuleNotFoundError as e:
-                            log.error('请安装 pip install "feapder[all]"')
-                            os._exit(0)
+                            from redis.cluster import RedisCluster, ClusterNode
+                            startup_nodes = [ClusterNode(host=ip, port=port) for ip, port in parsed_nodes]
+                        except ModuleNotFoundError:
+                            try:
+                                from rediscluster import RedisCluster
+                                startup_nodes = [{"host": ip, "port": port} for ip, port in parsed_nodes]
+                            except ModuleNotFoundError:
+                                log.error(
+                                    '请安装 pip install "feapder[all]" 或 pip install redis-py-cluster'
+                                )
+                                os._exit(0)
 
                         # log.debug("使用redis集群模式")
                         self._redis = RedisCluster(

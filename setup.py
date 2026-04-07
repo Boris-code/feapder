@@ -38,7 +38,7 @@ requires = [
     "DBUtils>=2.0",
     "parsel>=1.5.2",
     "PyMySQL>=0.9.3",
-    "redis>=2.10.6,<4.0.0",
+    "redis>=2.10.6,<6.0.0",
     "requests>=2.22.0",
     "bs4>=0.0.1",
     "ipython>=7.14.0",
@@ -60,7 +60,6 @@ all_requires = [
     "bitarray>=1.5.3",
     "PyExecJS>=1.5.1",
     "pymongo>=3.10.1",
-    "redis-py-cluster>=2.1.0",
 ] + render_requires
 
 setuptools.setup(
