@@ -147,7 +147,7 @@ def get_proxy_from_redis(proxy_source_url, **kwargs):
     @return: [{'http':'http://xxx.xxx.xxx:xxx', 'https':'http://xxx.xxx.xxx.xxx:xxx'}]
     """
 
-    redis_conn = redis.StrictRedis.from_url(proxy_source_url)
+    redis_conn = redis.Redis.from_url(proxy_source_url)
     key = kwargs.get("redis_proxies_key")
     assert key, "从redis中获取代理 需要指定 redis_proxies_key"
     proxies = redis_conn.zrange(key, 0, -1)
