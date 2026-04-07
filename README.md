@@ -108,12 +108,11 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 2. parse： 解析数据
 
 
-## 感谢Thordata代理赞助
+## 感谢Rapidproxy代理赞助
 
+<a href="https://www.rapidproxy.io/?ref=boris " target="_blank">
 
-<a href="https://www.thordata.com/?ls=github&lk=feapder" target="_blank">
-
-<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2025/12/19/mmexport1766141157285.jpg">
+<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2026/04/03/github-2.png">
 
 </a>
 
