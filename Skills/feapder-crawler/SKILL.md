@@ -62,6 +62,7 @@ metadata:
 - 用户询问“要不要脱离 feapder”“改成 requests 怎么样”这类方案判断时，只能先做风险/收益评估和替代方案说明；这不等于授权实现。只有用户明确确认“就改成非 feapder 实现”后，才可以写非 feapder 代码。
 - 不要假设 `AirSpider` 的配置行为等同于 Redis 分布式爬虫；先确认基类和启动参数。
 - 对 `BatchSpider` / `TaskSpider`，必须区分任务下发 `start_monitor_task()` 和 worker 采集 `start()`。
+- 多页面、多来源、多步骤解析时，优先把回调写成公开的 `parse_xxx` 方法，并在 `feapder.Request(..., callback=self.parse_xxx)` 显式绑定；不要把所有 URL 分支塞进默认 `parse()` 再转调 `_parse_xxx` 私有方法。默认 `parse()` 只适合未指定 callback 的入口或很小的单页爬虫。
 - 排查入库问题时，沿着 `yield Item` 或 `yield UpdateItem` 追到 `ITEM_PIPELINES`，再看具体 pipeline 和配置。
 - 排查解析问题时，先看 `Request.callback`、`parser_name`、`download_midware`、`validate`、`exception_request`、`failed_request`，不要急着改 scheduler。
 - 遇到 import/path 问题时，记住 feapder 从 `items/` 或 `spiders/` 启动时会把项目根目录插入 `sys.path`。

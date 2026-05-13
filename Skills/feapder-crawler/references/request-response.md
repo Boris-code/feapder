@@ -38,6 +38,56 @@ def parse_list(self, request, response):
         yield feapder.Request(href, callback=self.parse_detail, category=category)
 ```
 
+多来源或多步骤解析时，不要把所有页面都扔进默认 `parse()` 再用 URL 判断分发到 `_parse_xxx` 私有方法。优先让每条链路在 `Request` 上显式绑定 callback：
+
+```python
+YYB_URL = "https://sj.qq.com/appdetail/{}"
+WDJ_URL = "https://www.wandoujia.com/apps/{}"
+MI_URL = "https://app.mi.com/details?id={}"
+
+
+def start_requests(self):
+    for pkg in self.seed_packages:
+        yield feapder.Request(YYB_URL.format(pkg), callback=self.parse_yyb)
+
+
+def parse_yyb(self, request, response):
+    pkg = request.url.rsplit("/", 1)[-1]
+    for related_pkg in self.extract_yyb_related(response):
+        yield feapder.Request(
+            YYB_URL.format(related_pkg),
+            callback=self.parse_yyb,
+        )
+        yield feapder.Request(
+            WDJ_URL.format(related_pkg),
+            callback=self.parse_wandoujia,
+        )
+        yield feapder.Request(
+            MI_URL.format(related_pkg),
+            callback=self.parse_mi,
+        )
+
+
+def parse_wandoujia(self, request, response):
+    pass
+
+
+def parse_mi(self, request, response):
+    pass
+```
+
+反例：
+
+```python
+def parse(self, request, response):
+    if "sj.qq.com" in response.url:
+        yield from self._parse_yyb(request, response)
+    elif "wandoujia.com" in response.url:
+        yield from self._parse_wandoujia(request, response)
+```
+
+这个反例能跑，但会隐藏 feapder 的 callback 链路，不利于调试 `request.callback_name`、失败重试、跨 parser 回调和后续维护。只有很小的单页爬虫才适合只写默认 `parse()`。
+
 ## Parser 钩子
 
 `BaseParser` 和各类 spider 都支持这些常见钩子：
