@@ -8,6 +8,7 @@
 
 ```python
 import feapder
+from items.news_item import NewsItem
 
 
 class SinaNewsParser(feapder.BaseParser):
@@ -15,8 +16,7 @@ class SinaNewsParser(feapder.BaseParser):
         yield feapder.Request("https://news.sina.com.cn/")
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "news"
+        item = NewsItem()
         item.source = "sina"
         item.title = response.xpath("//title/text()").extract_first()
         yield item
@@ -27,8 +27,7 @@ class TencentNewsParser(feapder.BaseParser):
         yield feapder.Request("https://news.qq.com/")
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "news"
+        item = NewsItem()
         item.source = "tencent"
         item.title = response.xpath("//title/text()").extract_first()
         yield item
@@ -57,6 +56,7 @@ yield feapder.Request(
 
 ```python
 import feapder
+from items.news_item import NewsItem
 
 
 class SinaBatchParser(feapder.BatchParser):
@@ -65,8 +65,7 @@ class SinaBatchParser(feapder.BatchParser):
         yield feapder.Request(url, task_id=task_id)
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "news"
+        item = NewsItem()
         item.source = "sina"
         item.title = response.xpath("//title/text()").extract_first()
         yield item
@@ -79,8 +78,7 @@ class TencentBatchParser(feapder.BatchParser):
         yield feapder.Request(url, task_id=task_id)
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "news"
+        item = NewsItem()
         item.source = "tencent"
         item.title = response.xpath("//title/text()").extract_first()
         yield item
@@ -108,4 +106,5 @@ def create_spider():
 - 确认 `add_parser()` 注册了所有 parser 类。
 - Batch 集成必须确认任务表字段能标识 parser。
 - 跨 parser 回调时检查 `parser_name` 和 callback 名称是否匹配。
+- 标准项目中 parser 产出的数据也应使用 `items/` 下的生成式 Item 类，不要默认在 parser 内动态 `feapder.Item()`。
 - `AirSpider` 不支持这种 parser 集成方式。

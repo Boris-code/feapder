@@ -59,6 +59,7 @@ metadata:
 - 在已有 feapder 标准项目里新增 spider 时，先定位项目根，再进入 `<project_root>/spiders/` 执行 `feapder create -s <spider_name>`；不要在项目根直接执行 `-s`，也不要手写模板替代生成器，除非用户明确要求。
 - 已有项目新增或调整 Redis/MySQL/代理/线程/重试/渲染/pipeline 配置时，优先修改项目实际加载的 `setting.py`；只有配置确实只属于单个 spider，或项目已有模式使用 `__custom_setting__`，才放进 spider 类的 `__custom_setting__`。修改时增量合并用户已有配置，不要覆盖。
 - 用户明确要求 feapder 或当前项目使用 feapder 时，示例代码默认必须继承 feapder 的 Spider 类，并使用 `feapder.Request`、`feapder.Response`、`Item` / `UpdateItem`、`ITEM_PIPELINES` 等框架路径；AI 不允许自行退化成纯 `requests`、`Scrapy`、独立 Playwright、手写 CSV 或直接 SQL。若你判断确实需要脱离 feapder 路径，必须先向用户说明原因、影响和替代方案，并明确请求用户授权；用户确认前不要写非 feapder 实现。
+- 标准 feapder 项目里，数据模型默认放在 `items/<table>_item.py`，优先用 `feapder create -i <table_name>` 生成 `Item` / `UpdateItem` 类；spider 里只导入 `XxxItem`、赋字段、`yield item`。不要默认在 spider 里写 `_build_xxx_item()` 并动态构造 `feapder.Item()` / `feapder.UpdateItem()`，除非是单文件 `AirSpider`、临时 demo，或用户明确要求快速脚本。
 - 用户询问“要不要脱离 feapder”“改成 requests 怎么样”这类方案判断时，只能先做风险/收益评估和替代方案说明；这不等于授权实现。只有用户明确确认“就改成非 feapder 实现”后，才可以写非 feapder 代码。
 - 不要假设 `AirSpider` 的配置行为等同于 Redis 分布式爬虫；先确认基类和启动参数。
 - 对 `BatchSpider` / `TaskSpider`，必须区分任务下发 `start_monitor_task()` 和 worker 采集 `start()`。

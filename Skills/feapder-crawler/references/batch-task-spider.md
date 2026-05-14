@@ -31,6 +31,7 @@ spider = TaskSpiderTest(
 
 ```python
 import feapder
+from items.seed_result_item import SeedResultItem
 
 
 class SeedTaskSpider(feapder.TaskSpider):
@@ -42,8 +43,7 @@ class SeedTaskSpider(feapder.TaskSpider):
         yield feapder.Request(url, task_id=task_id)
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "seed_result"
+        item = SeedResultItem()
         item.url = request.url
         item.title = response.xpath("//title/text()").extract_first()
         yield item
@@ -109,6 +109,7 @@ spider = ProductSpider(
 
 ```python
 import feapder
+from items.product_price_item import ProductPriceItem
 
 
 class ProductBatchSpider(feapder.BatchSpider):
@@ -117,8 +118,7 @@ class ProductBatchSpider(feapder.BatchSpider):
         yield feapder.Request(url, task_id=task_id)
 
     def parse(self, request, response):
-        item = feapder.Item()
-        item.table_name = "product_price"
+        item = ProductPriceItem()
         item.url = request.url
         item.title = response.xpath("//title/text()").extract_first()
         yield item

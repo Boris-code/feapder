@@ -40,9 +40,12 @@ if __name__ == "__main__":
 - item 需要经过 `ItemBuffer` 自动批量入库。
 - 失败请求、重试状态、任务防丢比较重要。
 
-典型结构：
+典型结构（标准项目里优先使用 `items/` 下的生成式 Item 类）：
 
 ```python
+from items.news_item import NewsItem
+
+
 class NewsSpider(feapder.Spider):
     __custom_setting__ = {
         "REDISDB_IP_PORTS": "localhost:6379",
@@ -56,8 +59,7 @@ class NewsSpider(feapder.Spider):
         yield feapder.Request("https://news.example.com/detail", callback=self.parse_detail)
 
     def parse_detail(self, request, response):
-        item = feapder.Item()
-        item.table_name = "news"
+        item = NewsItem()
         item.title = response.xpath("//h1/text()").extract_first()
         yield item
 
