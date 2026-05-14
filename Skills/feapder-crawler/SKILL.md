@@ -64,6 +64,7 @@ metadata:
 - 不要假设 `AirSpider` 的配置行为等同于 Redis 分布式爬虫；先确认基类和启动参数。
 - 对 `BatchSpider` / `TaskSpider`，必须区分任务下发 `start_monitor_task()` 和 worker 采集 `start()`。
 - 多页面、多来源、多步骤解析时，优先把回调写成公开的 `parse_xxx` 方法，并在 `feapder.Request(..., callback=self.parse_xxx)` 显式绑定；不要把所有 URL 分支塞进默认 `parse()` 再转调 `_parse_xxx` 私有方法。默认 `parse()` 只适合未指定 callback 的入口或很小的单页爬虫。
+- 同一批种子可以直接构造多个并列来源 URL 时，在 `start_requests()` 中并列 `yield feapder.Request(..., callback=self.parse_source)`；不要先请求来源 A，再在 `parse_a()` 里创建来源 B 的请求。只有从当前 response 解析出来的派生 URL，才在对应 callback 内继续 `yield Request`。
 - 排查入库问题时，沿着 `yield Item` 或 `yield UpdateItem` 追到 `ITEM_PIPELINES`，再看具体 pipeline 和配置。
 - 排查解析问题时，先看 `Request.callback`、`parser_name`、`download_midware`、`validate`、`exception_request`、`failed_request`，不要急着改 scheduler。
 - 遇到 import/path 问题时，记住 feapder 从 `items/` 或 `spiders/` 启动时会把项目根目录插入 `sys.path`。

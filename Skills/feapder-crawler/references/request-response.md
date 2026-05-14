@@ -38,7 +38,9 @@ def parse_list(self, request, response):
         yield feapder.Request(href, callback=self.parse_detail, category=category)
 ```
 
-多来源或多步骤解析时，不要把所有页面都扔进默认 `parse()` 再用 URL 判断分发到 `_parse_xxx` 私有方法。优先让每条链路在 `Request` 上显式绑定 callback：
+多来源或多步骤解析时，不要把所有页面都扔进默认 `parse()` 再用 URL 判断分发到 `_parse_xxx` 私有方法。优先让每条链路在 `Request` 上显式绑定 callback。
+
+如果同一批种子能直接构造多个并列来源 URL，要在 `start_requests()` 中并列下发。不要先请求来源 A，再在 `parse_a()` 里创建来源 B 的请求；只有从当前 response 解析出来的派生 URL，才在对应 callback 内继续 yield。
 
 ```python
 YYB_URL = "https://sj.qq.com/appdetail/{}"
@@ -48,23 +50,19 @@ MI_URL = "https://app.mi.com/details?id={}"
 
 def start_requests(self):
     for pkg in self.seed_packages:
-        yield feapder.Request(YYB_URL.format(pkg), callback=self.parse_yyb)
+        yield feapder.Request(YYB_URL.format(pkg), callback=self.parse_yyb, pkg=pkg)
+        yield feapder.Request(WDJ_URL.format(pkg), callback=self.parse_wandoujia, pkg=pkg)
+        yield feapder.Request(MI_URL.format(pkg), callback=self.parse_mi, pkg=pkg)
 
 
 def parse_yyb(self, request, response):
-    pkg = request.url.rsplit("/", 1)[-1]
+    pkg = request.pkg
     for related_pkg in self.extract_yyb_related(response):
+        # 这是从应用宝响应里解析出的派生链路，所以留在 parse_yyb 中递归。
         yield feapder.Request(
             YYB_URL.format(related_pkg),
             callback=self.parse_yyb,
-        )
-        yield feapder.Request(
-            WDJ_URL.format(related_pkg),
-            callback=self.parse_wandoujia,
-        )
-        yield feapder.Request(
-            MI_URL.format(related_pkg),
-            callback=self.parse_mi,
+            pkg=related_pkg,
         )
 
 
@@ -87,6 +85,16 @@ def parse(self, request, response):
 ```
 
 这个反例能跑，但会隐藏 feapder 的 callback 链路，不利于调试 `request.callback_name`、失败重试、跨 parser 回调和后续维护。只有很小的单页爬虫才适合只写默认 `parse()`。
+
+另一个反例是把并列来源串成伪流程：
+
+```python
+def parse_yyb(self, request, response):
+    # 错：豌豆荚 URL 能由同一个 pkg 直接构造，不应该藏在应用宝 callback 里。
+    yield feapder.Request(WDJ_URL.format(request.pkg), callback=self.parse_wandoujia)
+```
+
+如果豌豆荚和应用宝都是同一批 pkg 的独立补充来源，应在 `start_requests()` 中并列创建；`parse_yyb()` 只处理应用宝响应和应用宝响应派生出的推荐链。
 
 ## Parser 钩子
 
