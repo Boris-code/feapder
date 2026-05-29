@@ -1,4 +1,5 @@
 files/*
+docs/superpowers/
 .DS_Store
 .idea/*
 */.idea/*

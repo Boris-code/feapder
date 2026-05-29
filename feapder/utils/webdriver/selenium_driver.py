@@ -8,13 +8,13 @@ Created on 2021/3/18 4:59 下午
 @email: boris_liu@foxmail.com
 """
 
+import inspect
 import json
 import logging
 import os
 from typing import Optional, Union, List
 
 from selenium import webdriver
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.firefox import GeckoDriverManager
@@ -33,41 +33,7 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
     PHANTOMJS = "PHANTOMJS"
     FIREFOX = "FIREFOX"
 
-    __CHROME_ATTRS__ = {
-        "executable_path",
-        "port",
-        "options",
-        "service_args",
-        "desired_capabilities",
-        "service_log_path",
-        "chrome_options",
-        "keep_alive",
-    }
-
-    __EDGE_ATTRS__ = __CHROME_ATTRS__
-
-    __FIREFOX_ATTRS__ = {
-        "firefox_profile",
-        "firefox_binary",
-        "timeout",
-        "capabilities",
-        "proxy",
-        "executable_path",
-        "options",
-        "service_log_path",
-        "firefox_options",
-        "service_args",
-        "desired_capabilities",
-        "log_path",
-        "keep_alive",
-    }
-    __PHANTOMJS_ATTRS__ = {
-        "executable_path",
-        "port",
-        "desired_capabilities",
-        "service_args",
-        "service_log_path",
-    }
+    __DRIVER_ATTRS__ = {"keep_alive"}
 
     def __init__(self, xhr_url_regexes: list = None, **kwargs):
         """
@@ -131,41 +97,117 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
 
         return data
 
+    def get_options(self, default_options, *option_keys):
+        for option_key in option_keys:
+            options = self._kwargs.get(option_key)
+            if options is not None:
+                return options
+
+        return default_options
+
+    def get_driver_kwargs(self):
+        return self.filter_kwargs(self._kwargs, self.__DRIVER_ATTRS__)
+
+    def apply_capabilities(self, options, *capability_keys):
+        for capability_key in capability_keys:
+            capabilities = self._kwargs.get(capability_key)
+            if not capabilities:
+                continue
+
+            for key, value in capabilities.items():
+                options.set_capability(key, value)
+
+        return options
+
+    def build_service(self, service_cls, driver_manager_cls=None):
+        service = self._kwargs.get("service")
+        if service is not None:
+            return service
+
+        service_kwargs = {}
+        service_args = self._kwargs.get("service_args")
+        if service_args is not None:
+            service_kwargs["service_args"] = service_args
+
+        port = self._kwargs.get("port")
+        if port is not None:
+            service_kwargs["port"] = port
+
+        log_path = self._kwargs.get("service_log_path")
+        if log_path is None:
+            log_path = self._kwargs.get("log_path")
+        if log_path is not None:
+            log_param = (
+                "log_output"
+                if "log_output" in inspect.signature(service_cls).parameters
+                else "log_path"
+            )
+            service_kwargs[log_param] = log_path
+
+        if self._executable_path:
+            return service_cls(self._executable_path, **service_kwargs)
+
+        if self._auto_install_driver and driver_manager_cls is not None:
+            return service_cls(driver_manager_cls().install(), **service_kwargs)
+
+        if service_kwargs:
+            return service_cls(**service_kwargs)
+
+        return None
+
+    def create_driver(self, driver_cls, options, service):
+        kwargs = self.get_driver_kwargs()
+        if service is not None:
+            kwargs["service"] = service
+
+        return driver_cls(options=options, **kwargs)
+
+    def get_proxy(self):
+        return self._proxy() if callable(self._proxy) else self._proxy
+
+    def get_user_agent(self):
+        return self._user_agent() if callable(self._user_agent) else self._user_agent
+
     def get_driver(self):
         return self.driver
 
     def firefox_driver(self):
-        if webdriver.__version__ >= "4.0.0":
-            raise Exception(
-                f"暂未适配selenium=={webdriver.__version__}版本的firefox API，建议安装selenium==3.141.0版本或使用CHROME浏览器"
+        from selenium.webdriver.firefox.service import Service
+
+        firefox_options = self.get_options(
+            webdriver.FirefoxOptions(), "options", "firefox_options"
+        )
+        firefox_profile = self._kwargs.get("firefox_profile")
+        if firefox_profile is not None:
+            firefox_options.profile = firefox_profile
+        firefox_binary = self._kwargs.get("firefox_binary")
+        if firefox_binary is not None:
+            firefox_options.binary_location = (
+                getattr(firefox_binary, "path", None)
+                or getattr(firefox_binary, "_start_cmd", None)
+                or firefox_binary
             )
 
-        firefox_profile = webdriver.FirefoxProfile()
-        firefox_options = webdriver.FirefoxOptions()
-        firefox_capabilities = webdriver.DesiredCapabilities.FIREFOX
-        try:
-            from selenium.webdriver.firefox.service import Service
-        except (ImportError, ModuleNotFoundError):
-            Service = None
-
+        self.apply_capabilities(firefox_options, "desired_capabilities", "capabilities")
         if self._proxy:
-            proxy = self._proxy() if callable(self._proxy) else self._proxy
-            firefox_capabilities["marionette"] = True
-            firefox_capabilities["proxy"] = {
-                "proxyType": "MANUAL",
-                "httpProxy": proxy,
-                "ftpProxy": proxy,
-                "sslProxy": proxy,
-            }
+            proxy = self.get_proxy()
+            firefox_options.set_capability(
+                "proxy",
+                {
+                    "proxyType": "MANUAL",
+                    "httpProxy": proxy,
+                    "ftpProxy": proxy,
+                    "sslProxy": proxy,
+                },
+            )
 
         if self._user_agent:
-            firefox_profile.set_preference(
-                "general.useragent.override",
-                self._user_agent() if callable(self._user_agent) else self._user_agent,
+            firefox_options.set_preference(
+                "general.useragent.override", self.get_user_agent()
             )
 
         if not self._load_images:
-            firefox_profile.set_preference("permissions.default.image", 2)
+            firefox_options.set_preference("permissions.default.image", 2)
 
         if self._headless:
             firefox_options.add_argument("--headless")
@@ -176,25 +218,8 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             for arg in self._custom_argument:
                 firefox_options.add_argument(arg)
 
-        kwargs = self.filter_kwargs(self._kwargs, self.__FIREFOX_ATTRS__)
-
-        if Service is None:
-            if self._executable_path:
-                kwargs.update(executable_path=self._executable_path)
-            elif self._auto_install_driver:
-                kwargs.update(executable_path=GeckoDriverManager().install())
-        else:
-            if self._executable_path:
-                kwargs.update(service=Service(self._executable_path))
-            elif self._auto_install_driver:
-                kwargs.update(service=Service(GeckoDriverManager().install()))
-
-        driver = webdriver.Firefox(
-            capabilities=firefox_capabilities,
-            options=firefox_options,
-            firefox_profile=firefox_profile,
-            **kwargs,
-        )
+        service = self.build_service(Service, GeckoDriverManager)
+        driver = self.create_driver(webdriver.Firefox, firefox_options, service)
 
         if self._window_size:
             driver.set_window_size(*self._window_size)
@@ -202,31 +227,22 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
         return driver
 
     def chrome_driver(self):
-        chrome_options = webdriver.ChromeOptions()
+        chrome_options = self.get_options(
+            webdriver.ChromeOptions(), "options", "chrome_options"
+        )
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option("useAutomationExtension", False)
         # docker 里运行需要
         chrome_options.add_argument("--no-sandbox")
-        try:
-            from selenium.webdriver.chrome.service import Service
-        except (ImportError, ModuleNotFoundError):
-            Service = None
+        from selenium.webdriver.chrome.service import Service
+
+        self.apply_capabilities(chrome_options, "desired_capabilities")
 
         if self._proxy:
-            chrome_options.add_argument(
-                "--proxy-server={}".format(
-                    self._proxy() if callable(self._proxy) else self._proxy
-                )
-            )
+            chrome_options.add_argument("--proxy-server={}".format(self.get_proxy()))
         if self._user_agent:
-            chrome_options.add_argument(
-                "user-agent={}".format(
-                    self._user_agent()
-                    if callable(self._user_agent)
-                    else self._user_agent
-                )
-            )
+            chrome_options.add_argument("user-agent={}".format(self.get_user_agent()))
         if not self._load_images:
             chrome_options.add_experimental_option(
                 "prefs", {"profile.managed_default_content_settings.images": 2}
@@ -254,19 +270,8 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             for arg in self._custom_argument:
                 chrome_options.add_argument(arg)
 
-        kwargs = self.filter_kwargs(self._kwargs, self.__CHROME_ATTRS__)
-        if Service is None:
-            if self._executable_path:
-                kwargs.update(executable_path=self._executable_path)
-            elif self._auto_install_driver:
-                kwargs.update(executable_path=ChromeDriverManager().install())
-        else:
-            if self._executable_path:
-                kwargs.update(service=Service(self._executable_path))
-            elif self._auto_install_driver:
-                kwargs.update(service=Service(ChromeDriverManager().install()))
-
-        driver = webdriver.Chrome(options=chrome_options, **kwargs)
+        service = self.build_service(Service, ChromeDriverManager)
+        driver = self.create_driver(webdriver.Chrome, chrome_options, service)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
@@ -293,44 +298,30 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             )
 
         if self._download_path:
-            driver.command_executor._commands["send_command"] = (
-                "POST",
-                "/session/$sessionId/chromium/send_command",
+            driver.execute_cdp_cmd(
+                "Page.setDownloadBehavior",
+                {"behavior": "allow", "downloadPath": self._download_path},
             )
-            params = {
-                "cmd": "Page.setDownloadBehavior",
-                "params": {"behavior": "allow", "downloadPath": self._download_path},
-            }
-            driver.execute("send_command", params)
 
         return driver
 
     def edge_driver(self):
-        edge_options = webdriver.EdgeOptions()
+        edge_options = self.get_options(
+            webdriver.EdgeOptions(), "options", "edge_options"
+        )
         # 此步骤很重要，设置为开发者模式，防止被各大网站识别出来使用了Selenium
         edge_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         edge_options.add_experimental_option("useAutomationExtension", False)
         # docker 里运行需要
         edge_options.add_argument("--no-sandbox")
-        try:
-            from selenium.webdriver.edge.service import Service
-        except (ImportError, ModuleNotFoundError):
-            Service = None
+        from selenium.webdriver.edge.service import Service
+
+        self.apply_capabilities(edge_options, "desired_capabilities")
 
         if self._proxy:
-            edge_options.add_argument(
-                "--proxy-server={}".format(
-                    self._proxy() if callable(self._proxy) else self._proxy
-                )
-            )
+            edge_options.add_argument("--proxy-server={}".format(self.get_proxy()))
         if self._user_agent:
-            edge_options.add_argument(
-                "user-agent={}".format(
-                    self._user_agent()
-                    if callable(self._user_agent)
-                    else self._user_agent
-                )
-            )
+            edge_options.add_argument("user-agent={}".format(self.get_user_agent()))
         if not self._load_images:
             edge_options.add_experimental_option(
                 "prefs", {"profile.managed_default_content_settings.images": 2}
@@ -358,19 +349,8 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             for arg in self._custom_argument:
                 edge_options.add_argument(arg)
 
-        kwargs = self.filter_kwargs(self._kwargs, self.__CHROME_ATTRS__)
-        if Service is None:
-            if self._executable_path:
-                kwargs.update(executable_path=self._executable_path)
-            elif self._auto_install_driver:
-                raise NotImplementedError("edge not support auto install driver")
-        else:
-            if self._executable_path:
-                kwargs.update(service=Service(self._executable_path))
-            elif self._auto_install_driver:
-                raise NotImplementedError("edge not support auto install driver")
-
-        driver = webdriver.Edge(options=edge_options, **kwargs)
+        service = self.build_service(Service)
+        driver = self.create_driver(webdriver.Edge, edge_options, service)
 
         # 隐藏浏览器特征
         if self._use_stealth_js:
@@ -397,57 +377,18 @@ class SeleniumDriver(WebDriver, RemoteWebDriver):
             )
 
         if self._download_path:
-            driver.command_executor._commands["send_command"] = (
-                "POST",
-                "/session/$sessionId/chromium/send_command",
+            driver.execute_cdp_cmd(
+                "Page.setDownloadBehavior",
+                {"behavior": "allow", "downloadPath": self._download_path},
             )
-            params = {
-                "cmd": "Page.setDownloadBehavior",
-                "params": {"behavior": "allow", "downloadPath": self._download_path},
-            }
-            driver.execute("send_command", params)
 
         return driver
 
     def phantomjs_driver(self):
-        import warnings
-
-        warnings.filterwarnings("ignore")
-
-        service_args = []
-        dcap = DesiredCapabilities.PHANTOMJS
-
-        if self._proxy:
-            service_args.append(
-                "--proxy=%s" % self._proxy() if callable(self._proxy) else self._proxy
-            )
-        if self._user_agent:
-            dcap["phantomjs.page.settings.userAgent"] = (
-                self._user_agent() if callable(self._user_agent) else self._user_agent
-            )
-        if not self._load_images:
-            service_args.append("--load-images=no")
-
-        # 添加自定义的配置参数
-        if self._custom_argument:
-            for arg in self._custom_argument:
-                service_args.append(arg)
-
-        kwargs = self.filter_kwargs(self._kwargs, self.__PHANTOMJS_ATTRS__)
-
-        if self._executable_path:
-            kwargs.update(executable_path=self._executable_path)
-
-        driver = webdriver.PhantomJS(
-            service_args=service_args, desired_capabilities=dcap, **kwargs
+        raise NotImplementedError(
+            "PhantomJS is not supported by Selenium 4. "
+            "Please use CHROME, EDGE, or FIREFOX."
         )
-
-        if self._window_size:
-            driver.set_window_size(self._window_size[0], self._window_size[1])
-
-        del warnings
-
-        return driver
 
     @property
     def domain(self):

@@ -13,8 +13,8 @@ from sys import version_info
 
 import setuptools
 
-if version_info < (3, 6, 0):
-    raise SystemExit("Sorry! feapder requires python 3.6.0 or later.")
+if version_info < (3, 9, 0):
+    raise SystemExit("Sorry! feapder requires python 3.9.0 or later.")
 
 with open(join(dirname(__file__), "feapder/VERSION"), "rb") as fh:
     version = fh.read().decode("ascii").strip()
@@ -35,15 +35,15 @@ packages.extend(
 
 requires = [
     "better-exceptions>=0.2.2",
-    "DBUtils>=2.0",
-    "parsel>=1.5.2",
-    "PyMySQL>=0.9.3",
-    "redis>=2.10.6,<4.0.0",
-    "requests>=2.22.0",
-    "bs4>=0.0.1",
-    "ipython>=7.14.0",
-    "cryptography>=3.3.2",
-    "urllib3>=1.25.8",
+    "DBUtils>=3.0",
+    "parsel>=1.8.1",
+    "PyMySQL>=1.1.0",
+    "redis>=5.0.0,<9.0.0",
+    "requests>=2.31.0",
+    "beautifulsoup4>=4.12.0",
+    "ipython>=8.0.0",
+    "cryptography>=41.0.0",
+    "urllib3>=2.0.0,<3.0.0",
     "loguru>=0.5.3",
     "influxdb>=5.3.1",
     "pyperclip>=1.8.2",
@@ -52,15 +52,14 @@ requires = [
 
 render_requires = [
     "webdriver-manager>=4.0.0",
-    "playwright",
-    "selenium>=3.141.0",
+    "playwright>=1.40.0",
+    "selenium>=4.10.0",
 ]
 
 all_requires = [
-    "bitarray>=1.5.3",
+    "bitarray>=2.8.0",
     "PyExecJS>=1.5.1",
-    "pymongo>=3.10.1",
-    "redis-py-cluster>=2.1.0",
+    "pymongo>=4.0.0",
 ] + render_requires
 
 setuptools.setup(
@@ -69,7 +68,7 @@ setuptools.setup(
     author="Boris",
     license="MIT",
     author_email="feapder@qq.com",
-    python_requires=">=3.6",
+    python_requires=">=3.9",
     description="feapder是一款支持分布式、批次采集、数据防丢、报警丰富的python爬虫框架",
     long_description=long_description,
     long_description_content_type="text/markdown",

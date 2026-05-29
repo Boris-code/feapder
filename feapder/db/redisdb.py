@@ -6,11 +6,11 @@ Created on 2016-11-16 16:25
 ---------
 @author: Boris
 """
-import os
 import time
 from typing import Union, List
 
 import redis
+from redis.cluster import ClusterNode, RedisCluster
 from redis.connection import Encoder as _Encoder
 from redis.exceptions import ConnectionError, TimeoutError
 from redis.exceptions import DataError
@@ -140,29 +140,24 @@ class RedisDB:
                     startup_nodes = []
                     for ip_port in ip_ports:
                         ip, port = ip_port.split(":")
-                        startup_nodes.append({"host": ip, "port": port})
+                        startup_nodes.append(ClusterNode(ip, int(port)))
 
                     if self._service_name:
                         # log.debug("使用redis哨兵模式")
-                        hosts = [(node["host"], node["port"]) for node in startup_nodes]
+                        hosts = [(node.host, node.port) for node in startup_nodes]
                         sentinel = Sentinel(hosts, socket_timeout=3, **self._kwargs)
                         self._redis = sentinel.master_for(
                             self._service_name,
                             password=self._user_pass,
                             db=self._db,
-                            redis_class=redis.StrictRedis,
+                            redis_class=redis.Redis,
                             decode_responses=self._decode_responses,
                             max_connections=self._max_connections,
                             **self._kwargs,
                         )
+                        self._is_redis_cluster = False
 
                     else:
-                        try:
-                            from rediscluster import RedisCluster
-                        except ModuleNotFoundError as e:
-                            log.error('请安装 pip install "feapder[all]"')
-                            os._exit(0)
-
                         # log.debug("使用redis集群模式")
                         self._redis = RedisCluster(
                             startup_nodes=startup_nodes,
@@ -171,11 +166,10 @@ class RedisDB:
                             max_connections=self._max_connections,
                             **self._kwargs,
                         )
-
-                    self._is_redis_cluster = True
+                        self._is_redis_cluster = True
                 else:
                     ip, port = ip_ports[0].split(":")
-                    self._redis = redis.StrictRedis(
+                    self._redis = redis.Redis(
                         host=ip,
                         port=port,
                         db=self._db,
@@ -186,7 +180,7 @@ class RedisDB:
                     )
                     self._is_redis_cluster = False
             else:
-                self._redis = redis.StrictRedis.from_url(
+                self._redis = redis.Redis.from_url(
                     self._url, decode_responses=self._decode_responses, **self._kwargs
                 )
                 self._is_redis_cluster = False
@@ -573,7 +567,8 @@ class RedisDB:
 
         if isinstance(values, list):
             pipe = self._redis.pipeline()
-            pipe.multi()
+            if not self._is_redis_cluster:
+                pipe.multi()
             for value in values:
                 pipe.zscore(table, value)
             is_exists_temp = pipe.execute()
@@ -773,7 +768,8 @@ class RedisDB:
             else:
                 assert len(offsets) == len(values), "offsets值要与values值一一对应"
                 pipe = self._redis.pipeline()
-                pipe.multi()
+                if not self._is_redis_cluster:
+                    pipe.multi()
 
                 for offset, value in zip(offsets, values):
                     pipe.setbit(table, offset, value)
@@ -792,7 +788,8 @@ class RedisDB:
         """
         if isinstance(offsets, list):
             pipe = self._redis.pipeline()
-            pipe.multi()
+            if not self._is_redis_cluster:
+                pipe.multi()
             for offset in offsets:
                 pipe.getbit(table, offset)
 
