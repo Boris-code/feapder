@@ -18,6 +18,7 @@ import feapder.utils.tools as tools
 from feapder.buffer.item_buffer import ItemBuffer
 from feapder.buffer.request_buffer import AirSpiderRequestBuffer
 from feapder.core.base_parser import BaseParser
+from feapder.core.runtime_state import RuntimeState
 from feapder.db.memorydb import MemoryDB
 from feapder.network.item import Item
 from feapder.network.request import Request
@@ -42,6 +43,7 @@ class ParserControl(threading.Thread):
 
     def __init__(self, collector, redis_key, request_buffer, item_buffer):
         super(ParserControl, self).__init__()
+        self._state = RuntimeState()
         self._parsers = []
         self._collector = collector
         self._redis_key = redis_key
@@ -52,7 +54,8 @@ class ParserControl(threading.Thread):
 
     def run(self):
         self._thread_stop = False
-        while not self._thread_stop:
+        self._state = RuntimeState()
+        while not self._state.is_stop_requested:
             try:
                 request = self._collector.get_request()
                 if not request:
@@ -62,13 +65,20 @@ class ParserControl(threading.Thread):
                     continue
 
                 self.is_show_tip = False
-                self.deal_request(request)
+                with self._state.busy():
+                    self.deal_request(request)
 
             except Exception as e:
                 log.exception(e)
 
     def is_not_task(self):
         return self.is_show_tip
+
+    def is_idle(self):
+        return self.is_not_task() and self._state.is_idle
+
+    def is_stopped(self):
+        return self._state.is_stop_requested
 
     @classmethod
     def get_task_status_count(cls):
@@ -431,6 +441,7 @@ class ParserControl(threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._state.request_stop()
         self._started.clear()
 
     def add_parser(self, parser: BaseParser):
@@ -467,6 +478,7 @@ class AirSpiderParserControl(ParserControl):
         item_buffer: ItemBuffer,
     ):
         super(ParserControl, self).__init__()
+        self._state = RuntimeState()
         self._parsers = []
         self._memory_db = memory_db
         self._thread_stop = False
@@ -474,7 +486,9 @@ class AirSpiderParserControl(ParserControl):
         self._item_buffer = item_buffer
 
     def run(self):
-        while not self._thread_stop:
+        self._thread_stop = False
+        self._state = RuntimeState()
+        while not self._state.is_stop_requested:
             try:
                 request = self._memory_db.get()
                 if not request:
@@ -484,7 +498,8 @@ class AirSpiderParserControl(ParserControl):
                     continue
 
                 self.is_show_tip = False
-                self.deal_request(request)
+                with self._state.busy():
+                    self.deal_request(request)
 
             except Exception as e:
                 log.exception(e)

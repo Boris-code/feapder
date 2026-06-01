@@ -286,32 +286,19 @@ class Scheduler(TailThread):
                 self.__add_task()
 
     def all_thread_is_done(self):
-        # 降低偶然性, 因为各个环节不是并发的，很有可能当时状态为假，但检测下一条时该状态为真。一次检测很有可能遇到这种偶然性
+        # Check three times to avoid transient idle states between runtime stages.
         for i in range(3):
-            # 检测 collector 状态
-            if (
-                self._collector.is_collector_task()
-                or self._collector.get_requests_count() > 0
-            ):
+            if not self._collector.is_idle():
                 return False
 
-            # 检测 parser_control 状态
             for parser_control in self._parser_controls:
-                if not parser_control.is_not_task():
+                if not parser_control.is_idle():
                     return False
 
-            # 检测 item_buffer 状态
-            if (
-                self._item_buffer.get_items_count() > 0
-                or self._item_buffer.is_adding_to_db()
-            ):
+            if not self._item_buffer.is_idle():
                 return False
 
-            # 检测 request_buffer 状态
-            if (
-                self._request_buffer.get_requests_count() > 0
-                or self._request_buffer.is_adding_to_db()
-            ):
+            if not self._request_buffer.is_idle():
                 return False
 
             tools.delay_time(1)

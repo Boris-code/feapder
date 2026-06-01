@@ -15,6 +15,7 @@ from queue import Queue, Empty
 import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.redisdb import RedisDB
+from feapder.core.runtime_state import RuntimeState
 from feapder.network.request import Request
 from feapder.utils.log import log
 
@@ -30,6 +31,7 @@ class Collector(threading.Thread):
         """
 
         super(Collector, self).__init__()
+        self._state = RuntimeState()
         self._db = RedisDB()
 
         self._thread_stop = False
@@ -40,9 +42,11 @@ class Collector(threading.Thread):
 
     def run(self):
         self._thread_stop = False
-        while not self._thread_stop:
+        self._state = RuntimeState()
+        while not self._state.is_stop_requested:
             try:
-                self.__input_data()
+                with self._state.busy():
+                    self.__input_data()
             except Exception as e:
                 log.exception(e)
                 time.sleep(0.1)
@@ -51,6 +55,7 @@ class Collector(threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._state.request_stop()
         self._started.clear()
 
     def __input_data(self):
@@ -111,6 +116,15 @@ class Collector(threading.Thread):
         return (
             self._todo_requests.qsize() or self._db.zget_count(self._tab_requests) or 0
         )
+
+    def pending_count(self):
+        return self.get_requests_count()
+
+    def is_idle(self):
+        return not self.is_collector_task() and self.pending_count() == 0
+
+    def is_stopped(self):
+        return self._state.is_stop_requested
 
     def is_collector_task(self):
         return self._is_collector_task

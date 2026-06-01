@@ -15,6 +15,7 @@ import feapder.setting as setting
 import feapder.utils.tools as tools
 from feapder.db.memorydb import MemoryDB
 from feapder.db.redisdb import RedisDB
+from feapder.core.runtime_state import RuntimeState
 from feapder.dedup import Dedup
 from feapder.utils.log import log
 
@@ -60,6 +61,7 @@ class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
     def __init__(self, redis_key):
         AirSpiderRequestBuffer.__init__(self, db=RedisDB(), dedup_name=redis_key)
         threading.Thread.__init__(self)
+        self._state = RuntimeState()
 
         self._thread_stop = False
         self._is_adding_to_db = False
@@ -74,7 +76,8 @@ class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
 
     def run(self):
         self._thread_stop = False
-        while not self._thread_stop:
+        self._state = RuntimeState()
+        while not self._state.is_stop_requested:
             try:
                 self.__add_request_to_db()
             except Exception as e:
@@ -84,6 +87,7 @@ class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._state.request_stop()
         self._started.clear()
 
     def put_request(self, request):
@@ -113,62 +117,74 @@ class RequestBuffer(AirSpiderRequestBuffer, threading.Thread):
     def get_requests_count(self):
         return len(self._requests_deque)
 
+    def get_delete_requests_count(self):
+        return len(self._del_requests_deque)
+
+    def pending_count(self):
+        return self.get_requests_count() + self.get_delete_requests_count()
+
+    def is_idle(self):
+        return self.pending_count() == 0 and not self.is_adding_to_db()
+
+    def is_stopped(self):
+        return self._state.is_stop_requested
+
     def is_adding_to_db(self):
         return self._is_adding_to_db
 
     def __add_request_to_db(self):
+        self._is_adding_to_db = True
         request_list = []
         prioritys = []
         callbacks = []
+        try:
+            while self._requests_deque:
+                request = self._requests_deque.popleft()
 
-        while self._requests_deque:
-            request = self._requests_deque.popleft()
-            self._is_adding_to_db = True
+                if callable(request):
+                    # 函数
+                    # 注意：应该考虑闭包情况。闭包情况可写成
+                    # def test(xxx = xxx):
+                    #     # TODO 业务逻辑 使用 xxx
+                    # 这么写不会导致xxx为循环结束后的最后一个值
+                    callbacks.append(request)
+                    continue
 
-            if callable(request):
-                # 函数
-                # 注意：应该考虑闭包情况。闭包情况可写成
-                # def test(xxx = xxx):
-                #     # TODO 业务逻辑 使用 xxx
-                # 这么写不会导致xxx为循环结束后的最后一个值
-                callbacks.append(request)
-                continue
+                priority = request.priority
 
-            priority = request.priority
+                # 如果需要去重并且库中已重复 则continue
+                if self.is_exist_request(request):
+                    continue
+                else:
+                    request_list.append(str(request.to_dict))
+                    prioritys.append(priority)
 
-            # 如果需要去重并且库中已重复 则continue
-            if self.is_exist_request(request):
-                continue
-            else:
-                request_list.append(str(request.to_dict))
-                prioritys.append(priority)
+                if len(request_list) > MAX_URL_COUNT:
+                    self._db.zadd(self._table_request, request_list, prioritys)
+                    request_list = []
+                    prioritys = []
 
-            if len(request_list) > MAX_URL_COUNT:
+            # 入库
+            if request_list:
                 self._db.zadd(self._table_request, request_list, prioritys)
-                request_list = []
-                prioritys = []
 
-        # 入库
-        if request_list:
-            self._db.zadd(self._table_request, request_list, prioritys)
+            # 执行回调
+            for callback in callbacks:
+                try:
+                    callback()
+                except Exception as e:
+                    log.exception(e)
 
-        # 执行回调
-        for callback in callbacks:
-            try:
-                callback()
-            except Exception as e:
-                log.exception(e)
+            # 删除已做任务
+            if self._del_requests_deque:
+                request_done_list = []
+                while self._del_requests_deque:
+                    request_done_list.append(self._del_requests_deque.popleft())
 
-        # 删除已做任务
-        if self._del_requests_deque:
-            request_done_list = []
-            while self._del_requests_deque:
-                request_done_list.append(self._del_requests_deque.popleft())
+                # 去掉request_list中的requests， 否则可能会将刚添加的request删除
+                request_done_list = list(set(request_done_list) - set(request_list))
 
-            # 去掉request_list中的requests， 否则可能会将刚添加的request删除
-            request_done_list = list(set(request_done_list) - set(request_list))
-
-            if request_done_list:
-                self._db.zrem(self._table_request, request_done_list)
-
-        self._is_adding_to_db = False
+                if request_done_list:
+                    self._db.zrem(self._table_request, request_done_list)
+        finally:
+            self._is_adding_to_db = False

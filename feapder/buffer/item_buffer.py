@@ -14,6 +14,7 @@ from queue import Queue
 import feapder.utils.tools as tools
 from feapder import setting
 from feapder.db.redisdb import RedisDB
+from feapder.core.runtime_state import RuntimeState
 from feapder.dedup import Dedup
 from feapder.network.item import Item, UpdateItem
 from feapder.pipelines import BasePipeline
@@ -31,6 +32,7 @@ class ItemBuffer(threading.Thread):
     def __init__(self, redis_key, task_table=None):
         if not hasattr(self, "_table_item"):
             super(ItemBuffer, self).__init__()
+            self._state = RuntimeState()
 
             self._thread_stop = False
             self._is_adding_to_db = False
@@ -106,7 +108,8 @@ class ItemBuffer(threading.Thread):
 
     def run(self):
         self._thread_stop = False
-        while not self._thread_stop:
+        self._state = RuntimeState()
+        while not self._state.is_stop_requested:
             self.flush()
             tools.delay_time(setting.ITEM_UPLOAD_INTERVAL)
 
@@ -114,6 +117,7 @@ class ItemBuffer(threading.Thread):
 
     def stop(self):
         self._thread_stop = True
+        self._state.request_stop()
         self._started.clear()
 
     def put_item(self, item):
@@ -173,6 +177,15 @@ class ItemBuffer(threading.Thread):
 
     def get_items_count(self):
         return self._items_queue.qsize()
+
+    def pending_count(self):
+        return self.get_items_count()
+
+    def is_idle(self):
+        return self.pending_count() == 0 and not self.is_adding_to_db()
+
+    def is_stopped(self):
+        return self._state.is_stop_requested
 
     def is_adding_to_db(self):
         return self._is_adding_to_db
