@@ -1,7 +1,7 @@
 import pytest
 
 import feapder.setting as setting
-from feapder.core.parser_control import ParserControl
+from feapder.core.parser_control import AirSpiderParserControl, ParserControl
 from feapder.network.request import Request
 from feapder.network.item import Item
 
@@ -72,8 +72,20 @@ class FakeItemBuffer:
         self.items.append(item)
 
 
+def return_none_response():
+    return None
+
+
 def build_control():
     control = object.__new__(ParserControl)
+    control._parsers = []
+    control._request_buffer = FakeRequestBuffer()
+    control._item_buffer = FakeItemBuffer()
+    return control
+
+
+def build_air_control():
+    control = object.__new__(AirSpiderParserControl)
     control._parsers = []
     control._request_buffer = FakeRequestBuffer()
     control._item_buffer = FakeItemBuffer()
@@ -229,3 +241,66 @@ def test_deal_request_dispatches_item_and_marks_request_for_item_delete(monkeypa
     assert isinstance(control._item_buffer.items[0], Item)
     assert control._item_buffer.items[1] == "raw-request"
     assert control._request_buffer.deleted == []
+
+
+def test_air_parser_control_uses_direct_sync_request_payload():
+    control = build_air_control()
+    request = Request("https://example.com")
+
+    assert control._make_sync_request_payload(request) is request
+
+
+def test_air_parser_control_dispatches_item_without_redis_finish(monkeypatch):
+    parser = FakeParser()
+    control = build_air_control()
+    control._parsers = [parser]
+    request = Request(
+        "https://example.com",
+        parser_name="FakeParser",
+        auto_request=False,
+    )
+
+    monkeypatch.setattr(control, "record_download_status", lambda status, spider: None)
+    monkeypatch.setattr(control, "_sleep_after_request", lambda: None)
+
+    control.deal_request(request)
+
+    assert len(control._item_buffer.items) == 1
+    assert isinstance(control._item_buffer.items[0], Item)
+    assert control._request_buffer.deleted == []
+
+
+def test_air_parser_control_allows_none_download_response(monkeypatch):
+    parser = FakeParserRecordingExceptions()
+    control = build_air_control()
+    control._parsers = [parser]
+    request = Request(
+        "https://example.com",
+        parser_name="FakeParser",
+        auto_request=True,
+    )
+    request.get_response = return_none_response
+
+    monkeypatch.setattr(control, "record_download_status", lambda status, spider: None)
+    monkeypatch.setattr(control, "_sleep_after_request", lambda: None)
+
+    control.deal_request(request)
+
+    assert parser.exception_requests == []
+    assert parser.validated == [(request, None)]
+    assert parser.parsed == [(request, None)]
+
+
+def test_air_parser_control_finish_request_rejects_redis_deletion_inputs():
+    control = build_air_control()
+
+    control._finish_request(None, False, False)
+
+    with pytest.raises(AssertionError):
+        control._finish_request("raw-request", False, False)
+
+    with pytest.raises(AssertionError):
+        control._finish_request(None, True, False)
+
+    with pytest.raises(AssertionError):
+        control._finish_request(None, False, True)
