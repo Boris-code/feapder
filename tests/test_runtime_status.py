@@ -6,6 +6,7 @@ from feapder.buffer.request_buffer import RequestBuffer
 from feapder.core.collector import Collector
 from feapder.core.scheduler import Scheduler
 from feapder.core.runtime_state import RuntimeState
+from feapder.network.item import Item
 
 
 class FakeRedis:
@@ -185,3 +186,55 @@ def test_request_buffer_marks_noop_flush_attempt_busy_while_checking_queue():
     assert buffer._requests_deque.busy_observations
     assert all(buffer._requests_deque.busy_observations)
     assert buffer.is_idle() is True
+
+
+def test_request_buffer_flush_resets_flag_when_zadd_raises():
+    class ExplodingDB:
+        def zadd(self, table, values, prioritys=0):
+            raise RuntimeError("write failed")
+
+    request = type(
+        "FakeRequest",
+        (),
+        {
+            "priority": 300,
+            "filter_repeat": False,
+            "url": "https://example.com",
+            "to_dict": {"url": "https://example.com"},
+        },
+    )()
+    buffer = build_request_buffer(request_count=0, delete_count=0, flushing=False)
+    buffer._db = ExplodingDB()
+    buffer._table_request = "test:z_requests"
+    buffer._table_failed_request = "test:z_failed_requests"
+    buffer._requests_deque.append(request)
+
+    buffer.flush()
+
+    assert buffer.is_adding_to_db() is False
+
+
+def test_item_buffer_flush_resets_flag_when_export_raises(monkeypatch):
+    monkeypatch.setattr("feapder.buffer.item_buffer.setting.ITEM_FILTER_ENABLE", False)
+    item = Item(title="boom")
+    buffer = build_item_buffer(item_count=0, flushing=False)
+    buffer._items_queue.put(item)
+    buffer._redis_key = "test"
+    buffer._task_table = None
+    buffer._item_tables = {}
+    buffer._item_update_keys = {}
+    buffer._item_pipelines = {}
+    buffer._pipelines = []
+    buffer._have_mysql_pipeline = True
+    buffer._mysql_pipeline = None
+    buffer.export_retry_times = 0
+    buffer.export_falied_times = 0
+
+    def raise_export(table, datas, is_update=False, update_keys=(), used_pipelines=None):
+        raise RuntimeError("export failed")
+
+    buffer._ItemBuffer__export_to_db = raise_export
+
+    buffer.flush()
+
+    assert buffer.is_adding_to_db() is False

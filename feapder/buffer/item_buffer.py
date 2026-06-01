@@ -299,133 +299,134 @@ class ItemBuffer(threading.Thread):
     def __add_item_to_db(
             self, items, update_items, requests, callbacks, items_fingerprints
     ):
-        export_success = True
         self._is_adding_to_db = True
+        try:
+            export_success = True
 
-        # 去重
-        if setting.ITEM_FILTER_ENABLE:
-            items, items_fingerprints = self.__dedup_items(items, items_fingerprints)
+            # 去重
+            if setting.ITEM_FILTER_ENABLE:
+                items, items_fingerprints = self.__dedup_items(items, items_fingerprints)
 
-        # 分捡（返回值包含 pipelines_dict）
-        items_dict = self.__pick_items(items)
-        update_items_dict = self.__pick_items(update_items, is_update_item=True)
+            # 分捡（返回值包含 pipelines_dict）
+            items_dict = self.__pick_items(items)
+            update_items_dict = self.__pick_items(update_items, is_update_item=True)
 
-        # item批量入库
-        failed_items = {"add": [], "update": [], "requests": []}
-        while items_dict:
-            table, datas = items_dict.popitem()
-            used_pipelines = self._item_pipelines.get(table)
+            # item批量入库
+            failed_items = {"add": [], "update": [], "requests": []}
+            while items_dict:
+                table, datas = items_dict.popitem()
+                used_pipelines = self._item_pipelines.get(table)
 
-            log.debug(
-                """
+                log.debug(
+                    """
                 -------------- item 批量入库 --------------
                 表名: %s
                 datas: %s
                     """
-                % (table, tools.dumps_json(datas, indent=16))
-            )
+                    % (table, tools.dumps_json(datas, indent=16))
+                )
 
-            if not self.__export_to_db(table, datas, used_pipelines=used_pipelines):
-                export_success = False
-                failed_items["add"].append({"table": table, "datas": datas})
+                if not self.__export_to_db(table, datas, used_pipelines=used_pipelines):
+                    export_success = False
+                    failed_items["add"].append({"table": table, "datas": datas})
 
-        # 执行批量update
-        while update_items_dict:
-            table, datas = update_items_dict.popitem()
-            used_pipelines = self._item_pipelines.get(table)
+            # 执行批量update
+            while update_items_dict:
+                table, datas = update_items_dict.popitem()
+                used_pipelines = self._item_pipelines.get(table)
 
-            log.debug(
-                """
+                log.debug(
+                    """
                 -------------- item 批量更新 --------------
                 表名: %s
                 datas: %s
                     """
-                % (table, tools.dumps_json(datas, indent=16))
-            )
-
-            update_keys = self._item_update_keys.get(table)
-            if not self.__export_to_db(
-                    table, datas, is_update=True, update_keys=update_keys, used_pipelines=used_pipelines
-            ):
-                export_success = False
-                failed_items["update"].append(
-                    {"table": table, "datas": datas, "update_keys": update_keys}
+                    % (table, tools.dumps_json(datas, indent=16))
                 )
 
-        if export_success:
-            # 执行回调
-            while callbacks:
-                try:
-                    callback = callbacks.pop(0)
-                    callback()
-                except Exception as e:
-                    log.exception(e)
-
-            # 删除做过的request
-            if requests:
-                self.redis_db.zrem(self._table_request, requests)
-
-            # 去重入库
-            if setting.ITEM_FILTER_ENABLE:
-                if items_fingerprints:
-                    self.__class__.dedup.add(items_fingerprints, skip_check=True)
-        else:
-            failed_items["requests"] = requests
-
-            if self.export_retry_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
-                if self._redis_key != "air_spider":
-                    # 失败的item记录到redis
-                    self.redis_db.sadd(self._table_failed_items, failed_items)
-
-                    # 删除做过的request
-                    if requests:
-                        self.redis_db.zrem(self._table_request, requests)
-
-                    log.error(
-                        "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
-                            tools.dumps_json(failed_items)
-                        )
+                update_keys = self._item_update_keys.get(table)
+                if not self.__export_to_db(
+                        table, datas, is_update=True, update_keys=update_keys, used_pipelines=used_pipelines
+                ):
+                    export_success = False
+                    failed_items["update"].append(
+                        {"table": table, "datas": datas, "update_keys": update_keys}
                     )
-                self.export_retry_times = 0
 
-            else:
-                tip = ["入库不成功"]
-                if callbacks:
-                    tip.append("不执行回调")
+            if export_success:
+                # 执行回调
+                while callbacks:
+                    try:
+                        callback = callbacks.pop(0)
+                        callback()
+                    except Exception as e:
+                        log.exception(e)
+
+                # 删除做过的request
                 if requests:
-                    tip.append("不删除任务")
-                    exists = self.redis_db.zexists(self._table_request, requests)
-                    for exist, request in zip(exists, requests):
-                        if exist:
-                            self.redis_db.zadd(self._table_request, requests, 300)
+                    self.redis_db.zrem(self._table_request, requests)
 
+                # 去重入库
                 if setting.ITEM_FILTER_ENABLE:
-                    tip.append("数据不入去重库")
+                    if items_fingerprints:
+                        self.__class__.dedup.add(items_fingerprints, skip_check=True)
+            else:
+                failed_items["requests"] = requests
 
-                if self._redis_key != "air_spider":
-                    tip.append("将自动重试")
+                if self.export_retry_times > setting.EXPORT_DATA_MAX_RETRY_TIMES:
+                    if self._redis_key != "air_spider":
+                        # 失败的item记录到redis
+                        self.redis_db.sadd(self._table_failed_items, failed_items)
 
-                tip.append("失败items:\n {}".format(tools.dumps_json(failed_items)))
-                log.error("，".join(tip))
+                        # 删除做过的request
+                        if requests:
+                            self.redis_db.zrem(self._table_request, requests)
 
-                self.export_falied_times += 1
+                        log.error(
+                            "入库超过最大重试次数，不再重试，数据记录到redis，items:\n {}".format(
+                                tools.dumps_json(failed_items)
+                            )
+                        )
+                    self.export_retry_times = 0
 
-                if self._redis_key != "air_spider":
-                    self.export_retry_times += 1
+                else:
+                    tip = ["入库不成功"]
+                    if callbacks:
+                        tip.append("不执行回调")
+                    if requests:
+                        tip.append("不删除任务")
+                        exists = self.redis_db.zexists(self._table_request, requests)
+                        for exist, request in zip(exists, requests):
+                            if exist:
+                                self.redis_db.zadd(self._table_request, requests, 300)
 
-            if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
-                # 报警
-                msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
-                    self._redis_key, self.export_falied_times
-                )
-                log.error(msg)
-                tools.send_msg(
-                    msg=msg,
-                    level="error",
-                    message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
-                )
+                    if setting.ITEM_FILTER_ENABLE:
+                        tip.append("数据不入去重库")
 
-        self._is_adding_to_db = False
+                    if self._redis_key != "air_spider":
+                        tip.append("将自动重试")
+
+                    tip.append("失败items:\n {}".format(tools.dumps_json(failed_items)))
+                    log.error("，".join(tip))
+
+                    self.export_falied_times += 1
+
+                    if self._redis_key != "air_spider":
+                        self.export_retry_times += 1
+
+                if self.export_falied_times > setting.EXPORT_DATA_MAX_FAILED_TIMES:
+                    # 报警
+                    msg = "《{}》爬虫导出数据失败，失败次数：{}，请检查爬虫是否正常".format(
+                        self._redis_key, self.export_falied_times
+                    )
+                    log.error(msg)
+                    tools.send_msg(
+                        msg=msg,
+                        level="error",
+                        message_prefix="《%s》爬虫导出数据失败" % (self._redis_key),
+                    )
+        finally:
+            self._is_adding_to_db = False
 
     def metric_datas(self, table, datas):
         """
