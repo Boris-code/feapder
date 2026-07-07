@@ -110,35 +110,9 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 ## 感谢以下代理赞助商
 
-### Rapidproxy代理
+<!-- SPONSOR_START expires=2026-08-28 timezone=Asia/Shanghai -->
 
-<!--6.7-->
-
-<a href="https://www.rapidproxy.io/?ref=boris " target="_blank">
-
-<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2026/04/03/github-2.png">
-
-</a>
-
-### SWIFTPROXY
-
-<!--5.16-->
-
-<a href="https://www.swiftproxy.net/?ref=boris" target="_blank">
-
-<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2026/04/17/mmexport1776389746816.jpg">
-
-</a>
-
-### NovProxy
-
-<!--5.24-->
-g
-<a href="https://novproxy.com?kwd=tt-git" target="_blank">
-
-<img src="https://markdown-media.oss-cn-beijing.aliyuncs.com/2026/04/24/mmexport1777023699277.jpg">
-
-</a>
+<!-- SPONSOR_END -->
 
 
 ## 参与贡献
