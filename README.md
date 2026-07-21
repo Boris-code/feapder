@@ -112,6 +112,16 @@ FirstSpider|2021-02-09 14:55:14,620|air_spider.py|run|line:80|INFO| 无任务，
 
 <!-- SPONSOR_START expires=2026-08-28 timezone=Asia/Shanghai -->
 
+### LokiProxy
+
+> 支持免费测试，住宅代理低至 $0.48/GB，移动代理低至 $0.91/GB，不限量住宅代理仅 $12/小时即可体验 ⚡， 支持ASN精准定位及无限并发会话，高稳定、高性价比
+<a href="https://www.lokiproxy.com/?utm_t=1&utm_i=158" target="_blank">
+
+![](https://markdown-media.oss-cn-beijing.aliyuncs.com/2026/07/21/17846416079896.jpg)
+
+链接：	https://www.lokiproxy.com/?utm_t=1&utm_i=158
+</a>
+
 <!-- SPONSOR_END -->
 
 
