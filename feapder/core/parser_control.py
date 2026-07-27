@@ -162,15 +162,24 @@ class ParserControl(threading.Thread):
                     else:
                         response = None
 
-                    if request.callback:  # 如果有parser的回调函数，则用回调处理
-                        callback_parser = (
-                            request.callback
-                            if callable(request.callback)
-                            else tools.get_method(parser, request.callback)
-                        )
-                        results = callback_parser(request, response)
-                    else:  # 否则默认用parser处理
-                        results = parser.parse(request, response)
+                    # 智能上下文：在回调前设置当前请求为父请求（用于下层继承）
+                    if Request._request_context:
+                        Request._request_context.current_request = request
+
+                    try:
+                        if request.callback:  # 如果有parser的回调函数，则用回调处理
+                            callback_parser = (
+                                request.callback
+                                if callable(request.callback)
+                                else tools.get_method(parser, request.callback)
+                            )
+                            results = callback_parser(request, response)
+                        else:  # 否则默认用parser处理
+                            results = parser.parse(request, response)
+                    finally:
+                        # 智能上下文：回调结束后清理父请求
+                        if Request._request_context:
+                            Request._request_context.current_request = None
 
                     if results and not isinstance(results, Iterable):
                         raise Exception(
@@ -559,15 +568,24 @@ class AirSpiderParserControl(ParserControl):
                     else:
                         response = None
 
-                    if request.callback:  # 如果有parser的回调函数，则用回调处理
-                        callback_parser = (
-                            request.callback
-                            if callable(request.callback)
-                            else tools.get_method(parser, request.callback)
-                        )
-                        results = callback_parser(request, response)
-                    else:  # 否则默认用parser处理
-                        results = parser.parse(request, response)
+                    # 智能上下文：在回调前设置当前请求为父请求（用于下层继承）
+                    if Request._request_context:
+                        Request._request_context.current_request = request
+
+                    try:
+                        if request.callback:  # 如果有parser的回调函数，则用回调处理
+                            callback_parser = (
+                                request.callback
+                                if callable(request.callback)
+                                else tools.get_method(parser, request.callback)
+                            )
+                            results = callback_parser(request, response)
+                        else:  # 否则默认用parser处理
+                            results = parser.parse(request, response)
+                    finally:
+                        # 智能上下文：回调结束后清理父请求
+                        if Request._request_context:
+                            Request._request_context.current_request = None
 
                     if results and not isinstance(results, Iterable):
                         raise Exception(
