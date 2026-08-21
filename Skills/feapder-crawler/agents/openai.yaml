@@ -1,0 +1,4 @@
+interface:
+  display_name: "Feapder Crawler"
+  short_description: "构建和排查 feapder 爬虫工作流"
+  default_prompt: "使用 $feapder-crawler 设计或排查一个 feapder 爬虫。"
