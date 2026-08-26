@@ -11,6 +11,10 @@ Created on 2018-07-25 11:49:08
 import copy
 import os
 import re
+import socket
+import sys
+import threading
+import types
 
 import requests
 from requests.cookies import RequestsCookieJar
@@ -28,6 +32,9 @@ from feapder.utils.log import log
 # 屏蔽warning信息
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+# 预定义锁类型（用于 _should_skip_value 方法，避免每次都创建新对象）
+_LOCK_TYPES = (type(threading.Lock()), type(threading.RLock()))
+
 
 class Request:
     user_agent_pool = user_agent
@@ -41,6 +48,11 @@ class Request:
     downloader: Downloader = None
     session_downloader: Downloader = None
     render_downloader: RenderDownloader = None
+
+    # 智能上下文管理
+    _callback_needs = None  # 静态分析结果: direct模式的参数需求
+    _transitive_needs = None  # 传递性分析结果: transitive模式的参数需求
+    _request_context = None  # 线程本地存储，用于传递父请求对象
 
     __REQUEST_ATTRS__ = {
         # "method",
@@ -103,6 +115,7 @@ class Request:
         render=False,
         render_time=0,
         make_absolute_links=None,
+        auto_inherit_context=False,
         **kwargs,
     ):
         """
@@ -146,6 +159,96 @@ class Request:
         @result:
         """
 
+        # ====================== 智能上下文继承逻辑 ======================
+        # 如果启用了自动上下文继承，并且已完成静态分析
+        if auto_inherit_context and self.__class__._callback_needs:
+            import inspect
+            from feapder import setting
+            from feapder.utils.log import log
+
+            # 1. 确定使用哪种模式：direct（只传递给下一层）或 transitive（传递给所有后续层）
+            mode = getattr(setting, "SMART_CONTEXT_MODE", "transitive")
+
+            # 2. 获取当前回调函数需要的参数列表
+            # callback 可能是: 函数/方法(callable), 字符串(函数名), 或 None
+            # 注意: 当 callback 是 bound method (如 self.parse_detail) 时,
+            #       callback.__name__ 可以正确获取到方法名 'parse_detail'
+            if callback is None:
+                # 没有回调函数，跳过智能上下文
+                callback_name = None
+            elif callable(callback):
+                # 可调用对象（函数、方法、bound method）
+                try:
+                    callback_name = callback.__name__
+                except AttributeError:
+                    # 某些可调用对象可能没有 __name__ 属性
+                    log.warning(f"[智能上下文] callback 没有 __name__ 属性: {callback}")
+                    callback_name = None
+            elif isinstance(callback, str):
+                # 字符串形式的函数名（用于跨类回调）
+                callback_name = callback
+            else:
+                # 未知类型，记录警告并跳过
+                log.warning(f"[智能上下文] 不支持的 callback 类型: {type(callback)}")
+                callback_name = None
+
+            # 如果有有效的 callback_name，进行参数继承
+            if callback_name:
+                if mode == "transitive" and self.__class__._transitive_needs:
+                    # transitive 模式：获取当前回调及所有后续回调需要的参数（传递性需求）
+                    needed_params = self.__class__._transitive_needs.get(callback_name, set())
+                else:
+                    # direct 模式：只获取当前回调自己需要的参数（直接需求）
+                    needed_params = self.__class__._callback_needs.get(callback_name, set())
+
+                # 3. 如果有需要的参数，开始收集
+                if needed_params:
+                    # 获取调用者的栈帧（用于提取局部变量）
+                    caller_frame = inspect.currentframe().f_back
+
+                    # 边界检查：如果无法获取栈帧（如在 C 扩展中调用），跳过参数继承
+                    if not caller_frame:
+                        log.warning(f"[智能上下文] 无法获取调用者栈帧，跳过参数继承")
+                    else:
+                        try:
+                            caller_locals = caller_frame.f_locals
+
+                            # 获取父请求对象（从调用者局部变量 request 获取）
+                            parent_request = caller_locals.get('request', None)
+
+                            # 4. 从三个来源收集参数（按优先级从高到低）
+                            inherited_params = {}
+
+                            for param_name in needed_params:
+                                # 优先级1: 显式传入的 kwargs（最高优先级）
+                                # 注意：这里不添加到 inherited_params，因为它本来就在 kwargs 中
+                                if param_name in kwargs:
+                                    continue
+
+                                # 优先级2: 调用者的局部变量
+                                if param_name in caller_locals:
+                                    value = caller_locals[param_name]
+                                    # 过滤掉特殊对象（None 值允许传递，用户可能需要显式清除父级的值）
+                                    if not self._should_skip_value(param_name, value):
+                                        inherited_params[param_name] = value
+                                        continue
+
+                                # 优先级3: 父请求的属性（最低优先级）
+                                if parent_request and hasattr(parent_request, param_name):
+                                    value = getattr(parent_request, param_name)
+                                    # 过滤掉特殊对象和 None 值（父请求的 None 值不继承，避免传递空值）
+                                    if value is not None and not self._should_skip_value(param_name, value):
+                                        inherited_params[param_name] = value
+
+                            # 5. 将收集到的参数合并到 kwargs 中
+                            if inherited_params:
+                                kwargs.update(inherited_params)
+                                log.debug(f"[智能上下文] {callback_name} 继承参数: {list(inherited_params.keys())}")
+                        finally:
+                            # 显式清理栈帧引用，避免潜在的内存泄漏
+                            del caller_frame
+
+        # ====================== 原有的初始化逻辑 ======================
         self.url = url
         self.method = None
         self.retry_times = retry_times
@@ -541,3 +644,76 @@ class Request:
 
     def copy(self):
         return self.__class__.from_dict(copy.deepcopy(self.to_dict))
+
+    @staticmethod
+    def _should_skip_value(param_name: str, value) -> bool:
+        """
+        判断是否应该跳过某个参数值（过滤特殊对象）
+
+        Args:
+            param_name: 参数名
+            value: 参数值
+
+        Returns:
+            bool: True 表示应该跳过，False 表示可以继承
+        """
+        # 1. 过滤 response 对象（避免传递整个响应对象）
+        if param_name == 'response':
+            return True
+
+        # 2. 过滤 self（避免传递爬虫实例）
+        if param_name == 'self':
+            return True
+
+        # 3. 过滤私有变量（以 _ 开头）
+        if param_name.startswith('_'):
+            return True
+
+        # 4. 过滤函数和方法
+        if callable(value):
+            return True
+
+        # 5. 过滤模块对象
+        if isinstance(value, types.ModuleType):
+            return True
+
+        # 6. 过滤不可序列化的对象（文件句柄、数据库连接等）
+        # 文件对象 (通过 fileno() 判断是否是真正的文件对象)
+        if hasattr(value, 'fileno'):
+            try:
+                value.fileno()  # 真正的文件对象会有有效的文件描述符
+                return True
+            except (AttributeError, OSError, ValueError, TypeError):
+                # AttributeError: 对象没有 fileno 方法（虽然 hasattr 检查过，但可能是属性）
+                # OSError: 文件已关闭或无效
+                # ValueError: 无效的文件描述符
+                # TypeError: fileno() 参数错误
+                pass  # 不是真正的文件对象
+
+        # Socket 对象
+        if isinstance(value, socket.socket):
+            return True
+
+        # 线程/锁对象
+        if isinstance(value, _LOCK_TYPES):
+            return True
+
+        # 7. 过滤过大的对象（避免占用过多内存）
+        # 检查对象大小，如果超过 1MB 则跳过并记录警告
+        try:
+            size = sys.getsizeof(value)
+            # 对于容器类型（list, dict, set等），递归计算实际大小
+            if isinstance(value, (list, tuple, set, frozenset)):
+                size += sum(sys.getsizeof(item) for item in value)
+            elif isinstance(value, dict):
+                size += sum(sys.getsizeof(k) + sys.getsizeof(v) for k, v in value.items())
+
+            # 如果对象大于 1MB，跳过并记录警告
+            if size > 1024 * 1024:  # 1MB
+                log.warning(f"[智能上下文] 跳过大对象 {param_name} (大小: {size / 1024 / 1024:.2f}MB)")
+                return True
+        except Exception:
+            # 如果无法计算大小，不跳过（保持向后兼容）
+            pass
+
+        return False
